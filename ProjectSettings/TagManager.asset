@@ -8,11 +8,11 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - buildings
   - Water
   - UI
-  - 
-  - 
+  - grass
+  - Ground
   - 
   - 
   - 
@@ -40,4 +40,13 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: building
+    uniqueID: 1955179035
+    locked: 0
+  - name: grass
+    uniqueID: 4119891177
+    locked: 0
+  - name: water
+    uniqueID: 2977760303
     locked: 0
