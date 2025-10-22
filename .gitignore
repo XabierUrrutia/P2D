@@ -48,7 +48,6 @@ ProjectSettings/ProjectSettings.asset.meta
 
 # Unity3D generated files
 *.prefab
-*.unity
 
 # Crashlytics generated file
 crashlytics-build.properties
