@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/first map.unity
     guid: 2d9acc864cc7f12498312095ac36d202
+  - enabled: 1
+    path: Assets/Scenes/Interface/GameOptionsMenu.unity
+    guid: 4b70ddb9cb0993842af8ab6b8435c9a9
   m_configObjects: {}

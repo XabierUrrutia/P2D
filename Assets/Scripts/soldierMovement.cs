@@ -36,6 +36,17 @@ public class soldierMovement : MonoBehaviour
         {
             spriteRenderer.sprite = frontRightSprite;
         }
+
+        targetPosition = transform.position;
+
+        // Restaurar posição guardada (se existir)
+        if (PlayerPositionManager.HasSavedPosition)
+        {
+            transform.position = PlayerPositionManager.GetPosition();
+            targetPosition = transform.position;
+            PlayerPositionManager.HasSavedPosition = false; // evita reposicionar de novo se recarregares
+            Debug.Log("Posição restaurada: " + transform.position);
+        }
     }
 
     void Update()

@@ -35,6 +35,16 @@ public class characterMovement : MonoBehaviour
         {
             spriteRenderer.sprite = frontRightSprite;
         }
+
+        // Restaurar posição guardada (se existir)
+        if (PlayerPositionManager.HasSavedPosition)
+        {
+            transform.position = PlayerPositionManager.GetPosition();
+            targetPosition = transform.position;
+            PlayerPositionManager.HasSavedPosition = false; // evita reposicionar de novo se recarregares
+            Debug.Log("Posição restaurada: " + transform.position);
+        }
+
     }
 
     void Update()

@@ -35,6 +35,16 @@ public class MainMenu : MonoBehaviour
     {
         LoadSceneAndSave(1);
     }
+    public void GoToOptionsFromGame()
+    {
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
+        {
+            PlayerPositionManager.SavePosition(player.transform.position);
+        }
+
+        SceneManager.LoadScene(3);
+    }
 
     public void GoToMainMenu()
     {

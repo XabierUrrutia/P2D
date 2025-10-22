@@ -24,9 +24,15 @@ public class PauseMenu : MonoBehaviour
 
     public void PauseGame()
     {
+        Time.timeScale = 0f;
+
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
+        {
+            PlayerPositionManager.SavePosition(player.transform.position);
+        }
+
         pauseMenuUI.SetActive(true);
-        Time.timeScale = 0f;  // pausa TODA a física e Update()
-        isPaused = true;
     }
 
     public void ResumeGame()
