@@ -1,12 +1,18 @@
 using UnityEngine;
 using System.Collections;
 
-public class SimpleAvoidance : MonoBehaviour
+public class characterMovement : MonoBehaviour
 {
     public float speed = 5f;
     public LayerMask groundLayer;
     public LayerMask waterLayer;
     public float checkDistance = 1f;
+
+    [Header("Sprites de Dirección")]
+    public Sprite frontRightSprite;
+    public Sprite frontLeftSprite;
+    public Sprite backRightSprite;
+    public Sprite backLeftSprite;
 
     private Camera cam;
     private Vector3 targetPosition;
@@ -14,12 +20,21 @@ public class SimpleAvoidance : MonoBehaviour
     private Rigidbody2D rb;
     private Vector3[] path;
     private int currentWaypoint;
+    private SpriteRenderer spriteRenderer;
+    private Vector2 lastDirection = Vector2.zero;
 
     void Start()
     {
         cam = Camera.main;
         rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         targetPosition = transform.position;
+
+        // Establecer sprite inicial
+        if (spriteRenderer != null && frontRightSprite != null)
+        {
+            spriteRenderer.sprite = frontRightSprite;
+        }
     }
 
     void Update()
@@ -44,6 +59,12 @@ public class SimpleAvoidance : MonoBehaviour
                 }
             }
         }
+
+        // Actualizar dirección incluso cuando no se mueve
+        if (!isMoving && lastDirection != Vector2.zero)
+        {
+            UpdateSpriteDirection(lastDirection);
+        }
     }
 
     void FixedUpdate()
@@ -52,6 +73,15 @@ public class SimpleAvoidance : MonoBehaviour
         {
             // Moverse hacia el waypoint actual
             Vector3 currentTarget = path[currentWaypoint];
+            Vector2 moveDirection = (currentTarget - transform.position).normalized;
+
+            // Actualizar la dirección del sprite
+            if (moveDirection.magnitude > 0.1f)
+            {
+                UpdateSpriteDirection(moveDirection);
+                lastDirection = moveDirection;
+            }
+
             Vector2 newPosition = Vector2.MoveTowards(rb.position, currentTarget, speed * Time.fixedDeltaTime);
             rb.MovePosition(newPosition);
 
@@ -68,6 +98,45 @@ public class SimpleAvoidance : MonoBehaviour
                     Debug.Log("Llegó al destino final");
                 }
             }
+        }
+    }
+
+    void UpdateSpriteDirection(Vector2 direction)
+    {
+        if (spriteRenderer == null) return;
+
+        // Determinar la dirección basada en el vector de movimiento
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+        // Normalizar el ángulo a 0-360
+        if (angle < 0) angle += 360;
+
+        // Determinar el sprite basado en el ángulo
+        if (angle >= 45 && angle < 135)
+        {
+            // Arriba - Espalda
+            if (direction.x >= 0)
+                spriteRenderer.sprite = backRightSprite;
+            else
+                spriteRenderer.sprite = backLeftSprite;
+        }
+        else if (angle >= 135 && angle < 225)
+        {
+            // Izquierda - Frente lateral izquierdo
+            spriteRenderer.sprite = frontLeftSprite;
+        }
+        else if (angle >= 225 && angle < 315)
+        {
+            // Abajo - Frente
+            if (direction.x >= 0)
+                spriteRenderer.sprite = frontRightSprite;
+            else
+                spriteRenderer.sprite = frontLeftSprite;
+        }
+        else
+        {
+            // Derecha - Frente lateral derecho
+            spriteRenderer.sprite = frontRightSprite;
         }
     }
 
@@ -151,5 +220,12 @@ public class SimpleAvoidance : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(targetPosition, 0.2f);
+
+        // Dibujar dirección actual
+        if (lastDirection != Vector2.zero)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(transform.position, lastDirection);
+        }
     }
 }
