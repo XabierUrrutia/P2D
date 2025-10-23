@@ -12,7 +12,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Interface/OptionsMenu.unity
     guid: 57e6fc2fd8c21a14294f0ed6868bbda1
   - enabled: 1
-    path: Assets/Scenes/first map.unity
+    path: Assets/Scenes/Maps/first map.unity
     guid: 2d9acc864cc7f12498312095ac36d202
   - enabled: 1
     path: Assets/Scenes/Interface/GameOptionsMenu.unity
