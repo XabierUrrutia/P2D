@@ -2,18 +2,17 @@ using UnityEngine;
 
 public static class PlayerPositionManager
 {
-    public static Vector3 SavedPosition = Vector3.zero;
+    private static Vector3 savedPosition;
     public static bool HasSavedPosition = false;
 
-    public static void SavePosition(Vector3 position)
+    public static void SavePosition(Vector3 pos)
     {
-        SavedPosition = position;
+        savedPosition = pos;
         HasSavedPosition = true;
-        Debug.Log($"Posição guardada: {position}");
     }
 
     public static Vector3 GetPosition()
     {
-        return SavedPosition;
+        return savedPosition;
     }
 }

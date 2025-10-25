@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class CharacterMovement2D : MonoBehaviour
 {
@@ -12,7 +12,7 @@ public class CharacterMovement2D : MonoBehaviour
     public LayerMask groundLayer;
     public LayerMask waterLayer;
 
-    [Header("Sprites - 8 direções (2 frames + idle)")]
+    [Header("Sprites - 8 direÃ§Ãµes (2 frames + idle)")]
     public Sprite frontRight_L;
     public Sprite frontRight_R;
     public Sprite frontRight_Idle;
@@ -40,15 +40,23 @@ public class CharacterMovement2D : MonoBehaviour
     private float animTimer = 0f;
     private bool animToggle = false;
     private Vector2 moveDir = Vector2.zero;
-    private Vector2 lastDir = new Vector2(1, -1); // Direção inicial visível
+    private Vector2 lastDir = new Vector2(1, -1); // DireÃ§Ã£o inicial visÃ­vel
 
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
         cam = Camera.main;
-        targetPos = transform.position;
 
-        UpdateSprite(lastDir, false);
+        // Restaurar posiÃ§Ã£o guardada (se existir)
+        if (PlayerPositionManager.HasSavedPosition)
+        {
+            transform.position = PlayerPositionManager.GetPosition();
+            PlayerPositionManager.HasSavedPosition = false;
+            Debug.Log("PosiÃ§Ã£o restaurada: " + transform.position);
+        }
+
+        targetPos = transform.position;
+        UpdateSprite(lastDir, false, true);
     }
 
     void Update()
@@ -65,7 +73,6 @@ public class CharacterMovement2D : MonoBehaviour
             Vector3 mouseWorld = cam.ScreenToWorldPoint(Input.mousePosition);
             mouseWorld.z = 0;
 
-            // Só permite clicar em terreno válido
             if (!IsInWater(mouseWorld) && IsOnGround(mouseWorld))
             {
                 targetPos = mouseWorld;
@@ -87,7 +94,6 @@ public class CharacterMovement2D : MonoBehaviour
         Vector3 dir = (targetPos - transform.position).normalized;
         float dist = Vector2.Distance(transform.position, targetPos);
 
-        // Verifica se o próximo passo vai cair na água
         Vector3 nextPos = transform.position + dir * moveSpeed * Time.deltaTime;
         if (IsInWater(nextPos))
         {
@@ -95,12 +101,10 @@ public class CharacterMovement2D : MonoBehaviour
             return;
         }
 
-        // Movimento suave
         currentSpeed = Mathf.Lerp(currentSpeed, moveSpeed, acceleration * Time.deltaTime);
         moveDir = dir;
         transform.position += (Vector3)(moveDir * currentSpeed * Time.deltaTime);
 
-        // Parar quando chega ao destino
         if (dist < stopDistance)
         {
             isMoving = false;
@@ -131,26 +135,26 @@ public class CharacterMovement2D : MonoBehaviour
     {
         if (sr == null) return;
 
+        // Ã¢ngulo entre 0 e 360
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         if (angle < 0) angle += 360;
 
         Sprite chosen = frontRight_Idle;
 
-        if (angle >= 22.5f && angle < 67.5f)
+        // Ajuste dos Ã¢ngulos para evitar "virar de costas" em pequenos desvios
+        if (angle >= 15f && angle < 75f)
             chosen = idle ? frontRight_Idle : (toggle ? frontRight_L : frontRight_R);
-        else if (angle >= 67.5f && angle < 112.5f)
+        else if (angle >= 75f && angle < 105f)
             chosen = idle ? backRight_Idle : (toggle ? backRight_L : backRight_R);
-        else if (angle >= 112.5f && angle < 157.5f)
+        else if (angle >= 105f && angle < 165f)
             chosen = idle ? backLeft_Idle : (toggle ? backLeft_L : backLeft_R);
-        else if (angle >= 157.5f && angle < 202.5f)
+        else if (angle >= 165f && angle < 195f)
             chosen = idle ? frontLeft_Idle : (toggle ? frontLeft_L : frontLeft_R);
-        else if (angle >= 202.5f && angle < 247.5f)
+        else if (angle >= 195f && angle < 255f)
             chosen = idle ? frontLeft_Idle : (toggle ? frontLeft_L : frontLeft_R);
-        else if (angle >= 247.5f && angle < 292.5f)
+        else if (angle >= 255f && angle < 315f)
             chosen = idle ? frontRight_Idle : (toggle ? frontRight_L : frontRight_R);
-        else if (angle >= 292.5f && angle < 337.5f)
-            chosen = idle ? backRight_Idle : (toggle ? backRight_L : backRight_R);
-        else
+        else // 315 â†’ 360 / 0 â†’ 15
             chosen = idle ? frontRight_Idle : (toggle ? frontRight_L : frontRight_R);
 
         sr.sprite = chosen;
