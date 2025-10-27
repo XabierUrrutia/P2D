@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class CharacterMovement2D : MonoBehaviour
 {
@@ -11,6 +13,8 @@ public class CharacterMovement2D : MonoBehaviour
     [Header("Camadas de terreno")]
     public LayerMask groundLayer;
     public LayerMask waterLayer;
+    // Opcional: definir uma layer para pontes (também pode ser ground mas ter layer dedicada facilita)
+    public LayerMask bridgeLayer;
 
     [Header("Sprites - 8 direções (2 frames + idle)")]
     public Sprite frontRight_L;
@@ -41,6 +45,12 @@ public class CharacterMovement2D : MonoBehaviour
     private bool animToggle = false;
     private Vector2 moveDir = Vector2.zero;
     private Vector2 lastDir = new Vector2(1, -1); // Direção inicial visível
+    // Waypoints para quando precisamos de contornar água (ex: ir até uma ponte primeiro)
+    private List<Vector3> waypoints = new List<Vector3>();
+    private float waypointReachThreshold = 0.12f;
+    // Limites para procura de ponte
+    public float bridgeSearchMaxRadius = 20f;
+    public float bridgeSearchStep = 1f;
 
     void Start()
     {
@@ -73,14 +83,44 @@ public class CharacterMovement2D : MonoBehaviour
             Vector3 mouseWorld = cam.ScreenToWorldPoint(Input.mousePosition);
             mouseWorld.z = 0;
 
-            if (!IsInWater(mouseWorld) && IsOnGround(mouseWorld))
+            // Só permitir clicar em pontos em ground (ou ponte)
+            if (IsOnGround(mouseWorld))
             {
-                targetPos = mouseWorld;
-                isMoving = true;
+                // Primeiro verificamos se a linha direta atravessa água (ground -> water -> ground)
+                bool crosses = PathCrossesWater(transform.position, mouseWorld);
 
-                if (clickMarkerPrefab != null)
+                waypoints.Clear();
+
+                if (crosses)
                 {
-                    GameObject marker = Instantiate(clickMarkerPrefab, targetPos, Quaternion.identity);
+                    // Tentamos encontrar uma ponte alcançável
+                    Vector3? bridgePoint = FindNearestBridge(transform.position);
+                    if (bridgePoint.HasValue)
+                    {
+                        // adiciona waypoint: ir à ponte primeiro, depois ao destino
+                        waypoints.Add(bridgePoint.Value);
+                        waypoints.Add(mouseWorld);
+                        targetPos = waypoints[0];
+                        isMoving = true;
+                    }
+                    else
+                    {
+                        // sem ponte conhecida: não mover, deixa o jogador clicar noutro sítio
+                        Debug.Log("Caminho atravessa água e nenhuma ponte foi encontrada nas proximidades.");
+                        isMoving = false;
+                    }
+                }
+                else
+                {
+                    // caminho direto sem problema
+                    waypoints.Add(mouseWorld);
+                    targetPos = waypoints[0];
+                    isMoving = true;
+                }
+
+                if (isMoving && clickMarkerPrefab != null)
+                {
+                    GameObject marker = Instantiate(clickMarkerPrefab, waypoints.Last(), Quaternion.identity);
                     Destroy(marker, 0.6f);
                 }
             }
@@ -89,26 +129,136 @@ public class CharacterMovement2D : MonoBehaviour
 
     void HandleMovement()
     {
-        if (!isMoving) return;
+        if (!isMoving || waypoints.Count == 0) return;
 
-        Vector3 dir = (targetPos - transform.position).normalized;
-        float dist = Vector2.Distance(transform.position, targetPos);
+        // Mantemos um waypoint atual (o primeiro da lista)
+        Vector3 currentTarget = waypoints[0];
+        Vector3 toTarget = currentTarget - transform.position;
+        float dist = toTarget.magnitude;
+        Vector3 dir = toTarget.normalized;
 
+        // Prever próximo passo e evitar entrar em água
         Vector3 nextPos = transform.position + dir * moveSpeed * Time.deltaTime;
         if (IsInWater(nextPos))
         {
-            isMoving = false;
-            return;
+            // se encontramos água inesperada no caminho, tentamos procurar ponte e refazer waypoints
+            Vector3? bridgePoint = FindNearestBridge(transform.position);
+            if (bridgePoint.HasValue)
+            {
+                waypoints.Insert(0, bridgePoint.Value);
+                currentTarget = waypoints[0];
+                dir = (currentTarget - transform.position).normalized;
+            }
+            else
+            {
+                // sem ponte: paramos o movimento
+                isMoving = false;
+                currentSpeed = 0f;
+                return;
+            }
         }
 
-        currentSpeed = Mathf.Lerp(currentSpeed, moveSpeed, acceleration * Time.deltaTime);
+        // Suavizar velocidade: acelerar quando distante, desacelerar perto
+        float desiredSpeed = moveSpeed;
+        if (dist < 0.5f)
+        {
+            // desaceleração suave quando se aproxima do waypoint
+            desiredSpeed = Mathf.Lerp(0f, moveSpeed, dist / 0.5f);
+        }
+
+        float accel = desiredSpeed > currentSpeed ? acceleration : deceleration;
+        currentSpeed = Mathf.MoveTowards(currentSpeed, desiredSpeed, accel * Time.deltaTime);
+
         moveDir = dir;
         transform.position += (Vector3)(moveDir * currentSpeed * Time.deltaTime);
 
-        if (dist < stopDistance)
+        // Verificar chegada ao waypoint
+        if (dist < Mathf.Max(stopDistance, waypointReachThreshold))
         {
-            isMoving = false;
+            // chegámos ao waypoint atual
+            waypoints.RemoveAt(0);
+            if (waypoints.Count > 0)
+            {
+                targetPos = waypoints[0];
+            }
+            else
+            {
+                isMoving = false;
+                currentSpeed = 0f;
+            }
         }
+    }
+
+    // Verifica se ao longo do segmento existe um padrão ground -> water -> ground
+    bool PathCrossesWater(Vector3 start, Vector3 end)
+    {
+        float totalDist = Vector2.Distance(start, end);
+        if (totalDist < 0.01f) return false;
+
+        float step = 0.12f; // amostragem cada 0.12 unidades
+        bool seenGround = false;
+        bool seenWaterAfterGround = false;
+
+        int steps = Mathf.CeilToInt(totalDist / step);
+        for (int i = 0; i <= steps; i++)
+        {
+            float t = (float)i / (float)steps;
+            Vector3 p = Vector3.Lerp(start, end, t);
+
+            bool g = IsOnGround(p);
+            bool w = IsInWater(p);
+
+            if (g && !seenGround)
+                seenGround = true;
+
+            if (seenGround && w)
+                seenWaterAfterGround = true;
+
+            if (seenWaterAfterGround && g)
+            {
+                // encontrou ground -> water -> ground
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Procura o ponto mais próximo que pertença a bridgeLayer e cuja rota até ele não cruza água
+    Vector3? FindNearestBridge(Vector3 from)
+    {
+        float radius = bridgeSearchStep;
+        Collider2D[] hits = null;
+        while (radius <= bridgeSearchMaxRadius)
+        {
+            hits = Physics2D.OverlapCircleAll(from, radius, bridgeLayer);
+            if (hits != null && hits.Length > 0)
+                break;
+
+            radius += bridgeSearchStep;
+        }
+
+        if (hits == null || hits.Length == 0)
+            return null;
+
+        // Ordenar por distância e escolher primeiro que tenha caminho sem cruzar água
+        var ordered = hits.OrderBy(h => Vector2.Distance(from, h.bounds.center));
+        foreach (var h in ordered)
+        {
+            Vector3 candidate = h.bounds.center;
+            // se há um ponto do collider mais próximo ao 'from', use esse
+            Vector3 closest = h.ClosestPoint(from);
+            if (closest != Vector3.zero)
+                candidate = closest;
+
+            // verificar se o caminho até candidate cruza água
+            if (!PathCrossesWater(from, candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     void UpdateAnimation()
