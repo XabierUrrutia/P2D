@@ -5,71 +5,105 @@ using UnityEngine.SceneManagement;
 
 public class EdificioInfo2D : MonoBehaviour
 {
-    [Header("Configuración de Escena")]
+    [Header("Configuración del Edificio")]
     public string nombreEscenaDestino;
-
-    [Header("Información del Edificio")]
     public string nombreEdificio = "Edificio";
     [TextArea(2, 3)]
     public string descripcionEdificio = "Haz click para entrar";
 
-    [Header("Tooltip 2D")]
+    [Header("Tooltip Isométrico")]
     public GameObject tooltipPrefab;
-    public Vector2 offset = new Vector2(0, -1f); // Debajo del edificio
-    public float escalaTooltip = 1f;
+    public Vector3 offset = new Vector3(0, -2f, 0); // Offset en el mundo isométrico
+    public float escala = 0.015f;
 
-    private GameObject tooltipInstance;
-    private SpriteRenderer spriteRenderer;
+    private GameObject miTooltip;
+    private Camera camara;
 
     void Start()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        camara = Camera.main;
 
-        // Crear tooltip si existe el prefab
         if (tooltipPrefab != null)
         {
-            CrearTooltip2D();
+            CrearTooltipIsometrico();
         }
     }
 
-    void CrearTooltip2D()
+    void CrearTooltipIsometrico()
     {
-        tooltipInstance = Instantiate(tooltipPrefab, transform);
-        tooltipInstance.transform.localPosition = offset;
-        tooltipInstance.transform.localScale = Vector3.one * escalaTooltip;
-        tooltipInstance.SetActive(false);
+        // Crear tooltip como hijo del canvas o del mundo, no del edificio
+        miTooltip = Instantiate(tooltipPrefab);
 
-        // Configurar orden de renderizado
-        ConfigurarSortingOrder();
-    }
-
-    void ConfigurarSortingOrder()
-    {
-        // Asegurar que el tooltip se renderice por encima del edificio
-        Canvas canvas = tooltipInstance.GetComponent<Canvas>();
+        // Configurar canvas para mundo isométrico
+        Canvas canvas = miTooltip.GetComponent<Canvas>();
         if (canvas != null)
         {
-            canvas.sortingLayerName = "UI";
-            canvas.sortingOrder = 100;
+            canvas.renderMode = RenderMode.WorldSpace;
+            // Ajustar el tamaño del RectTransform para isométrico
+            RectTransform rect = canvas.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(300, 100);
         }
 
-        // Si usa SpriteRenderer en lugar de Canvas
-        SpriteRenderer tooltipSprite = tooltipInstance.GetComponent<SpriteRenderer>();
-        if (tooltipSprite != null)
+        ActualizarTextoTooltip();
+        miTooltip.SetActive(false);
+    }
+
+    void Update()
+    {
+        // Actualizar posición del tooltip para que siga al edificio en isométrico
+        if (miTooltip != null && miTooltip.activeInHierarchy)
         {
-            tooltipSprite.sortingLayerName = "UI";
-            tooltipSprite.sortingOrder = 100;
+            ActualizarPosicionIsometrica();
+        }
+    }
+
+    void ActualizarPosicionIsometrica()
+    {
+        if (miTooltip == null) return;
+
+        // Posicionar el tooltip en el mundo isométrico
+        Vector3 posicionMundo = transform.position + offset;
+        miTooltip.transform.position = posicionMundo;
+
+        // Mantener el tooltip mirando a la cámara isométrica
+        if (camara != null)
+        {
+            miTooltip.transform.rotation = camara.transform.rotation;
+        }
+
+        // Ajustar escala
+        miTooltip.transform.localScale = Vector3.one * escala;
+    }
+
+    void ActualizarTextoTooltip()
+    {
+        if (miTooltip == null) return;
+
+        TextMeshProUGUI[] textosTMP = miTooltip.GetComponentsInChildren<TextMeshProUGUI>(true);
+        foreach (TextMeshProUGUI texto in textosTMP)
+        {
+            if (texto.name.Contains("Nombre") || texto.gameObject.name.Contains("Nombre"))
+                texto.text = nombreEdificio;
+            else if (texto.name.Contains("Desc") || texto.gameObject.name.Contains("Desc"))
+                texto.text = descripcionEdificio;
         }
     }
 
     void OnMouseEnter()
     {
-        MostrarTooltip();
+        if (miTooltip != null)
+        {
+            miTooltip.SetActive(true);
+            ActualizarPosicionIsometrica();
+        }
     }
 
     void OnMouseExit()
     {
-        OcultarTooltip();
+        if (miTooltip != null)
+        {
+            miTooltip.SetActive(false);
+        }
     }
 
     void OnMouseDown()
@@ -80,48 +114,20 @@ public class EdificioInfo2D : MonoBehaviour
         }
     }
 
-    void MostrarTooltip()
+    void OnDestroy()
     {
-        if (tooltipInstance != null)
+        if (miTooltip != null)
         {
-            tooltipInstance.SetActive(true);
-            ActualizarTexto();
-        }
-        else
-        {
-            // Fallback: mostrar en consola
-            Debug.Log($"{nombreEdificio}: {descripcionEdificio}");
+            Destroy(miTooltip);
         }
     }
 
-    void OcultarTooltip()
+    // Método para debug visual en el Editor
+    void OnDrawGizmosSelected()
     {
-        if (tooltipInstance != null)
-        {
-            tooltipInstance.SetActive(false);
-        }
-    }
-
-    void ActualizarTexto()
-    {
-        // Buscar componentes de texto y actualizar
-        TextMeshProUGUI[] textos = tooltipInstance.GetComponentsInChildren<TextMeshProUGUI>();
-        foreach (TextMeshProUGUI texto in textos)
-        {
-            if (texto.name == "TextoNombre" || texto.name.Contains("Nombre"))
-                texto.text = nombreEdificio;
-            else if (texto.name == "TextoDescripcion" || texto.name.Contains("Desc"))
-                texto.text = descripcionEdificio;
-        }
-
-        // Soporte para Text legacy (opcional)
-        Text[] textosLegacy = tooltipInstance.GetComponentsInChildren<Text>();
-        foreach (Text texto in textosLegacy)
-        {
-            if (texto.name == "TextoNombre" || texto.name.Contains("Nombre"))
-                texto.text = nombreEdificio;
-            else if (texto.name == "TextoDescripcion" || texto.name.Contains("Desc"))
-                texto.text = descripcionEdificio;
-        }
+        Gizmos.color = Color.cyan;
+        Vector3 posicionTooltip = transform.position + offset;
+        Gizmos.DrawWireSphere(posicionTooltip, 0.3f);
+        Gizmos.DrawLine(transform.position, posicionTooltip);
     }
 }

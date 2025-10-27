@@ -12,9 +12,15 @@ EditorBuildSettings:
     path: Assets/Scenes/Interface/OptionsMenu.unity
     guid: 57e6fc2fd8c21a14294f0ed6868bbda1
   - enabled: 1
-    path: Assets/Scenes/Maps/first map.unity
+    path: Assets/Scenes/Maps/Portugal.unity
+    guid: 316404c692a93684199279ff6b09bba7
+  - enabled: 1
+    path: Assets/Scenes/Maps/Portugal Maps/first map.unity
     guid: 2d9acc864cc7f12498312095ac36d202
   - enabled: 1
-    path: Assets/Scenes/Interface/GameOptionsMenu.unity
-    guid: 4b70ddb9cb0993842af8ab6b8435c9a9
+    path: Assets/Scenes/Maps/Portugal Maps/second map.unity
+    guid: 86df620e2be05f247a5f51807707a268
+  - enabled: 1
+    path: Assets/Scenes/Maps/Portugal Maps/third map.unity
+    guid: 1d14b64a178990d4b83e12215b454632
   m_configObjects: {}
