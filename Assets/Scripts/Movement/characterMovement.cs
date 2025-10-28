@@ -126,7 +126,14 @@ public class CharacterMovement2D : MonoBehaviour
             }
         }
     }
-
+    public void SetTarget(Vector3 pos)
+    {
+        if (!IsInWater(pos) && IsOnGround(pos))
+        {
+            targetPos = pos;
+            isMoving = true;
+        }
+    }
     void HandleMovement()
     {
         if (!isMoving || waypoints.Count == 0) return;
