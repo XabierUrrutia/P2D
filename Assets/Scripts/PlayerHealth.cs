@@ -9,7 +9,7 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("UI")]
     public Slider healthBar;
-    public Vector3 healthBarOffset = new Vector3(0, 2f, 0); // Posición encima del personaje
+    public Vector3 healthBarOffset = new Vector3(0, 1f, 0); // Posiciï¿½n encima del personaje
 
     [Header("Death Settings")]
     public float deathDelay = 1.5f; // Tiempo antes de cambiar escena tras morir
@@ -22,7 +22,7 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = maxHealth;
         UpdateHealthBar();
 
-        // Configurar posición de la barra de vida
+        // Configurar posiciï¿½n de la barra de vida
         if (healthBar != null)
             healthBar.transform.position = Camera.main.WorldToScreenPoint(transform.position + healthBarOffset);
     }
@@ -36,7 +36,7 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        if (isDead) return; // Si ya está muerto, no hacer nada
+        if (isDead) return; // Si ya estï¿½ muerto, no hacer nada
 
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
@@ -57,13 +57,13 @@ public class PlayerHealth : MonoBehaviour
 
     void Die()
     {
-        if (isDead) return; // Evitar múltiples llamadas
+        if (isDead) return; // Evitar mï¿½ltiples llamadas
 
         isDead = true;
-        Debug.Log("¡Personaje muerto! Cargando escena Game Over...");
+        Debug.Log("ï¿½Personaje muerto! Cargando escena Game Over...");
 
-        // Aquí puedes agregar:
-        // - Animación de muerte
+        // Aquï¿½ puedes agregar:
+        // - Animaciï¿½n de muerte
         // - Sonido de muerte
 
         // Desactivar el movimiento del personaje
@@ -73,7 +73,7 @@ public class PlayerHealth : MonoBehaviour
             if (rb != null)
             {
                 rb.velocity = Vector2.zero;
-                rb.isKinematic = true; // Hacerlo kinemático para que no responda a físicas
+                rb.isKinematic = true; // Hacerlo kinemï¿½tico para que no responda a fï¿½sicas
             }
 
             // Desactivar el collider
@@ -90,7 +90,7 @@ public class PlayerHealth : MonoBehaviour
         if (healthBar != null)
             healthBar.gameObject.SetActive(false);
 
-        // Cambiar a la escena Game Over después de un delay
+        // Cambiar a la escena Game Over despuï¿½s de un delay
         Invoke("LoadGameOverScene", deathDelay);
     }
 
