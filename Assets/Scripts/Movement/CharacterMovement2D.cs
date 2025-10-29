@@ -12,6 +12,20 @@ public class CharacterMovement2D : MonoBehaviour
     public float desaceleracao = 10f;
     public float distanciaParagem = 0.05f;
 
+    [Header("Cooldown de Movimiento")]
+    public float clickCooldown = 1.5f;
+    private float lastClickTime = 0f;
+    private bool canClick = true;
+
+    [Header("Configuración de Puentes")]
+    public float distanciaParagemPonte = 0.15f;
+    public float tempoMaximoPonte = 5f;
+    private float tempoNoPonte = 0f;
+
+    [Header("Configuración de Colisiones")]
+    public float raioDeteccao = 0.25f;
+    public float margemSeguranca = 0.1f;
+
     [Header("Camadas de terreno")]
     public LayerMask camadaChao;
     public LayerMask camadaAgua;
@@ -51,6 +65,10 @@ public class CharacterMovement2D : MonoBehaviour
     public float raioMaximoProcuraPonte = 20f;
     public float passoProcuraPonte = 1f;
 
+    // NUEVO: Para controlar el estado del movimiento por puentes
+    private bool usandoPuente = false;
+    private Vector3 pontoPuenteAtual;
+
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
@@ -72,72 +90,97 @@ public class CharacterMovement2D : MonoBehaviour
         ProcessarInput();
         ProcessarMovimento();
         AtualizarAnimacao();
-        
-        // MOVIMENTO COM ALVO - CORRIGIDO
-        if (alvo != null)
+
+        // Actualizar cooldown
+        if (!canClick && Time.time - lastClickTime >= clickCooldown)
         {
-            // Calcular distância ao alvo
-            float distanciaAoAlvo = Vector2.Distance(transform.position, alvo.position);
-            
-            // Se estamos suficientemente perto, parar
-            if (distanciaAoAlvo <= distanciaParagem)
+            canClick = true;
+        }
+
+        // Detección de atasco en puente
+        if (estaAMover && EstaNaPonte(transform.position))
+        {
+            tempoNoPonte += Time.deltaTime;
+            if (tempoNoPonte > tempoMaximoPonte)
             {
-                estaAMover = false;
-                velocidadeAtual = 0f;
-                LimparAlvo();
-                return;
+                Debug.LogWarning("Personaje atascado en puente - reiniciando movimiento");
+                ReiniciarMovimento();
             }
-            
-            // Calcular direção e mover
-            Vector2 direcao = (alvo.position - transform.position).normalized;
-            direcaoMovimento = direcao;
-            
-            // Aplicar aceleração/desaceleração
-            float velocidadeDesejada = velocidadeMovimento;
-            if (distanciaAoAlvo < 1f)
-            {
-                velocidadeDesejada = Mathf.Lerp(0f, velocidadeMovimento, distanciaAoAlvo);
-            }
-            
-            float accel = velocidadeDesejada > velocidadeAtual ? aceleracao : desaceleracao;
-            velocidadeAtual = Mathf.MoveTowards(velocidadeAtual, velocidadeDesejada, accel * Time.deltaTime);
-            
-            transform.position += (Vector3)(direcaoMovimento * velocidadeAtual * Time.deltaTime);
+        }
+        else
+        {
+            tempoNoPonte = 0f;
         }
     }
 
     void ProcessarInput()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && canClick)
         {
-            // Se há um alvo ativo, cancelá-lo ao clicar com o botão direito
+            // Aplicar cooldown
+            canClick = false;
+            lastClickTime = Time.time;
+
+            // Si há um alvo ativo, cancelá-lo ao clicar com o botão direito
             if (alvo != null)
             {
                 LimparAlvo();
             }
-            
+
             Vector3 ratoMundo = cam.ScreenToWorldPoint(Input.mousePosition);
             ratoMundo.z = 0;
 
             if (EstaNoChao(ratoMundo) || EstaNaPonte(ratoMundo))
             {
-                bool cruzaAgua = CaminhoCruzaAgua(transform.position, ratoMundo);
+                bool cruzaAgua = VerificarSeCaminhoCruzaAgua(transform.position, ratoMundo);
 
                 pontosCaminho.Clear();
+                usandoPuente = false;
 
                 if (cruzaAgua)
                 {
-                    Vector3? pontoPonte = EncontrarPonteMaisProxima(transform.position);
+                    Debug.Log("Camino cruza agua, buscando puente...");
+                    Vector3? pontoPonte = EncontrarMelhorPonteParaDestino(transform.position, ratoMundo);
                     if (pontoPonte.HasValue)
                     {
-                        pontosCaminho.Add(pontoPonte.Value);
-                        pontosCaminho.Add(ratoMundo);
-                        posicaoAlvo = pontosCaminho[0];
-                        estaAMover = true;
+                        Debug.Log($"Encontrada ponte en: {pontoPonte.Value}");
+
+                        // NUEVO: Verificar que el camino al puente sea seguro
+                        if (!CaminhoTemAgua(transform.position, pontoPonte.Value))
+                        {
+                            pontosCaminho.Add(pontoPonte.Value);
+                            pontosCaminho.Add(ratoMundo);
+                            posicaoAlvo = pontosCaminho[0];
+                            estaAMover = true;
+                            usandoPuente = true;
+                            pontoPuenteAtual = pontoPonte.Value;
+
+                            Debug.Log($"Ruta establecida: Personaje -> Puente ({pontoPonte.Value}) -> Destino ({ratoMundo})");
+                        }
+                        else
+                        {
+                            Debug.LogWarning("El camino al puente también tiene agua, buscando alternativa...");
+                            // Buscar un puente con camino seguro
+                            Vector3? ponteAlternativo = EncontrarPonteComCaminhoSeguro(transform.position, ratoMundo);
+                            if (ponteAlternativo.HasValue)
+                            {
+                                pontosCaminho.Add(ponteAlternativo.Value);
+                                pontosCaminho.Add(ratoMundo);
+                                posicaoAlvo = pontosCaminho[0];
+                                estaAMover = true;
+                                usandoPuente = true;
+                                pontoPuenteAtual = ponteAlternativo.Value;
+                            }
+                            else
+                            {
+                                Debug.LogError("No se encontró un puente con camino seguro");
+                                estaAMover = false;
+                            }
+                        }
                     }
                     else
                     {
-                        Debug.Log("O caminho cruza água e não foi encontrada nenhuma ponte próxima.");
+                        Debug.LogWarning("O caminho cruza água e não foi encontrada nenhuma ponte acessível.");
                         estaAMover = false;
                     }
                 }
@@ -146,24 +189,161 @@ public class CharacterMovement2D : MonoBehaviour
                     pontosCaminho.Add(ratoMundo);
                     posicaoAlvo = pontosCaminho[0];
                     estaAMover = true;
+                    usandoPuente = false;
                 }
 
                 if (estaAMover && prefabMarcadorClique != null)
                 {
-                    GameObject marcador = Instantiate(prefabMarcadorClique, pontosCaminho.Last(), Quaternion.identity);
-                    Destroy(marcador, 0.6f);
+                    // Mostrar marcadores para todos los puntos del camino
+                    foreach (var ponto in pontosCaminho)
+                    {
+                        GameObject marcador = Instantiate(prefabMarcadorClique, ponto, Quaternion.identity);
+                        Destroy(marcador, 1.0f);
+                    }
                 }
             }
         }
     }
 
-    // MÉTODOS PARA ALVO - CORRIGIDOS
+    void ProcessarMovimento()
+    {
+        // Si há um alvo ativo, o movimento é processado no Update()
+        if (alvo != null) return;
+
+        if (!estaAMover || pontosCaminho.Count == 0) return;
+
+        Vector3 alvoAtual = pontosCaminho[0];
+        Vector3 paraAlvo = alvoAtual - transform.position;
+        float dist = paraAlvo.magnitude;
+        Vector3 dir = paraAlvo.normalized;
+
+        // Ajustar la distancia de parada según el terreno
+        float distanciaParagemAjustada = EstaNaPonte(transform.position) || EstaNaPonte(alvoAtual) ?
+            distanciaParagemPonte : distanciaParagem;
+
+        // NUEVO: Verificación más estricta de seguridad durante el movimiento
+        if (usandoPuente && pontosCaminho.Count > 1 && pontosCaminho[0] == pontoPuenteAtual)
+        {
+            // Estamos yendo al puente - verificar que no nos salgamos del camino
+            Vector3 proximaPos = transform.position + dir * velocidadeMovimento * Time.deltaTime;
+
+            // Si nos estamos desviando hacia el agua, corregir la dirección
+            if (EstaNaAgua(proximaPos) && !EstaNaPonte(proximaPos))
+            {
+                Debug.LogWarning("Desviándose hacia el agua, corrigiendo dirección...");
+                // Recalcular dirección directamente al puente
+                dir = (pontoPuenteAtual - transform.position).normalized;
+                alvoAtual = pontoPuenteAtual;
+            }
+        }
+
+        // Controlo de velocidad
+        float velocidadeDesejada = velocidadeMovimento;
+        if (dist < 1f)
+        {
+            velocidadeDesejada = Mathf.Lerp(0f, velocidadeMovimento, dist);
+        }
+
+        float accel = velocidadeDesejada > velocidadeAtual ? aceleracao : desaceleracao;
+        velocidadeAtual = Mathf.MoveTowards(velocidadeAtual, velocidadeDesejada, accel * Time.deltaTime);
+
+        direcaoMovimento = dir;
+        transform.position += (Vector3)(direcaoMovimento * velocidadeAtual * Time.deltaTime);
+
+        // Verificar chegada ao punto
+        if (dist < Mathf.Max(distanciaParagemAjustada, limiteAlcancePonto))
+        {
+            Debug.Log($"Llegado al punto: {alvoAtual}. Puntos restantes: {pontosCaminho.Count - 1}");
+
+            // NUEVO: Si llegamos al puente, actualizar estado
+            if (usandoPuente && pontosCaminho[0] == pontoPuenteAtual)
+            {
+                Debug.Log("¡Llegado al puente! Continuando hacia destino final...");
+                usandoPuente = false;
+            }
+
+            pontosCaminho.RemoveAt(0);
+            if (pontosCaminho.Count > 0)
+            {
+                posicaoAlvo = pontosCaminho[0];
+            }
+            else
+            {
+                estaAMover = false;
+                velocidadeAtual = 0f;
+                usandoPuente = false;
+                Debug.Log("¡Destino alcanzado!");
+            }
+        }
+    }
+
+    // NUEVO: Método para encontrar puentes con camino seguro
+    Vector3? EncontrarPonteComCaminhoSeguro(Vector3 inicio, Vector3 destino)
+    {
+        Collider2D[] todasPontes = Physics2D.OverlapCircleAll(inicio, raioMaximoProcuraPonte, camadaPonte);
+
+        if (todasPontes == null || todasPontes.Length == 0)
+            return null;
+
+        // Ordenar por proximidad
+        var pontesOrdenadas = todasPontes.OrderBy(p => Vector2.Distance(inicio, p.transform.position));
+
+        foreach (var ponte in pontesOrdenadas)
+        {
+            Vector3 pontoPonte = ponte.ClosestPoint(inicio);
+
+            // Verificar que el camino al puente sea seguro
+            if (!CaminhoTemAgua(inicio, pontoPonte) && EsPontoAcessivel(pontoPonte))
+            {
+                // Verificar que del puente al destino también sea seguro
+                if (!CaminhoTemAgua(pontoPonte, destino))
+                {
+                    Debug.Log($"Puente seguro encontrado en: {pontoPonte}");
+                    return pontoPonte;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    void ReiniciarMovimento()
+    {
+        estaAMover = false;
+        velocidadeAtual = 0f;
+        pontosCaminho.Clear();
+        LimparAlvo();
+        tempoNoPonte = 0f;
+        usandoPuente = false;
+    }
+
+    // MÉTODO PÚBLICO PARA VERIFICAR SI PUEDE MOVERSE
+    public bool CanMove()
+    {
+        return canClick;
+    }
+
+    // MÉTODO PÚBLICO PARA OBTENER TIEMPO RESTANTE DEL COOLDOWN
+    public float GetRemainingCooldown()
+    {
+        if (canClick) return 0f;
+        return Mathf.Max(0f, clickCooldown - (Time.time - lastClickTime));
+    }
+
+    // MÉTODO PÚBLICO PARA FORZAR MOVIMIENTO (ignora cooldown)
+    public void ForceMove(Vector3 position)
+    {
+        DefinirAlvo(position);
+    }
+
+    // MÉTODOS PARA ALVO
     public void DefinirAlvo(Transform novoAlvo)
     {
         LimparAlvo();
         alvo = novoAlvo;
         pontosCaminho.Clear();
         estaAMover = true;
+        usandoPuente = false;
     }
 
     public void DefinirAlvo(Vector3 posicaoAlvo)
@@ -174,6 +354,7 @@ public class CharacterMovement2D : MonoBehaviour
         alvo = alvoTemporario.transform;
         pontosCaminho.Clear();
         estaAMover = true;
+        usandoPuente = false;
     }
 
     public void LimparAlvo()
@@ -186,91 +367,28 @@ public class CharacterMovement2D : MonoBehaviour
         alvo = null;
     }
 
-    void ProcessarMovimento()
-    {
-        // Se há um alvo ativo, o movimento é processado no Update()
-        if (alvo != null) return;
-        
-        if (!estaAMover || pontosCaminho.Count == 0) return;
-
-        Vector3 alvoAtual = pontosCaminho[0];
-        Vector3 paraAlvo = alvoAtual - transform.position;
-        float dist = paraAlvo.magnitude;
-        Vector3 dir = paraAlvo.normalized;
-
-        // Prever próximo passo e evitar água
-        Vector3 proximaPos = transform.position + dir * velocidadeMovimento * Time.deltaTime;
-        if (EstaNaAgua(proximaPos) && !EstaNaPonte(proximaPos))
-        {
-            Vector3? pontoPonte = EncontrarPonteMaisProxima(transform.position);
-            if (pontoPonte.HasValue)
-            {
-                pontosCaminho.Insert(0, pontoPonte.Value);
-                alvoAtual = pontosCaminho[0];
-                dir = (alvoAtual - transform.position).normalized;
-            }
-            else
-            {
-                estaAMover = false;
-                velocidadeAtual = 0f;
-                return;
-            }
-        }
-
-        // Controlo de velocidade
-        float velocidadeDesejada = velocidadeMovimento;
-        if (dist < 0.5f)
-        {
-            velocidadeDesejada = Mathf.Lerp(0f, velocidadeMovimento, dist / 0.5f);
-        }
-
-        float accel = velocidadeDesejada > velocidadeAtual ? aceleracao : desaceleracao;
-        velocidadeAtual = Mathf.MoveTowards(velocidadeAtual, velocidadeDesejada, accel * Time.deltaTime);
-
-        direcaoMovimento = dir;
-        transform.position += (Vector3)(direcaoMovimento * velocidadeAtual * Time.deltaTime);
-
-        // Verificar chegada ao ponto
-        if (dist < Mathf.Max(distanciaParagem, limiteAlcancePonto))
-        {
-            pontosCaminho.RemoveAt(0);
-            if (pontosCaminho.Count > 0)
-            {
-                posicaoAlvo = pontosCaminho[0];
-            }
-            else
-            {
-                estaAMover = false;
-                velocidadeAtual = 0f;
-            }
-        }
-    }
-
-    bool CaminhoCruzaAgua(Vector3 inicio, Vector3 fim)
+    // MÉTODO MEJORADO - Detección más precisa de cruce con agua
+    bool VerificarSeCaminhoCruzaAgua(Vector3 inicio, Vector3 fim)
     {
         float distanciaTotal = Vector2.Distance(inicio, fim);
         if (distanciaTotal < 0.01f) return false;
 
-        float passo = 0.12f;
-        bool viuChao = false;
-        bool viuAguaAposChao = false;
+        int numPontos = Mathf.CeilToInt(distanciaTotal / 0.1f);
+        bool encontrouAgua = false;
 
-        int passos = Mathf.CeilToInt(distanciaTotal / passo);
-        for (int i = 0; i <= passos; i++)
+        for (int i = 0; i <= numPontos; i++)
         {
-            float t = (float)i / (float)passos;
-            Vector3 p = Vector3.Lerp(inicio, fim, t);
+            float t = (float)i / (float)numPontos;
+            Vector3 ponto = Vector3.Lerp(inicio, fim, t);
 
-            bool c = EstaNoChao(p) || EstaNaPonte(p);
-            bool a = EstaNaAgua(p) && !EstaNaPonte(p);
+            // Si encontramos agua y no estamos en un puente
+            if (EstaNaAgua(ponto) && !EstaNaPonte(ponto))
+            {
+                encontrouAgua = true;
+            }
 
-            if (c && !viuChao)
-                viuChao = true;
-
-            if (viuChao && a)
-                viuAguaAposChao = true;
-
-            if (viuAguaAposChao && c)
+            // Si encontramos tierra después de agua, entonces el camino cruza agua
+            if (encontrouAgua && (EstaNoChao(ponto) || EstaNaPonte(ponto)))
             {
                 return true;
             }
@@ -279,38 +397,82 @@ public class CharacterMovement2D : MonoBehaviour
         return false;
     }
 
-    Vector3? EncontrarPonteMaisProxima(Vector3 de)
+    // MÉTODO MEJORADO - Encuentra el mejor puente considerando la dirección del destino
+    Vector3? EncontrarMelhorPonteParaDestino(Vector3 inicio, Vector3 destino)
     {
-        float raio = passoProcuraPonte;
-        Collider2D[] colisoes = null;
-        
-        while (raio <= raioMaximoProcuraPonte)
-        {
-            colisoes = Physics2D.OverlapCircleAll(de, raio, camadaPonte);
-            if (colisoes != null && colisoes.Length > 0)
-                break;
+        // Dirección hacia el destino
+        Vector3 direcaoDestino = (destino - inicio).normalized;
 
-            raio += passoProcuraPonte;
-        }
+        // Buscar todos los puentes en el radio máximo
+        Collider2D[] todasPontes = Physics2D.OverlapCircleAll(inicio, raioMaximoProcuraPonte, camadaPonte);
 
-        if (colisoes == null || colisoes.Length == 0)
+        if (todasPontes == null || todasPontes.Length == 0)
             return null;
 
-        var ordenado = colisoes.OrderBy(h => Vector2.Distance(de, h.bounds.center));
-        foreach (var h in ordenado)
+        // Filtrar puentes accesibles
+        List<Collider2D> pontesAcessiveis = new List<Collider2D>();
+        foreach (var ponte in todasPontes)
         {
-            Vector3 candidato = h.bounds.center;
-            Vector3 pontoMaisProximo = h.ClosestPoint(de);
-            if (pontoMaisProximo != Vector3.zero)
-                candidato = pontoMaisProximo;
-
-            if (!CaminhoCruzaAgua(de, candidato))
+            Vector3 pontoPonte = ponte.ClosestPoint(inicio);
+            if (EsPontoAcessivel(pontoPonte) && !CaminhoTemAgua(inicio, pontoPonte))
             {
-                return candidato;
+                pontesAcessiveis.Add(ponte);
+            }
+        }
+
+        if (pontesAcessiveis.Count == 0)
+            return null;
+
+        // Ordenar puentes por:
+        // 1. Proximidad al inicio
+        // 2. Dirección hacia el destino
+        var pontesOrdenadas = pontesAcessiveis.OrderBy(p =>
+        {
+            Vector3 pontoPonte = p.ClosestPoint(inicio);
+            float distancia = Vector3.Distance(inicio, pontoPonte);
+            Vector3 direcaoPonte = (pontoPonte - inicio).normalized;
+            float similaridadeDirecao = Vector3.Dot(direcaoDestino, direcaoPonte);
+
+            // Combinar distancia y dirección (preferir puentes en la dirección del destino)
+            return distancia * (2f - Mathf.Clamp01(similaridadeDirecao));
+        });
+
+        // Devolver el punto del primer puente accesible
+        foreach (var ponte in pontesOrdenadas)
+        {
+            Vector3 pontoPonte = ponte.ClosestPoint(inicio);
+            if (EsPontoAcessivel(pontoPonte))
+            {
+                Debug.Log($"Puente seleccionado en: {pontoPonte}, distancia: {Vector3.Distance(inicio, pontoPonte)}");
+                return pontoPonte;
             }
         }
 
         return null;
+    }
+
+    // Verifica si hay agua entre dos puntos
+    bool CaminhoTemAgua(Vector3 inicio, Vector3 fim)
+    {
+        float distancia = Vector3.Distance(inicio, fim);
+        int numChecks = Mathf.CeilToInt(distancia / 0.1f);
+
+        for (int i = 0; i <= numChecks; i++)
+        {
+            float t = (float)i / (float)numChecks;
+            Vector3 ponto = Vector3.Lerp(inicio, fim, t);
+
+            if (EstaNaAgua(ponto) && !EstaNaPonte(ponto))
+                return true;
+        }
+
+        return false;
+    }
+
+    bool EsPontoAcessivel(Vector3 ponto)
+    {
+        // Verificar que el punto está en el puente y no en agua
+        return EstaNaPonte(ponto) && !EstaNaAgua(ponto);
     }
 
     void AtualizarAnimacao()
@@ -342,7 +504,7 @@ public class CharacterMovement2D : MonoBehaviour
 
         Sprite escolhido = frenteDireita_Idle;
 
-        // CORRIGIDO: Melhor distribuição das direções
+        // Distribuição das direções
         if (angulo >= 337.5f || angulo < 22.5f)        // Direita
             escolhido = idle ? frenteDireita_Idle : (alternar ? frenteDireita_L : frenteDireita_R);
         else if (angulo >= 22.5f && angulo < 67.5f)    // Cima-Direita
@@ -365,29 +527,65 @@ public class CharacterMovement2D : MonoBehaviour
 
     bool EstaNaAgua(Vector3 posicao)
     {
-        return Physics2D.OverlapCircle(posicao, 0.2f, camadaAgua) != null;
+        Collider2D agua = Physics2D.OverlapCircle(posicao, raioDeteccao, camadaAgua);
+        return agua != null;
     }
 
     bool EstaNoChao(Vector3 posicao)
     {
-        return Physics2D.OverlapCircle(posicao, 0.2f, camadaChao) != null;
+        Collider2D chao = Physics2D.OverlapCircle(posicao, raioDeteccao, camadaChao);
+        return chao != null;
     }
 
     bool EstaNaPonte(Vector3 posicao)
     {
-        return Physics2D.OverlapCircle(posicao, 0.2f, camadaPonte) != null;
+        Collider2D ponte = Physics2D.OverlapCircle(posicao, raioDeteccao, camadaPonte);
+        if (ponte != null)
+        {
+            // Verificar que estamos realmente sobre el puente, no solo cerca
+            Vector3 pontoNoPuente = ponte.ClosestPoint(posicao);
+            float distancia = Vector2.Distance(posicao, pontoNoPuente);
+            return distancia <= raioDeteccao + margemSeguranca;
+        }
+        return false;
     }
 
     void OnDrawGizmosSelected()
     {
+        // Punto objetivo
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(posicaoAlvo, 0.1f);
-        
-        // Desenhar pontos do caminho
+
+        // Puntos del camino
         Gizmos.color = Color.yellow;
         foreach (var ponto in pontosCaminho)
         {
             Gizmos.DrawWireCube(ponto, Vector3.one * 0.15f);
+        }
+
+        // Radio de detección
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(transform.position, raioDeteccao);
+
+        // Próxima posición prevista
+        if (estaAMover && pontosCaminho.Count > 0)
+        {
+            Vector3 dir = (pontosCaminho[0] - transform.position).normalized;
+            Vector3 proximaPos = transform.position + dir * velocidadeMovimento * Time.deltaTime;
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(proximaPos, 0.1f);
+        }
+
+        // NUEVO: Dibujar línea del camino actual
+        if (pontosCaminho.Count > 0)
+        {
+            Gizmos.color = Color.white;
+            Vector3 anterior = transform.position;
+            foreach (var ponto in pontosCaminho)
+            {
+                Gizmos.DrawLine(anterior, ponto);
+                anterior = ponto;
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement; // Necesario para cambiar de escena
+using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -9,10 +9,10 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("UI")]
     public Slider healthBar;
-    public Vector3 healthBarOffset = new Vector3(0, 1f, 0); // Posici�n encima del personaje
+    public Vector3 healthBarOffset = new Vector3(0, 1f, 0);
 
     [Header("Death Settings")]
-    public float deathDelay = 1.5f; // Tiempo antes de cambiar escena tras morir
+    public float deathDelay = 1.5f;
     public bool disableMovementOnDeath = true;
 
     private bool isDead = false;
@@ -22,21 +22,19 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = maxHealth;
         UpdateHealthBar();
 
-        // Configurar posici�n de la barra de vida
         if (healthBar != null)
             healthBar.transform.position = Camera.main.WorldToScreenPoint(transform.position + healthBarOffset);
     }
 
     void Update()
     {
-        // Mantener la barra sobre el personaje
         if (healthBar != null && !isDead)
             healthBar.transform.position = Camera.main.WorldToScreenPoint(transform.position + healthBarOffset);
     }
 
     public void TakeDamage(int damage)
     {
-        if (isDead) return; // Si ya est� muerto, no hacer nada
+        if (isDead) return;
 
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
@@ -49,54 +47,72 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    // MÉTODOS NUEVOS PARA CURAR
+    public void Heal(int amount)
+    {
+        if (isDead) return;
+
+        currentHealth += amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        UpdateHealthBar();
+        Debug.Log($"Curado: +{amount}. Vida actual: {currentHealth}/{maxHealth}");
+    }
+
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
+    }
+
+    public int GetMaxHealth()
+    {
+        return maxHealth;
+    }
+
+    public bool IsFullHealth()
+    {
+        return currentHealth >= maxHealth;
+    }
+
     void UpdateHealthBar()
     {
         if (healthBar != null)
+        {
+            // Asegurarnos de que el valor del slider esté entre 0 y 1
             healthBar.value = (float)currentHealth / maxHealth;
+            Debug.Log($"Actualizando barra: {currentHealth}/{maxHealth} = {healthBar.value}");
+        }
     }
 
     void Die()
     {
-        if (isDead) return; // Evitar m�ltiples llamadas
+        if (isDead) return;
 
         isDead = true;
-        Debug.Log("�Personaje muerto! Cargando escena Game Over...");
+        Debug.Log("Personaje muerto! Cargando escena Game Over...");
 
-        // Aqu� puedes agregar:
-        // - Animaci�n de muerte
-        // - Sonido de muerte
-
-        // Desactivar el movimiento del personaje
         if (disableMovementOnDeath)
         {
             Rigidbody2D rb = GetComponent<Rigidbody2D>();
             if (rb != null)
             {
                 rb.velocity = Vector2.zero;
-                rb.isKinematic = true; // Hacerlo kinem�tico para que no responda a f�sicas
+                rb.isKinematic = true;
             }
 
-            // Desactivar el collider
             Collider2D collider = GetComponent<Collider2D>();
             if (collider != null)
                 collider.enabled = false;
-
-            // Desactivar scripts de movimiento (si los tienes)
-            // Ejemplo: 
-            // GetComponent<PlayerMovement>().enabled = false;
         }
 
-        // Ocultar la barra de vida
         if (healthBar != null)
             healthBar.gameObject.SetActive(false);
 
-        // Cambiar a la escena Game Over despu�s de un delay
         Invoke("LoadGameOverScene", deathDelay);
     }
 
     void LoadGameOverScene()
     {
-        // Cargar la escena Game Over por nombre
         SceneManager.LoadScene("Game Over");
     }
 }
