@@ -26,4 +26,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Interface/Game Over.unity
     guid: de52fb0e71c496b4f935b9378cd6c65b
+  - enabled: 1
+    path: Assets/Scenes/Maps/Portugal Maps/tutorial 1 map.unity
+    guid: f42dea245cae73f428d3993cf3074a94
+  - enabled: 1
+    path: Assets/Scenes/Maps/Portugal Maps/tutorial 2 map.unity
+    guid: 5dfff7ab182e612409feecd65a6dd83e
   m_configObjects: {}
