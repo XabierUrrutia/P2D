@@ -6,6 +6,9 @@ public class Bullet : MonoBehaviour
     public int damage = 1;
     public Rigidbody2D rb;
 
+    // Nova flag para identificar origem da bala
+    public bool isEnemyBullet = false;
+
     private Vector2 direction;
 
     public void SetDirection(Vector2 dir)
@@ -25,23 +28,27 @@ public class Bullet : MonoBehaviour
     void OnTriggerEnter2D(Collider2D hit)
     {
         // Bala do jogador atinge inimigos
-        if (hit.CompareTag("Enemy") && !CompareTag("EnemyBullet"))
+        if (hit.CompareTag("Enemy") && !isEnemyBullet)
         {
             EnemyHealth enemy = hit.GetComponent<EnemyHealth>();
             if (enemy != null)
                 enemy.TakeDamage(damage);
 
             Destroy(gameObject);
+            return;
         }
 
         // Bala inimiga atinge jogador
-        if (hit.CompareTag("Player") && CompareTag("EnemyBullet"))
+        if (hit.CompareTag("Player") && isEnemyBullet)
         {
             PlayerHealth player = hit.GetComponent<PlayerHealth>();
             if (player != null)
                 player.TakeDamage(damage);
 
             Destroy(gameObject);
+            return;
         }
+
+        // Opcional: destruir quando bate em obstáculos (layer checks)...
     }
 }

@@ -19,6 +19,11 @@ public class EnemyController : MonoBehaviour
     public GameObject bulletPrefab;
     public Transform firePoint;
 
+    // Novos parâmetros para bala
+    [Header("Bala")]
+    public float bulletSpeed = 8f;
+    public int bulletDamage = 1;
+
     [Header("Camadas de terreno")]
     public LayerMask groundLayer;
     public LayerMask waterLayer;
@@ -213,7 +218,36 @@ public class EnemyController : MonoBehaviour
             {
                 Vector2 dir = (player.position - firePoint.position).normalized;
                 GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-                bullet.GetComponent<Rigidbody2D>().velocity = dir * 8f;
+
+                // Configurar componente Bullet (marca como inimiga, define direção, dano e velocidade)
+                Bullet b = bullet.GetComponent<Bullet>();
+                if (b != null)
+                {
+                    b.SetDirection(dir);
+                    b.isEnemyBullet = true;
+                    b.damage = bulletDamage;
+                    b.speed = bulletSpeed;
+                }
+                else
+                {
+                    // fallback: definir velocity diretamente se Bullet não existir
+                    Rigidbody2D rbFallback = bullet.GetComponent<Rigidbody2D>();
+                    if (rbFallback != null)
+                        rbFallback.velocity = dir * bulletSpeed;
+                }
+
+                // Ignorar colisões entre a bala e o próprio inimigo (se ambos tiverem Collider2D)
+                Collider2D bulletCol = bullet.GetComponent<Collider2D>();
+                if (bulletCol != null)
+                {
+                    Collider2D[] ownCols = GetComponents<Collider2D>();
+                    foreach (var c in ownCols)
+                    {
+                        if (c != null)
+                            Physics2D.IgnoreCollision(bulletCol, c);
+                    }
+                }
+
                 Destroy(bullet, 3f);
             }
         }
