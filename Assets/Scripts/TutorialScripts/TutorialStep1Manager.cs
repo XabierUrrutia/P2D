@@ -40,7 +40,7 @@ public class TutorialStep1Manager : MonoBehaviour
     void ShowStepCompleteUI()
     {
         if (stepMessageText != null)
-            stepMessageText.text = "Passaste o passo 1! Vai para o passo 2.";
+            stepMessageText.text = "You've finished the first tutorial level. Now go to the next level:";
 
         if (stepCompletePanel != null)
             stepCompletePanel.SetActive(true);

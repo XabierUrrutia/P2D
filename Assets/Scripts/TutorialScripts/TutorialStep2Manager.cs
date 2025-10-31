@@ -25,7 +25,7 @@ public class TutorialStep2Manager : MonoBehaviour
         {
             var listener = specificEnemy.GetComponent<EnemyDeathListener>();
             if (listener != null)
-                listener.OnDeath.AddListener(OnEnemyDeath);
+                listener.onEnemyDied.AddListener(OnEnemyDeath);
             else
                 Debug.LogWarning($"TutorialStep2Manager: specificEnemy '{specificEnemy.name}' não tem EnemyDeathListener.");
         }
@@ -37,19 +37,41 @@ public class TutorialStep2Manager : MonoBehaviour
             {
                 if (string.IsNullOrEmpty(enemyTag) || l.CompareTag(enemyTag) || (l.gameObject != null && l.gameObject.tag == enemyTag))
                 {
-                    l.OnDeath.AddListener(OnEnemyDeath);
+                    l.onEnemyDied.AddListener(OnEnemyDeath);
+                    Debug.Log($"[TutorialStep2Manager] subscrito a onEnemyDied de '{l.gameObject.name}'");
                 }
             }
 
-            // Se não encontrou nenhum listener mas existem inimigos, avisa (útil para debug)
             if (listeners.Length == 0)
                 Debug.LogWarning("TutorialStep2Manager: nenhum EnemyDeathListener encontrado na cena. Adiciona EnemyDeathListener ao prefab do inimigo.");
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (specificEnemy != null)
+        {
+            var listener = specificEnemy.GetComponent<EnemyDeathListener>();
+            if (listener != null)
+                listener.onEnemyDied.RemoveListener(OnEnemyDeath);
+        }
+        else
+        {
+            EnemyDeathListener[] listeners = FindObjectsOfType<EnemyDeathListener>();
+            foreach (var l in listeners)
+            {
+                if (l != null)
+                    l.onEnemyDied.RemoveListener(OnEnemyDeath);
+            }
         }
     }
 
     // Chamado quando um EnemyDeathListener dispara
     public void OnEnemyDeath()
     {
+        Debug.Log("[TutorialStep2Manager] OnEnemyDeath recebido");
+        if (stepCompletePanel == null)
+            Debug.LogWarning("[TutorialStep2Manager] stepCompletePanel NÃO está atribuído no Inspector!");
         ShowStepCompleteUI();
     }
 
@@ -70,7 +92,6 @@ public class TutorialStep2Manager : MonoBehaviour
         }
     }
 
-    // Utilitário para testes
     public void SimulateEnemyDeath()
     {
         OnEnemyDeath();

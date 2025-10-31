@@ -1,24 +1,36 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-// Anexa a este componente no prefab/enemy na cena.
-// Quando o GameObject for destruído (morre), invoke OnDeath.
-[RequireComponent(typeof(Collider2D))]
 public class EnemyDeathListener : MonoBehaviour
 {
-    [Header("Evento chamado quando este inimigo morre/destrói")]
-    public UnityEvent OnDeath;
+    public UnityEvent onEnemyDied;
 
-    void OnDestroy()
+    private bool _isInvoking = false;
+
+    // Auto-regista o manager caso o inimigo seja instanciado em runtime
+    void Awake()
     {
-        // Invoca o evento quando o inimigo é destruído
-        if (Application.isPlaying)
-            OnDeath?.Invoke();
+        var mgr = FindObjectOfType<TutorialStep2Manager>();
+        if (mgr != null)
+        {
+            // evita duplicação
+            onEnemyDied.RemoveListener(mgr.OnEnemyDeath);
+            onEnemyDied.AddListener(mgr.OnEnemyDeath);
+            Debug.Log($"[EnemyDeathListener] Auto-subscrito '{gameObject.name}' ao TutorialStep2Manager");
+        }
     }
 
-    // Método auxiliar para invocar manualmente (útil em editor/Debug)
+    // Método público que o sistema de morte chama
     public void InvokeDeath()
     {
-        OnDeath?.Invoke();
+        Debug.Log($"[EnemyDeathListener] InvokeDeath() chamado em '{gameObject.name}'");
+
+        if (_isInvoking) return;
+        _isInvoking = true;
+
+        // Evita reentrada
+        onEnemyDied?.Invoke();
+
+        _isInvoking = false;
     }
 }
