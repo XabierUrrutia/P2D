@@ -91,99 +91,77 @@ public class SimpleCharacterMovement : MonoBehaviour
     void CalcularRutaInteligente(Vector3 inicio, Vector3 destino)
     {
         puntosCamino.Clear();
+        moviendose = false;
 
-        // Verificar si el camino directo es posible (sin agua)
+        // PRIMERO: Verificar si el camino directo es posible (sin agua)
         if (!CaminoTieneAgua(inicio, destino))
         {
             // Camino directo sin agua
             puntosCamino.Add(destino);
             Debug.Log("Usando camino directo (sin agua)");
+            moviendose = true;
         }
         else
         {
-            Debug.Log("Camino tiene agua - buscando puente óptimo...");
+            Debug.Log("Camino tiene agua - buscando puente necesario...");
 
-            // Buscar el MEJOR puente para cruzar
-            WaypointPuente mejorPuente = EncontrarMejorPuente(inicio, destino);
+            // LÓGICA SIMPLIFICADA: Buscar solo el puente más cercano que realmente conecte
+            WaypointPuente puenteUtil = EncontrarPuenteSimple(inicio, destino);
 
-            if (mejorPuente != null && mejorPuente.waypointConectado != null)
+            if (puenteUtil != null && puenteUtil.waypointConectado != null)
             {
-                Debug.Log($"Usando puente óptimo: {mejorPuente.name} -> {mejorPuente.waypointConectado.name}");
+                Debug.Log($"Usando puente: {puenteUtil.name}");
 
-                // Ruta óptima: Inicio -> Entrada Puente -> Salida Puente -> Destino
-                puntosCamino.Add(mejorPuente.transform.position);
-                puntosCamino.Add(mejorPuente.waypointConectado.transform.position);
-
-                // Verificar si del puente al destino hay agua (raro, pero por si acaso)
-                if (CaminoTieneAgua(mejorPuente.waypointConectado.transform.position, destino))
+                // Solo usar este puente si realmente conecta con el destino
+                if (!CaminoTieneAgua(puenteUtil.waypointConectado.transform.position, destino))
                 {
-                    Debug.LogWarning("¡Del puente al destino también hay agua! Buscando solución...");
-                    // En este caso, buscar otro puente o intentar camino directo
-                    puntosCamino.Add(destino); // Por ahora, intentar igual
+                    puntosCamino.Add(puenteUtil.transform.position);
+                    puntosCamino.Add(puenteUtil.waypointConectado.transform.position);
+                    puntosCamino.Add(destino);
+                    moviendose = true;
                 }
                 else
                 {
-                    puntosCamino.Add(destino);
+                    Debug.LogWarning("El puente no conecta con el destino - NO MOVER");
                 }
             }
             else
             {
-                Debug.LogWarning("No se encontró un puente usable. Intentando camino directo...");
-                puntosCamino.Add(destino); // Intentar igual (puede que falle)
+                Debug.LogWarning("No se encontró un puente usable. NO SE PUEDE LLEGAR AL DESTINO.");
             }
         }
-
-        moviendose = true;
     }
 
-    WaypointPuente EncontrarMejorPuente(Vector3 inicio, Vector3 destino)
+    WaypointPuente EncontrarPuenteSimple(Vector3 inicio, Vector3 destino)
     {
-        Collider2D[] todosWaypoints = Physics2D.OverlapCircleAll(inicio, 15f, capaWaypointPuente);
-
-        if (todosWaypoints.Length == 0) return null;
-
-        WaypointPuente mejorWaypoint = null;
-        float mejorPuntuacion = Mathf.Infinity;
+        Collider2D[] todosWaypoints = Physics2D.OverlapCircleAll(inicio, 12f, capaWaypointPuente);
+        WaypointPuente mejorPuente = null;
+        float menorDistancia = Mathf.Infinity;
 
         foreach (Collider2D collider in todosWaypoints)
         {
             WaypointPuente waypoint = collider.GetComponent<WaypointPuente>();
             if (waypoint != null && waypoint.waypointConectado != null)
             {
-                // CALCULAR PUNTUACIÓN:
-                // 1. Distancia del personaje al waypoint de entrada
-                float distanciaAlInicio = Vector3.Distance(inicio, waypoint.transform.position);
-
-                // 2. Distancia del waypoint de salida al destino
-                float distanciaAlDestino = Vector3.Distance(waypoint.waypointConectado.transform.position, destino);
-
-                // 3. Verificar que no haya agua en los caminos críticos
+                // VERIFICACIÓN SIMPLE: 
+                // 1. El camino al puente NO debe tener agua
+                // 2. El camino desde el puente conectado al destino NO debe tener agua
                 bool caminoAlPuenteSeguro = !CaminoTieneAgua(inicio, waypoint.transform.position);
                 bool caminoDelPuenteSeguro = !CaminoTieneAgua(waypoint.waypointConectado.transform.position, destino);
 
-                // Puntuación = distancia total * factor de seguridad
-                float puntuacion = distanciaAlInicio + distanciaAlDestino;
-
-                // Penalizar si hay caminos inseguros
-                if (!caminoAlPuenteSeguro) puntuacion += 100f;
-                if (!caminoDelPuenteSeguro) puntuacion += 100f;
-
-                Debug.Log($"Waypoint {waypoint.name}: Puntuación = {puntuacion} (Inicio: {distanciaAlInicio}, Destino: {distanciaAlDestino})");
-
-                if (puntuacion < mejorPuntuacion)
+                if (caminoAlPuenteSeguro && caminoDelPuenteSeguro)
                 {
-                    mejorPuntuacion = puntuacion;
-                    mejorWaypoint = waypoint;
+                    float distancia = Vector3.Distance(inicio, waypoint.transform.position);
+                    if (distancia < menorDistancia)
+                    {
+                        menorDistancia = distancia;
+                        mejorPuente = waypoint;
+                    }
                 }
             }
         }
 
-        if (mejorWaypoint != null)
-        {
-            Debug.Log($"Mejor waypoint seleccionado: {mejorWaypoint.name} con puntuación {mejorPuntuacion}");
-        }
-
-        return mejorWaypoint;
+        return mejorPuente;
     }
 
     void Mover()
@@ -206,10 +184,6 @@ public class SimpleCharacterMovement : MonoBehaviour
             {
                 moviendose = false;
                 Debug.Log("Destino alcanzado");
-            }
-            else
-            {
-                Debug.Log($"Siguiente punto: {puntosCamino[0]}");
             }
         }
     }
@@ -266,22 +240,19 @@ public class SimpleCharacterMovement : MonoBehaviour
 
     bool CaminoTieneAgua(Vector3 inicio, Vector3 fin)
     {
-        // Verificación más precisa del camino
         float distancia = Vector3.Distance(inicio, fin);
         if (distancia < 0.1f) return false;
 
-        int muestras = Mathf.CeilToInt(distancia / 0.3f); // Más muestras para mayor precisión
+        int muestras = Mathf.CeilToInt(distancia / 0.3f);
 
         for (int i = 0; i <= muestras; i++)
         {
             float t = (float)i / (float)muestras;
             Vector3 punto = Vector3.Lerp(inicio, fin, t);
 
-            // Verificar agua en este punto (pero ignorar si está en un puente)
             if (Physics2D.OverlapCircle(punto, 0.2f, capaAgua) &&
                 !Physics2D.OverlapCircle(punto, 0.2f, capaWaypointPuente))
             {
-                Debug.Log($"Agua detectada en punto {punto} del camino {inicio} -> {fin}");
                 return true;
             }
         }
@@ -334,6 +305,6 @@ public class SimpleCharacterMovement : MonoBehaviour
 
         // Dibujar área de búsqueda de waypoints
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, 15f);
+        Gizmos.DrawWireSphere(transform.position, 12f);
     }
 }

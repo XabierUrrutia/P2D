@@ -8,7 +8,7 @@ public class PlayerShooting : MonoBehaviour
     public Transform weaponPoint;
     public float fireRate = 0.3f;
     public int maxAmmo = 10;
-    public string weaponName = "G3 Rifle";
+    public string weaponName = "G3 RIFLE";
 
     // Adicionados para permitir configurar dano/velocidade da bala
     [Header("Bullet")]
@@ -82,7 +82,7 @@ public class PlayerShooting : MonoBehaviour
     void UpdateUI()
     {
         if (ammoText != null)
-            ammoText.text = $"Ammo: {currentAmmo}/{maxAmmo}";
+            ammoText.text = $"AMMO: {currentAmmo}/{maxAmmo}";
         if (weaponNameText != null)
             weaponNameText.text = weaponName;
     }
