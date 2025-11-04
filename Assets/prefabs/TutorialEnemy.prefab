@@ -322,9 +322,9 @@ GameObject:
   - component: {fileID: 4634302444760327693}
   - component: {fileID: 8350767624913946287}
   - component: {fileID: -8054638891187647903}
-  - component: {fileID: -4801706182203069257}
   - component: {fileID: -7107088622069627834}
   - component: {fileID: -5617641031352863272}
+  - component: {fileID: 5669186974805083891}
   m_Layer: 9
   m_Name: TutorialEnemy
   m_TagString: Enemy
@@ -378,7 +378,7 @@ CapsuleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
@@ -542,28 +542,6 @@ MonoBehaviour:
   backLeft_L: {fileID: 291260847, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
   backLeft_R: {fileID: -1335276787, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
   backLeft_Idle: {fileID: -1335276787, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
---- !u!114 &-4801706182203069257
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3682313185742942023}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9a337fe44cbb754d974296a7aa115fd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alcanceDeteccao: 10
-  distanciaParagemAtaque: 4
-  intervaloMovimento: 3
-  raioMovimento: 5
-  camadaChao:
-    serializedVersion: 2
-    m_Bits: 64
-  camadaAgua:
-    serializedVersion: 2
-    m_Bits: 16
 --- !u!114 &-7107088622069627834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -604,6 +582,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHp: 1
+--- !u!114 &5669186974805083891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3682313185742942023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9a337fe44cbb754d974296a7aa115fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  alcanceDeteccao: 10
+  distanciaParagemAtaque: 4
+  intervaloMovimento: 3
+  raioMovimento: 5
+  camadaChao:
+    serializedVersion: 2
+    m_Bits: 64
+  camadaAgua:
+    serializedVersion: 2
+    m_Bits: 16
 --- !u!1 &3897657067945950570
 GameObject:
   m_ObjectHideFlags: 0

@@ -169414,8 +169414,8 @@ MonoBehaviour:
   panelToClose: {fileID: 1736995780}
   fala1: You are profissional in the movement thing, good job mate!!
   fala2: Now you need to shoot and kill the enemy, use the "Mouse 1" to shoot.
-  fala3: asd
-  fala4: asd
+  fala3: 
+  fala4: 
 --- !u!114 &601001900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -169431,7 +169431,7 @@ MonoBehaviour:
   stepCompletePanel: {fileID: 867874182}
   proceedButton: {fileID: 1675841246}
   stepMessageText: {fileID: 1021933006}
-  nextSceneName: tutorial 3 map
+  nextSceneName: 
   enemyTag: Enemy
   specificEnemy: {fileID: 3682313185742942023, guid: 0b3d82038f131d045a8472c3356460af, type: 3}
 --- !u!1 &797911729

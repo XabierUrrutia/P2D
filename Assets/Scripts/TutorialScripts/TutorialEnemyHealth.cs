@@ -5,10 +5,15 @@ public class TutorialEnemyHealth : MonoBehaviour
     public int maxHp = 10;
     int hp;
 
-    void Awake() => hp = maxHp;
+    void Awake()
+    {
+        hp = maxHp;
+        Debug.Log($"[TutorialEnemyHealth] Awake() '{gameObject.name}' hp={hp}");
+    }
 
     public void TakeDamage(int amount)
     {
+        Debug.Log($"[TutorialEnemyHealth] TakeDamage({amount}) chamado em '{gameObject.name}' (hp antes={hp})");
         hp -= amount;
         if (hp <= 0)
             Die();
@@ -20,14 +25,13 @@ public class TutorialEnemyHealth : MonoBehaviour
         if (listener != null)
         {
             listener.InvokeDeath(); // chama evento ANTES de destruir
-            Debug.Log($"[EnemyHealth] '{gameObject.name}' morreu — evento disparado");
+            Debug.Log($"[TutorialEnemyHealth] '{gameObject.name}' morreu — evento disparado");
         }
         else
         {
-            Debug.LogWarning($"[EnemyHealth] '{gameObject.name}' não tem EnemyDeathListener");
+            Debug.LogWarning($"[TutorialEnemyHealth] '{gameObject.name}' não tem EnemyDeathListener");
         }
 
-        // Destrói depois de invocar o evento
         Destroy(gameObject);
     }
 }

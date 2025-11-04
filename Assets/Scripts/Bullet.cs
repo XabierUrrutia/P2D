@@ -27,16 +27,32 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D hit)
     {
-        // Bala do jogador atinge inimigos
         if (hit.CompareTag("Enemy") && !isEnemyBullet)
         {
-            EnemyHealth enemy = hit.GetComponent<EnemyHealth>();
-            if (enemy != null)
-                enemy.TakeDamage(damage);
+            // Tenta encontrar qualquer tipo de script de vida
+            var tutorialEnemy = hit.GetComponent<TutorialEnemyHealth>();
+            var classicEnemy = hit.GetComponent<EnemyHealth>();
+
+            if (tutorialEnemy != null)
+            {
+                Debug.Log($"[Bullet] Atingiu inimigo '{hit.name}' (TutorialEnemyHealth) e causou {damage} de dano");
+                tutorialEnemy.TakeDamage(damage);
+            }
+            else if (classicEnemy != null)
+            {
+                Debug.Log($"[Bullet] Atingiu inimigo '{hit.name}' (EnemyHealth) e causou {damage} de dano");
+                classicEnemy.TakeDamage(damage);
+            }
+            else
+            {
+                Debug.LogWarning($"[Bullet] '{hit.name}' não tem script de vida reconhecido!");
+            }
 
             Destroy(gameObject);
             return;
         }
+
+
 
         // Bala inimiga atinge jogador
         if (hit.CompareTag("Player") && isEnemyBullet)

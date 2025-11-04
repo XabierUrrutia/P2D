@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
@@ -7,19 +7,19 @@ public class TutorialStep1Manager : MonoBehaviour
 {
     [Header("UI")]
     public GameObject stepCompletePanel;          // Painel que aparece quando passar o passo
-    public Button proceedButton;                  // Bot„o para ir ‡ prÛxima cena
+    public Button proceedButton;                  // Bot√£o para ir √† pr√≥xima cena
     public TextMeshProUGUI stepMessageText;       // Mensagem que mostra "Passaste o passo X"
     public string nextSceneName = "";             // Nome da cena do passo 2
 
     [Header("Trigger auto-bind")]
-    public int triggerStepIndex = 0;              // Õndice do trigger que corresponde a este passo (normalmente 0)
+    public int triggerStepIndex = 0;              // √çndice do trigger que corresponde a este passo (normalmente 0)
 
     void Start()
     {
         if (stepCompletePanel != null)
             stepCompletePanel.SetActive(false);
 
-        // Tenta ligar automaticamente a qualquer TutorialTrigger com o Ìndice correto
+        // Tenta ligar automaticamente a qualquer TutorialTrigger com o √≠ndice correto
         var triggers = FindObjectsOfType<TutorialTrigger>();
         foreach (var t in triggers)
         {
@@ -31,7 +31,7 @@ public class TutorialStep1Manager : MonoBehaviour
         }
     }
 
-    // MÈtodo p˙blico para conectar manualmente ao TutorialTrigger.onPlayerEnter (opÁ„o)
+    // M√©todo p√∫blico para conectar manualmente ao TutorialTrigger.onPlayerEnter (op√ß√£o)
     public void OnPlayerReachedTower()
     {
         ShowStepCompleteUI();
@@ -45,6 +45,14 @@ public class TutorialStep1Manager : MonoBehaviour
         if (stepCompletePanel != null)
             stepCompletePanel.SetActive(true);
 
+        // üîπ NOVO: esconder o painel do narrador, se ainda estiver ativo
+        TutorialNarrator narrator = FindObjectOfType<TutorialNarrator>();
+        if (narrator != null && narrator.panelToClose != null && narrator.panelToClose.activeSelf)
+        {
+            narrator.panelToClose.SetActive(false);
+            Debug.Log("Painel do narrador escondido ao mostrar o painel de sucesso.");
+        }
+
         if (proceedButton != null)
         {
             proceedButton.onClick.RemoveAllListeners();
@@ -53,18 +61,19 @@ public class TutorialStep1Manager : MonoBehaviour
         }
     }
 
+
     void ProceedToNextScene()
     {
         if (string.IsNullOrEmpty(nextSceneName))
         {
-            Debug.LogWarning("TutorialStep1Manager: nextSceneName n„o definido.");
+            Debug.LogWarning("TutorialStep1Manager: nextSceneName n√£o definido.");
             return;
         }
 
         SceneManager.LoadScene(nextSceneName);
     }
 
-    // Utilit·rio para testes manuais via Inspector
+    // Utilit√°rio para testes manuais via Inspector
     public void SimulateComplete()
     {
         OnPlayerReachedTower();

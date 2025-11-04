@@ -12,10 +12,10 @@ GameObject:
   - component: {fileID: 3186881105210076342}
   - component: {fileID: 6567257617724052771}
   - component: {fileID: 5780073284498502251}
-  - component: {fileID: 4597350496794998640}
-  m_Layer: 11
-  m_Name: Enemy_Bullet
-  m_TagString: EnemyBullet
+  - component: {fileID: -8827404088803267754}
+  m_Layer: 12
+  m_Name: TutorialBullet
+  m_TagString: PlayerBullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -77,7 +77,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: aea17ecd556818d4eb7a546681860851, type: 3}
-  m_Color: {r: 1, g: 0.35283017, b: 0.35283017, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -149,7 +149,7 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
---- !u!114 &4597350496794998640
+--- !u!114 &-8827404088803267754
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -158,10 +158,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 6354660447642033725}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9df8a07a026cc04eb9344b90513fe85, type: 3}
+  m_Script: {fileID: 11500000, guid: 05d83c8b5a370af4d8f24d6f52746d89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 10
   damage: 1
   rb: {fileID: 6567257617724052771}
-  isEnemyBullet: 1
+  isEnemyBullet: 0
