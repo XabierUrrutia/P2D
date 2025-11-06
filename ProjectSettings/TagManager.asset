@@ -25,7 +25,7 @@ TagManager:
   - PlayerBullet
   - FogOfWarMain
   - FogOfWarSecondary
-  - 
+  - FogAffected
   - 
   - 
   - 
@@ -48,4 +48,10 @@ TagManager:
     locked: 0
   - name: Secondary
     uniqueID: 3177479153
+    locked: 0
+  - name: AreasVisited
+    uniqueID: 804190087
+    locked: 0
+  - name: BlackFog
+    uniqueID: 4004041467
     locked: 0
