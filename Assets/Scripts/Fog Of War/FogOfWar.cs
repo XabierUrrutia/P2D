@@ -1,46 +1,30 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class FogOfWar : MonoBehaviour
 {
-    [Header("Primary Fog (Never Visited)")]
+    [Header("Fog Textures")]
     public Texture2D blackFogTexture;
-    public SpriteMask blackFogMask;
-
-    [Header("Secondary Fog (Visited Areas)")]
     public Texture2D visitedFogTexture;
-    public SpriteMask visitedFogMask;
 
-    [Header("Performance Settings")]
-    public float updateInterval = 0.1f;
-    public int textureResolution = 512; // Reduzir resolução para performance
+    [Header("Fog Masks")]
+    public SpriteRenderer blackFogRenderer;
+    public SpriteRenderer visitedFogRenderer;
 
-    private Vector2 worldScale;
-    private Vector2Int pixelScale;
+    [Header("Settings")]
+    public int textureResolution = 512;
+    public float worldSize = 100f;
+
     private Color32[] blackFogPixels;
     private Color32[] visitedFogPixels;
     private bool needsApply = false;
-    private Coroutine updateCoroutine;
+    private Vector2 worldScale;
+    private Vector2Int pixelScale;
 
-    public void Awake()
+    void Awake()
     {
-        // Inicializar texturas com resolução otimizada
         InitializeTextures();
-
-        pixelScale.x = textureResolution;
-        pixelScale.y = textureResolution;
-        worldScale.x = pixelScale.x / 100f * transform.localScale.x;
-        worldScale.y = pixelScale.y / 100f * transform.localScale.y;
-
-        // Inicializar arrays de pixels para acesso rápido
-        blackFogPixels = blackFogTexture.GetPixels32();
-        visitedFogPixels = visitedFogTexture.GetPixels32();
-
-        // Preencher com cores iniciais
-        InitializeFogColors();
-
-        CreateSprites();
+        SetupFogSystem();
     }
 
     private void InitializeTextures()
@@ -50,28 +34,43 @@ public class FogOfWar : MonoBehaviour
         {
             blackFogTexture = new Texture2D(textureResolution, textureResolution, TextureFormat.RGBA32, false);
             blackFogTexture.wrapMode = TextureWrapMode.Clamp;
+            blackFogTexture.filterMode = FilterMode.Trilinear;
         }
 
         if (visitedFogTexture == null)
         {
             visitedFogTexture = new Texture2D(textureResolution, textureResolution, TextureFormat.RGBA32, false);
             visitedFogTexture.wrapMode = TextureWrapMode.Clamp;
+            visitedFogTexture.filterMode = FilterMode.Trilinear;
         }
+
+        pixelScale = new Vector2Int(textureResolution, textureResolution);
+        worldScale = new Vector2(worldSize, worldSize);
     }
 
-    private void InitializeFogColors()
+    private void SetupFogSystem()
     {
-        // Fog preto - totalmente opaco para áreas nunca visitadas
-        Color32 blackColor = new Color32(0, 0, 0, 255);
-        // Fog visitado - cinzento semi-transparente
-        Color32 visitedColor = new Color32(50, 50, 50, 180);
+        // Inicializar arrays de pixels
+        blackFogPixels = new Color32[pixelScale.x * pixelScale.y];
+        visitedFogPixels = new Color32[pixelScale.x * pixelScale.y];
 
+        // Cores iniciais
+        Color32 blackColor = new Color32(0, 0, 0, 255);
+        Color32 visitedColor = new Color32(0, 0, 0, 255);
+
+        // Preencher texturas
         for (int i = 0; i < blackFogPixels.Length; i++)
         {
             blackFogPixels[i] = blackColor;
             visitedFogPixels[i] = visitedColor;
         }
 
+        ApplyInitialTextures();
+        CreateSprites();
+    }
+
+    private void ApplyInitialTextures()
+    {
         blackFogTexture.SetPixels32(blackFogPixels);
         visitedFogTexture.SetPixels32(visitedFogPixels);
         blackFogTexture.Apply();
@@ -80,69 +79,72 @@ public class FogOfWar : MonoBehaviour
 
     private void CreateSprites()
     {
-        if (blackFogMask != null)
+        if (blackFogRenderer != null)
         {
-            blackFogMask.sprite = Sprite.Create(blackFogTexture,
-                new Rect(0, 0, blackFogTexture.width, blackFogTexture.height),
-                Vector2.one * 0.5f, 100);
+            Sprite blackSprite = Sprite.Create(blackFogTexture,
+                new Rect(0, 0, textureResolution, textureResolution),
+                new Vector2(0.5f, 0.5f), 100f);
+            blackFogRenderer.sprite = blackSprite;
         }
 
-        if (visitedFogMask != null)
+        if (visitedFogRenderer != null)
         {
-            visitedFogMask.sprite = Sprite.Create(visitedFogTexture,
-                new Rect(0, 0, visitedFogTexture.width, visitedFogTexture.height),
-                Vector2.one * 0.5f, 100);
+            Sprite visitedSprite = Sprite.Create(visitedFogTexture,
+                new Rect(0, 0, textureResolution, textureResolution),
+                new Vector2(0.5f, 0.5f), 100f);
+            visitedFogRenderer.sprite = visitedSprite;
         }
     }
 
-    private Vector2Int WorldToPixel(Vector2 position)
+    public void RevealArea(Vector2 worldPos, float radius, bool permanentReveal = false)
     {
-        Vector2Int pixelPosition = Vector2Int.zero;
+        Vector2Int pixelPos = WorldToPixel(worldPos);
+        int pixelRadius = Mathf.RoundToInt(radius * textureResolution / worldSize);
 
-        float dx = position.x - transform.position.x;
-        float dy = position.y - transform.position.y;
+        // Sempre revelar no fog visitado
+        UpdateFogArea(visitedFogPixels, pixelPos, pixelRadius, new Color32(0, 0, 0, 0));
 
-        pixelPosition.x = Mathf.RoundToInt(0.5f * pixelScale.x + dx * (pixelScale.x / worldScale.x));
-        pixelPosition.y = Mathf.RoundToInt(0.5f * pixelScale.y + dy * (pixelScale.y / worldScale.y));
-
-        return pixelPosition;
-    }
-
-    public void MakeHole(Vector2 position, float holeRadius)
-    {
-        Vector2Int pixelPosition = WorldToPixel(position);
-        int radius = Mathf.RoundToInt(holeRadius * pixelScale.x / worldScale.x);
-
-        // Revelar no fog visitado (área atual de visão)
-        UpdateFogArea(visitedFogPixels, pixelPosition, radius, new Color32(0, 0, 0, 0));
-
-        // Revelar permanentemente no fog preto (área visitada)
-        UpdateFogArea(blackFogPixels, pixelPosition, radius, new Color32(0, 0, 0, 0));
+        // Se for revelação permanente, também revelar no fog preto
+        if (permanentReveal)
+        {
+            UpdateFogArea(blackFogPixels, pixelPos, pixelRadius, new Color32(0, 0, 0, 0));
+        }
 
         needsApply = true;
     }
 
+    private Vector2Int WorldToPixel(Vector2 worldPos)
+    {
+        Vector2 localPos = worldPos - (Vector2)transform.position;
+        Vector2 normalizedPos = new Vector2(
+            (localPos.x + worldSize * 0.5f) / worldSize,
+            (localPos.y + worldSize * 0.5f) / worldSize
+        );
+
+        return new Vector2Int(
+            Mathf.RoundToInt(normalizedPos.x * (textureResolution - 1)),
+            Mathf.RoundToInt(normalizedPos.y * (textureResolution - 1))
+        );
+    }
+
     private void UpdateFogArea(Color32[] pixels, Vector2Int center, int radius, Color32 clearColor)
     {
-        int xMin = Mathf.Clamp(center.x - radius, 0, pixelScale.x - 1);
-        int xMax = Mathf.Clamp(center.x + radius, 0, pixelScale.x - 1);
-        int yMin = Mathf.Clamp(center.y - radius, 0, pixelScale.y - 1);
-        int yMax = Mathf.Clamp(center.y + radius, 0, pixelScale.y - 1);
-
         int radiusSqr = radius * radius;
 
-        for (int y = yMin; y <= yMax; y++)
+        for (int y = -radius; y <= radius; y++)
         {
-            for (int x = xMin; x <= xMax; x++)
+            for (int x = -radius; x <= radius; x++)
             {
-                int dx = x - center.x;
-                int dy = y - center.y;
-                int distSqr = dx * dx + dy * dy;
-
-                if (distSqr <= radiusSqr)
+                if (x * x + y * y <= radiusSqr)
                 {
-                    int index = y * pixelScale.x + x;
-                    pixels[index] = clearColor;
+                    int pixelX = center.x + x;
+                    int pixelY = center.y + y;
+
+                    if (pixelX >= 0 && pixelX < textureResolution && pixelY >= 0 && pixelY < textureResolution)
+                    {
+                        int index = pixelY * textureResolution + pixelX;
+                        pixels[index] = clearColor;
+                    }
                 }
             }
         }
@@ -152,45 +154,31 @@ public class FogOfWar : MonoBehaviour
     {
         if (needsApply)
         {
-            ApplyTextureChanges();
+            blackFogTexture.SetPixels32(blackFogPixels);
+            visitedFogTexture.SetPixels32(visitedFogPixels);
+            blackFogTexture.Apply();
+            visitedFogTexture.Apply();
             needsApply = false;
         }
     }
 
-    private void ApplyTextureChanges()
+    public void ClearLevelBounds(Rect bounds)
     {
-        visitedFogTexture.SetPixels32(visitedFogPixels);
-        blackFogTexture.SetPixels32(blackFogPixels);
-        visitedFogTexture.Apply(false);
-        blackFogTexture.Apply(false);
-    }
-
-    // Método para limpar fog permanentemente numa área (para limites do nível)
-    public void ClearPermanentFog(Rect area)
-    {
-        Vector2Int min = WorldToPixel(area.min);
-        Vector2Int max = WorldToPixel(area.max);
+        Vector2Int min = WorldToPixel(bounds.min);
+        Vector2Int max = WorldToPixel(bounds.max);
 
         for (int y = min.y; y <= max.y; y++)
         {
             for (int x = min.x; x <= max.x; x++)
             {
-                if (x >= 0 && x < pixelScale.x && y >= 0 && y < pixelScale.y)
+                if (x >= 0 && x < textureResolution && y >= 0 && y < textureResolution)
                 {
-                    int index = y * pixelScale.x + x;
+                    int index = y * textureResolution + x;
                     blackFogPixels[index] = new Color32(0, 0, 0, 0);
+                    visitedFogPixels[index] = new Color32(0, 0, 0, 0);
                 }
             }
         }
-
         needsApply = true;
-    }
-
-    private void OnDestroy()
-    {
-        if (updateCoroutine != null)
-        {
-            StopCoroutine(updateCoroutine);
-        }
     }
 }

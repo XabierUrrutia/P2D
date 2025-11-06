@@ -25,7 +25,7 @@ TagManager:
   - PlayerBullet
   - FogOfWarMain
   - FogOfWarSecondary
-  - FogAffected
+  - 
   - 
   - 
   - 
@@ -46,12 +46,36 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Secondary
+  - name: FogOfWarMain
     uniqueID: 3177479153
     locked: 0
-  - name: AreasVisited
-    uniqueID: 804190087
+  - name: FogOfWarSecondary
+    uniqueID: 3764615165
     locked: 0
-  - name: BlackFog
-    uniqueID: 4004041467
+  - name: Player
+    uniqueID: 3144637543
+    locked: 0
+  - name: Enemy
+    uniqueID: 2500744251
+    locked: 0
+  - name: PlayerBullet
+    uniqueID: 1881489323
+    locked: 0
+  - name: EnemyBullet
+    uniqueID: 985007343
+    locked: 0
+  - name: Characters
+    uniqueID: 3553030961
+    locked: 0
+  - name: Foreground
+    uniqueID: 1662556929
+    locked: 0
+  - name: Bridge
+    uniqueID: 1965535161
+    locked: 0
+  - name: Water
+    uniqueID: 2015790161
+    locked: 0
+  - name: Ground
+    uniqueID: 4220812879
     locked: 0

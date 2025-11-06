@@ -1,98 +1,106 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class FogPlayer : MonoBehaviour
 {
-    [Header("Fog of War Settings")]
+    [Header("Fog Settings")]
     public FogOfWar fogOfWar;
-    public Transform secondaryFogOfWar;
-    [Range(0, 5)]
-    public float sightDistance = 3f;
-    public float checkInterval = 0.08f; // Intervalo mais curto para mais suavidade
+    public float visionRadius = 5f;
+    public float updateInterval = 0.05f;
 
-    [Header("Secondary Fog Settings")]
-    public float secondarySightDistance = 6f;
+    [Header("Secondary Fog")]
+    public Transform secondaryFog;
+    public float secondaryFogRadius = 8f;
 
-    // Cache para performance
     private Vector3 lastPosition;
-    private float squaredMoveThreshold = 0.1f;
-    private Coroutine fogCoroutine;
+    private float moveThreshold = 0.01f;
+    private Coroutine fogUpdateCoroutine;
 
     void Start()
     {
-        StartFogUpdate();
-        if (secondaryFogOfWar != null)
-        {
-            secondaryFogOfWar.localScale = new Vector2(secondarySightDistance, secondarySightDistance) * 2f;
-        }
-
-        lastPosition = transform.position;
+        InitializeFogSystem();
+        StartFogUpdates();
     }
 
     void Update()
     {
-        // Movimento do jogador
-        if (Input.GetKey(KeyCode.W))
-            transform.position += transform.up * Time.deltaTime;
-        if (Input.GetKey(KeyCode.S))
-            transform.position -= transform.up * Time.deltaTime;
-        if (Input.GetKey(KeyCode.A))
-            transform.position -= transform.right * Time.deltaTime;
-        if (Input.GetKey(KeyCode.D))
-            transform.position += transform.right * Time.deltaTime;
+        HandleMovement();
+        UpdateSecondaryFog();
+    }
 
-        // Atualizar posição do secondary fog
-        if (secondaryFogOfWar != null)
+    private void InitializeFogSystem()
+    {
+        if (fogOfWar == null)
+            fogOfWar = FindObjectOfType<FogOfWar>();
+
+        if (secondaryFog != null)
         {
-            secondaryFogOfWar.position = transform.position;
+            secondaryFog.localScale = Vector3.one * secondaryFogRadius * 2f;
         }
     }
 
-    private void StartFogUpdate()
+    private void StartFogUpdates()
     {
-        if (fogCoroutine != null)
-            StopCoroutine(fogCoroutine);
+        if (fogUpdateCoroutine != null)
+            StopCoroutine(fogUpdateCoroutine);
 
-        fogCoroutine = StartCoroutine(FogUpdateLoop());
+        fogUpdateCoroutine = StartCoroutine(FogUpdateRoutine());
     }
 
-    private IEnumerator FogUpdateLoop()
+    private IEnumerator FogUpdateRoutine()
     {
         while (true)
         {
-            UpdateFogOfWar();
-            yield return new WaitForSeconds(checkInterval);
+            UpdateFogReveal();
+            yield return new WaitForSeconds(updateInterval);
         }
     }
 
-    private void UpdateFogOfWar()
+    private void UpdateFogReveal()
     {
         if (fogOfWar == null) return;
 
-        // Só atualiza se o jogador se moveu significativamente
-        float sqrDist = (transform.position - lastPosition).sqrMagnitude;
-        if (sqrDist > squaredMoveThreshold)
+        float distanceMoved = Vector3.Distance(transform.position, lastPosition);
+        if (distanceMoved > moveThreshold)
         {
-            fogOfWar.MakeHole(transform.position, sightDistance);
+            // Revelação normal (não permanente) para área atual
+            fogOfWar.RevealArea(transform.position, visionRadius, false);
             lastPosition = transform.position;
         }
     }
 
-    // Método para definir os limites do nível (áreas sempre visíveis)
-    public void SetLevelBounds(Rect bounds)
+    private void UpdateSecondaryFog()
     {
-        if (fogOfWar != null)
+        if (secondaryFog != null)
         {
-            fogOfWar.ClearPermanentFog(bounds);
+            secondaryFog.position = transform.position;
         }
     }
 
-    private void OnDestroy()
+    private void HandleMovement()
     {
-        if (fogCoroutine != null)
+        // Teu código de movimento existente
+        if (Input.GetKey(KeyCode.W))
+            transform.position += Vector3.up * Time.deltaTime * 5f;
+        if (Input.GetKey(KeyCode.S))
+            transform.position += Vector3.down * Time.deltaTime * 5f;
+        if (Input.GetKey(KeyCode.A))
+            transform.position += Vector3.left * Time.deltaTime * 5f;
+        if (Input.GetKey(KeyCode.D))
+            transform.position += Vector3.right * Time.deltaTime * 5f;
+    }
+
+    public void RevealPermanentArea(Vector2 position, float radius)
+    {
+        if (fogOfWar != null)
         {
-            StopCoroutine(fogCoroutine);
+            fogOfWar.RevealArea(position, radius, true);
         }
+    }
+
+    void OnDestroy()
+    {
+        if (fogUpdateCoroutine != null)
+            StopCoroutine(fogUpdateCoroutine);
     }
 }
