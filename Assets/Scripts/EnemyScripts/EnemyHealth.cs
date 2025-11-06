@@ -10,8 +10,15 @@ public class EnemyHealth : MonoBehaviour
     [Header("Slider de Vida")]
     public Slider healthSlider; // Asigna este Slider desde el Inspector
 
+    [Header("Health Bar Display")]
+    public float showHealthBarTime = 3f; // Tiempo que se muestra la barra después de daño
+    public bool alwaysShowHealthBar = false; // Opción para mostrar siempre la barra
+
     private int currentHealth;
     private Camera mainCamera;
+    private float healthBarTimer = 0f;
+    private bool healthBarVisible = false;
+    private Canvas healthBarCanvas;
 
     void Start()
     {
@@ -31,6 +38,17 @@ public class EnemyHealth : MonoBehaviour
 
             // Configurar para mundo isométrico
             SetupWorldSpaceSlider();
+
+            // Ocultar la barra al inicio si no está configurada para mostrarse siempre
+            if (!alwaysShowHealthBar)
+            {
+                healthSlider.gameObject.SetActive(false);
+                healthBarVisible = false;
+            }
+            else
+            {
+                healthBarVisible = true;
+            }
         }
         else
         {
@@ -58,6 +76,12 @@ public class EnemyHealth : MonoBehaviour
             // Mover el slider al nuevo canvas
             healthSlider.transform.SetParent(canvasGO.transform);
             healthSlider.transform.localPosition = Vector3.zero;
+
+            healthBarCanvas = canvas;
+        }
+        else
+        {
+            healthBarCanvas = canvas;
         }
 
         // Configurar el tamaño del slider
@@ -73,12 +97,28 @@ public class EnemyHealth : MonoBehaviour
         {
             healthSlider.transform.rotation = mainCamera.transform.rotation;
         }
+
+        // Actualizar temporizador de la barra de vida si está visible
+        if (healthSlider != null && healthBarVisible && !alwaysShowHealthBar)
+        {
+            healthBarTimer -= Time.deltaTime;
+            if (healthBarTimer <= 0f)
+            {
+                HideHealthBar();
+            }
+        }
     }
 
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        // Mostrar la barra de vida cuando recibe daño
+        if (!alwaysShowHealthBar)
+        {
+            ShowHealthBar();
+        }
 
         UpdateHealthBar();
 
@@ -88,38 +128,34 @@ public class EnemyHealth : MonoBehaviour
             Die();
     }
 
+    // MÉTODOS PARA MOSTRAR/OCULTAR LA BARRA DE VIDA
+    void ShowHealthBar()
+    {
+        if (healthSlider != null && !healthBarVisible)
+        {
+            healthSlider.gameObject.SetActive(true);
+            healthBarVisible = true;
+        }
+
+        // Reiniciar el temporizador
+        healthBarTimer = showHealthBarTime;
+    }
+
+    void HideHealthBar()
+    {
+        if (healthSlider != null && healthBarVisible)
+        {
+            healthSlider.gameObject.SetActive(false);
+            healthBarVisible = false;
+        }
+    }
+
     void UpdateHealthBar()
     {
         if (healthSlider != null)
         {
             float healthPercent = (float)currentHealth / maxHealth;
             healthSlider.value = healthPercent;
-
-            // Cambiar color según la vida (opcional)
-            UpdateHealthBarColor(healthPercent);
-        }
-    }
-
-    void UpdateHealthBarColor(float healthPercent)
-    {
-        // Buscar la imagen de fill para cambiarle el color
-        Transform fillArea = healthSlider.transform.Find("Fill Area");
-        if (fillArea != null)
-        {
-            Transform fill = fillArea.Find("Fill");
-            if (fill != null)
-            {
-                Image fillImage = fill.GetComponent<Image>();
-                if (fillImage != null)
-                {
-                    if (healthPercent > 0.6f)
-                        fillImage.color = Color.green;
-                    else if (healthPercent > 0.3f)
-                        fillImage.color = Color.yellow;
-                    else
-                        fillImage.color = Color.red;
-                }
-            }
         }
     }
 
@@ -129,6 +165,54 @@ public class EnemyHealth : MonoBehaviour
         if (healthSlider != null)
             Destroy(healthSlider.gameObject);
 
+        // Si tenemos un canvas separado, destruirlo también
+        if (healthBarCanvas != null)
+            Destroy(healthBarCanvas.gameObject);
+
         Destroy(gameObject);
+    }
+
+    // MÉTODOS PÚBLICOS ADICIONALES (opcionales)
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
+    }
+
+    public int GetMaxHealth()
+    {
+        return maxHealth;
+    }
+
+    public bool IsFullHealth()
+    {
+        return currentHealth >= maxHealth;
+    }
+
+    // Método para forzar mostrar/ocultar la barra
+    public void SetHealthBarVisible(bool visible)
+    {
+        if (visible)
+        {
+            ShowHealthBar();
+        }
+        else
+        {
+            HideHealthBar();
+        }
+    }
+
+    // Método para curar al enemigo (útil si hay mecánicas de curación)
+    public void Heal(int amount)
+    {
+        currentHealth += amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        UpdateHealthBar();
+
+        // Opcional: mostrar barra brevemente al curar
+        if (!alwaysShowHealthBar)
+        {
+            ShowHealthBar();
+        }
     }
 }

@@ -4,359 +4,415 @@ using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
-    [Header("Movimento")]
-    public float moveSpeed = 3f;
-    public float acceleration = 6f;
-    public float deceleration = 10f;
-    public float stopDistance = 0.05f;
-    public float patrolRadius = 10f;
-    public float waitTimeAtPoint = 2f;
+    [Header("Movimiento Básico")]
+    public float velocidad = 4f;
+    public float distanciaParada = 0.1f;
 
-    [Header("Deteção e Ataque")]
-    public float detectionRange = 7f;
-    public float attackRange = 5f;
-    public float shootCooldown = 1.2f;
-    public GameObject bulletPrefab;
-    public Transform firePoint;
+    [Header("Búsqueda de Puentes")]
+    public float radioBusquedaMaximo = 50f;
+    public int maxPuentesEnRuta = 5;
 
-    // Novos parâmetros para bala
-    [Header("Bala")]
-    public float bulletSpeed = 8f;
-    public int bulletDamage = 1;
+    [Header("Detección de Terreno")]
+    public LayerMask capaSuelo;
+    public LayerMask capaAgua;
+    public LayerMask capaWaypointPuente;
 
-    [Header("Camadas de terreno")]
-    public LayerMask groundLayer;
-    public LayerMask waterLayer;
-    public LayerMask bridgeLayer;
+    [Header("Sprites - 8 direcciones (2 frames + idle)")]
+    public Sprite frenteDerecha_L;
+    public Sprite frenteDerecha_R;
+    public Sprite frenteDerecha_Idle;
 
-    [Header("Sprites - 8 direções (2 frames + idle)")]
-    public Sprite frontRight_L;
-    public Sprite frontRight_R;
-    public Sprite frontRight_Idle;
+    public Sprite frenteIzquierda_L;
+    public Sprite frenteIzquierda_R;
+    public Sprite frenteIzquierda_Idle;
 
-    public Sprite frontLeft_L;
-    public Sprite frontLeft_R;
-    public Sprite frontLeft_Idle;
+    public Sprite atrasDerecha_L;
+    public Sprite atrasDerecha_R;
+    public Sprite atrasDerecha_Idle;
 
-    public Sprite backRight_L;
-    public Sprite backRight_R;
-    public Sprite backRight_Idle;
+    public Sprite atrasIzquierda_L;
+    public Sprite atrasIzquierda_R;
+    public Sprite atrasIzquierda_Idle;
 
-    public Sprite backLeft_L;
-    public Sprite backLeft_R;
-    public Sprite backLeft_Idle;
+    // Variables internas
+    private Vector3 objetivoFinal;
+    private bool moviendose = false;
+    private List<Vector3> puntosCamino = new List<Vector3>();
+    private Vector2 direccionMovimiento;
+    private SpriteRenderer spriteRenderer;
 
-    private SpriteRenderer sr;
-    private Transform player;
-    private Vector3 targetPos;
-    private bool isMoving = false;
-    private float currentSpeed = 0f;
-    private float animTimer = 0f;
-    private bool animToggle = false;
-    private Vector2 moveDir = Vector2.zero;
-    private Vector2 lastDir = new Vector2(1, -1);
-    private List<Vector3> waypoints = new List<Vector3>();
-    private float waypointReachThreshold = 0.12f;
+    // Animación
+    private float temporizadorAnim = 0f;
+    private bool alternarAnim = false;
+    private Vector2 ultimaDireccion = new Vector2(1, -1);
 
-    // Patrulha
-    private float waitTimer = 0f;
-
-    // Combate
-    private float shootTimer = 0f;
+    // Control de pathfinding
+    private float ultimoRecalculoTime = 0f;
+    private const float RECALCULO_INTERVALO = 2f; // Recalcular cada 2 segundos máximo
 
     void Start()
     {
-        sr = GetComponent<SpriteRenderer>();
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
-        targetPos = transform.position;
-        UpdateSprite(lastDir, false, true);
-        ChooseNewPatrolPoint();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        objetivoFinal = transform.position;
+        ActualizarSprite(ultimaDireccion, false, true);
     }
 
     void Update()
     {
-        shootTimer -= Time.deltaTime;
+        Mover();
+        ActualizarAnimacion();
+    }
 
-        if (player != null)
+    public void SetTarget(Vector3 posicionDestino)
+    {
+        // Solo recalcular si el objetivo cambió significativamente o ha pasado suficiente tiempo
+        if (Vector3.Distance(objetivoFinal, posicionDestino) > 0.5f ||
+            Time.time - ultimoRecalculoTime > RECALCULO_INTERVALO)
         {
-            float distToPlayer = Vector2.Distance(transform.position, player.position);
+            objetivoFinal = posicionDestino;
+            ultimoRecalculoTime = Time.time;
 
-            // Se o jogador estiver dentro do campo de visão
-            if (distToPlayer <= detectionRange)
+            if (EsSueloValido(posicionDestino))
             {
-                // Mover até uma distância segura
-                if (distToPlayer > attackRange)
-                {
-                    SetTarget(player.position);
-                }
-                else
-                {
-                    isMoving = false;
-                    currentSpeed = 0f;
-                    TryShootAtPlayer();
-                }
+                CalcularRutaCompleta(transform.position, posicionDestino);
             }
             else
             {
-                HandlePatrol();
+                Vector3 puntoCercano = EncontrarPuntoCercanoValido(posicionDestino);
+                if (puntoCercano != Vector3.zero)
+                {
+                    CalcularRutaCompleta(transform.position, puntoCercano);
+                }
             }
+        }
+    }
+
+    public void StopMoving()
+    {
+        moviendose = false;
+        puntosCamino.Clear();
+    }
+
+    void CalcularRutaCompleta(Vector3 inicio, Vector3 destino)
+    {
+        puntosCamino.Clear();
+        moviendose = false;
+
+        // PRIMERO: Verificar si el camino directo es posible (sin agua)
+        if (!CaminoTieneAgua(inicio, destino))
+        {
+            puntosCamino.Add(destino);
+            moviendose = true;
+            return;
+        }
+
+        // Buscar ruta completa a través de puentes
+        List<Vector3> rutaCompleta = EncontrarRutaConPuentes(inicio, destino, maxPuentesEnRuta);
+
+        if (rutaCompleta != null && rutaCompleta.Count > 0)
+        {
+            puntosCamino.AddRange(rutaCompleta);
+            moviendose = true;
         }
         else
         {
-            HandlePatrol();
-        }
-
-        HandleMovement();
-        UpdateAnimation();
-    }
-
-    void HandlePatrol()
-    {
-        if (!isMoving)
-        {
-            waitTimer += Time.deltaTime;
-            if (waitTimer >= waitTimeAtPoint)
-            {
-                ChooseNewPatrolPoint();
-                waitTimer = 0f;
-            }
+            // Intentar al menos llegar a algún puente
+            IntentarRutaParcial(inicio, destino);
         }
     }
 
-    void ChooseNewPatrolPoint()
+    List<Vector3> EncontrarRutaConPuentes(Vector3 inicio, Vector3 destino, int maxProfundidad)
     {
-        Vector2 randomPoint = (Vector2)transform.position + Random.insideUnitCircle * patrolRadius;
+        Queue<List<Vector3>> colaRutas = new Queue<List<Vector3>>();
+        HashSet<WaypointPuente> visitados = new HashSet<WaypointPuente>();
 
-        if (IsOnGround(randomPoint) && !IsInWater(randomPoint))
-        {
-            SetTarget(randomPoint);
-        }
-    }
+        List<Vector3> rutaInicial = new List<Vector3> { inicio };
+        colaRutas.Enqueue(rutaInicial);
 
-    // CORREÇÃO: Alterado de 'void' para 'public void'
-    public void SetTarget(Vector3 pos)
-    {
-        if (!IsInWater(pos) && IsOnGround(pos))
+        int iteraciones = 0;
+        const int MAX_ITERACIONES = 100; // Límite para evitar bucles infinitos
+
+        while (colaRutas.Count > 0 && iteraciones < MAX_ITERACIONES)
         {
-            waypoints.Clear();
-            if (PathCrossesWater(transform.position, pos))
+            iteraciones++;
+
+            List<Vector3> rutaActual = colaRutas.Dequeue();
+            Vector3 posicionActual = rutaActual[rutaActual.Count - 1];
+
+            // Si hemos alcanzado el destino, retornar la ruta
+            if (Vector3.Distance(posicionActual, destino) < 1f)
             {
-                Vector3? bridgePoint = FindNearestBridge(transform.position);
-                if (bridgePoint.HasValue)
-                {
-                    waypoints.Add(bridgePoint.Value);
-                    waypoints.Add(pos);
-                }
-                else
-                {
-                    return;
-                }
-            }
-            else
-            {
-                waypoints.Add(pos);
+                rutaActual.RemoveAt(0);
+                return rutaActual;
             }
 
-            targetPos = waypoints[0];
-            isMoving = true;
-        }
-    }
+            // Si la ruta es demasiado larga, continuar
+            if (rutaActual.Count > maxProfundidad * 2 + 2) continue;
 
-    void HandleMovement()
-    {
-        if (!isMoving || waypoints.Count == 0) return;
+            // Buscar todos los puentes alcanzables desde la posición actual
+            List<WaypointPuente> puentesAlcanzables = EncontrarPuentesAlcanzables(posicionActual, visitados);
 
-        Vector3 currentTarget = waypoints[0];
-        Vector3 toTarget = currentTarget - transform.position;
-        float dist = toTarget.magnitude;
-        Vector3 dir = toTarget.normalized;
-
-        Vector3 nextPos = transform.position + dir * moveSpeed * Time.deltaTime;
-        if (IsInWater(nextPos))
-        {
-            Vector3? bridgePoint = FindNearestBridge(transform.position);
-            if (bridgePoint.HasValue)
+            foreach (WaypointPuente puente in puentesAlcanzables)
             {
-                waypoints.Insert(0, bridgePoint.Value);
-                currentTarget = waypoints[0];
-                dir = (currentTarget - transform.position).normalized;
-            }
-            else
-            {
-                isMoving = false;
-                return;
-            }
-        }
-
-        float desiredSpeed = moveSpeed;
-        if (dist < 0.5f)
-            desiredSpeed = Mathf.Lerp(0f, moveSpeed, dist / 0.5f);
-
-        float accel = desiredSpeed > currentSpeed ? acceleration : deceleration;
-        currentSpeed = Mathf.MoveTowards(currentSpeed, desiredSpeed, accel * Time.deltaTime);
-
-        moveDir = dir;
-        transform.position += (Vector3)(moveDir * currentSpeed * Time.deltaTime);
-
-        if (dist < Mathf.Max(stopDistance, waypointReachThreshold))
-        {
-            waypoints.RemoveAt(0);
-            if (waypoints.Count > 0)
-                targetPos = waypoints[0];
-            else
-                isMoving = false;
-        }
-    }
-
-    void TryShootAtPlayer()
-    {
-        if (shootTimer <= 0f && player != null)
-        {
-            shootTimer = shootCooldown;
-
-            if (bulletPrefab != null && firePoint != null)
-            {
-                Vector2 dir = (player.position - firePoint.position).normalized;
-                GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-
-                // Configurar componente Bullet (marca como inimiga, define direção, dano e velocidade)
-                Bullet b = bullet.GetComponent<Bullet>();
-                if (b != null)
+                // Verificar que podemos llegar al puente y que el puente tiene conexión
+                if (!CaminoTieneAgua(posicionActual, puente.transform.position) &&
+                    puente.waypointConectado != null)
                 {
-                    b.SetDirection(dir);
-                    b.isEnemyBullet = true;
-                    b.damage = bulletDamage;
-                    b.speed = bulletSpeed;
-                }
-                else
-                {
-                    // fallback: definir velocity diretamente se Bullet não existir
-                    Rigidbody2D rbFallback = bullet.GetComponent<Rigidbody2D>();
-                    if (rbFallback != null)
-                        rbFallback.velocity = dir * bulletSpeed;
-                }
+                    // Crear nueva ruta
+                    List<Vector3> nuevaRuta = new List<Vector3>(rutaActual);
+                    nuevaRuta.Add(puente.transform.position);
+                    nuevaRuta.Add(puente.waypointConectado.transform.position);
 
-                // Ignorar colisões entre a bala e o próprio inimigo (se ambos tiverem Collider2D)
-                Collider2D bulletCol = bullet.GetComponent<Collider2D>();
-                if (bulletCol != null)
-                {
-                    Collider2D[] ownCols = GetComponents<Collider2D>();
-                    foreach (var c in ownCols)
-                    {
-                        if (c != null)
-                            Physics2D.IgnoreCollision(bulletCol, c);
-                    }
-                }
+                    // Marcar como visitado
+                    visitados.Add(puente);
 
-                Destroy(bullet, 3f);
-            }
-        }
-    }
-
-    bool PathCrossesWater(Vector3 start, Vector3 end)
-    {
-        float totalDist = Vector2.Distance(start, end);
-        if (totalDist < 0.01f) return false;
-
-        float step = 0.12f;
-        bool seenGround = false;
-        bool seenWaterAfterGround = false;
-
-        int steps = Mathf.CeilToInt(totalDist / step);
-        for (int i = 0; i <= steps; i++)
-        {
-            float t = (float)i / (float)steps;
-            Vector3 p = Vector3.Lerp(start, end, t);
-
-            bool g = IsOnGround(p);
-            bool w = IsInWater(p);
-
-            if (g && !seenGround)
-                seenGround = true;
-
-            if (seenGround && w)
-                seenWaterAfterGround = true;
-
-            if (seenWaterAfterGround && g)
-                return true;
-        }
-
-        return false;
-    }
-
-    Vector3? FindNearestBridge(Vector3 from)
-    {
-        float searchRadius = 2f;
-        while (searchRadius <= 20f)
-        {
-            var hits = Physics2D.OverlapCircleAll(from, searchRadius, bridgeLayer);
-            if (hits.Length > 0)
-            {
-                var sorted = hits.OrderBy(h => Vector2.Distance(from, h.bounds.center));
-                foreach (var h in sorted)
-                {
-                    Vector3 candidate = h.ClosestPoint(from);
-                    if (!PathCrossesWater(from, candidate))
-                        return candidate;
+                    // Añadir a la cola
+                    colaRutas.Enqueue(nuevaRuta);
                 }
             }
-            searchRadius += 2f;
+
+            // También considerar ir directo al destino si es posible
+            if (!CaminoTieneAgua(posicionActual, destino))
+            {
+                List<Vector3> rutaDirecta = new List<Vector3>(rutaActual);
+                rutaDirecta.Add(destino);
+                colaRutas.Enqueue(rutaDirecta);
+            }
         }
 
         return null;
     }
 
-    void UpdateAnimation()
+    List<WaypointPuente> EncontrarPuentesAlcanzables(Vector3 desde, HashSet<WaypointPuente> excluir)
     {
-        if (moveDir.magnitude > 0.1f && isMoving)
+        List<WaypointPuente> puentes = new List<WaypointPuente>();
+
+        // Usar OverlapCircleNonAlloc para mejor rendimiento
+        Collider2D[] colliders = new Collider2D[20];
+        int count = Physics2D.OverlapCircleNonAlloc(desde, radioBusquedaMaximo, colliders, capaWaypointPuente);
+
+        for (int i = 0; i < count; i++)
         {
-            animTimer += Time.deltaTime;
-            if (animTimer >= 0.2f)
+            WaypointPuente puente = colliders[i].GetComponent<WaypointPuente>();
+            if (puente != null && puente.waypointConectado != null && !excluir.Contains(puente))
             {
-                animTimer = 0f;
-                animToggle = !animToggle;
+                // Verificar que el puente esté en dirección general al destino
+                Vector3 direccionAlPuente = (puente.transform.position - desde).normalized;
+                Vector3 direccionAlDestino = (objetivoFinal - desde).normalized;
+                float similitud = Vector3.Dot(direccionAlPuente, direccionAlDestino);
+
+                if (similitud > -0.3f) // Permitir cierta desviación
+                {
+                    puentes.Add(puente);
+                }
             }
-            UpdateSprite(moveDir, animToggle);
-            lastDir = moveDir;
+        }
+
+        // Ordenar por proximidad al destino final
+        return puentes.OrderBy(p => Vector3.Distance(p.waypointConectado.transform.position, objetivoFinal)).ToList();
+    }
+
+    void IntentarRutaParcial(Vector3 inicio, Vector3 destino)
+    {
+        // Encontrar el puente que nos lleve más cerca del destino
+        WaypointPuente mejorPuente = null;
+        float mejorDistancia = Mathf.Infinity;
+
+        // Usar OverlapCircleNonAlloc para mejor rendimiento
+        Collider2D[] todosPuentes = new Collider2D[20];
+        int count = Physics2D.OverlapCircleNonAlloc(inicio, radioBusquedaMaximo, todosPuentes, capaWaypointPuente);
+
+        for (int i = 0; i < count; i++)
+        {
+            WaypointPuente puente = todosPuentes[i].GetComponent<WaypointPuente>();
+            if (puente != null && puente.waypointConectado != null)
+            {
+                if (!CaminoTieneAgua(inicio, puente.transform.position))
+                {
+                    float distanciaDesdePuente = Vector3.Distance(puente.waypointConectado.transform.position, destino);
+                    if (distanciaDesdePuente < mejorDistancia)
+                    {
+                        mejorDistancia = distanciaDesdePuente;
+                        mejorPuente = puente;
+                    }
+                }
+            }
+        }
+
+        if (mejorPuente != null)
+        {
+            puntosCamino.Add(mejorPuente.transform.position);
+            puntosCamino.Add(mejorPuente.waypointConectado.transform.position);
+            moviendose = true;
+        }
+    }
+
+    void Mover()
+    {
+        if (!moviendose || puntosCamino.Count == 0) return;
+
+        Vector3 objetivoActual = puntosCamino[0];
+        Vector3 direccion = (objetivoActual - transform.position).normalized;
+
+        // Mover hacia el objetivo
+        transform.position += direccion * velocidad * Time.deltaTime;
+        direccionMovimiento = direccion;
+
+        // Verificar si llegamos al punto actual
+        if (Vector3.Distance(transform.position, objetivoActual) < distanciaParada)
+        {
+            puntosCamino.RemoveAt(0);
+
+            if (puntosCamino.Count == 0)
+            {
+                moviendose = false;
+
+                // Verificar si realmente llegamos al objetivo final
+                if (Vector3.Distance(transform.position, objetivoFinal) > 1f)
+                {
+                    // Recalcular solo si ha pasado suficiente tiempo
+                    if (Time.time - ultimoRecalculoTime > RECALCULO_INTERVALO)
+                    {
+                        CalcularRutaCompleta(transform.position, objetivoFinal);
+                    }
+                }
+            }
+        }
+    }
+
+    Vector3 EncontrarPuntoCercanoValido(Vector3 destino)
+    {
+        // Buscar en círculos concéntricos alrededor del destino
+        float radio = 1f;
+        int maxIntentos = 5;
+
+        for (int i = 0; i < maxIntentos; i++)
+        {
+            for (int j = 0; j < 8; j++) // 8 direcciones
+            {
+                float angulo = j * 45f * Mathf.Deg2Rad;
+                Vector3 puntoPrueba = destino + new Vector3(Mathf.Cos(angulo), Mathf.Sin(angulo), 0) * radio;
+
+                if (EsSueloValido(puntoPrueba) && !CaminoTieneAgua(transform.position, puntoPrueba))
+                {
+                    return puntoPrueba;
+                }
+            }
+            radio += 2f;
+        }
+
+        return Vector3.zero;
+    }
+
+    void ActualizarAnimacion()
+    {
+        if (moviendose && direccionMovimiento.magnitude > 0.1f)
+        {
+            temporizadorAnim += Time.deltaTime;
+            if (temporizadorAnim >= 0.2f)
+            {
+                temporizadorAnim = 0f;
+                alternarAnim = !alternarAnim;
+            }
+
+            ActualizarSprite(direccionMovimiento, alternarAnim);
+            ultimaDireccion = direccionMovimiento;
         }
         else
         {
-            UpdateSprite(lastDir, false, true);
+            ActualizarSprite(ultimaDireccion, false, true);
         }
     }
 
-    void UpdateSprite(Vector2 direction, bool toggle, bool idle = false)
+    void ActualizarSprite(Vector2 direccion, bool alternar, bool idle = false)
     {
-        if (sr == null) return;
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        if (angle < 0) angle += 360;
+        if (spriteRenderer == null) return;
 
-        Sprite chosen = frontRight_Idle;
+        float angulo = Mathf.Atan2(direccion.y, direccion.x) * Mathf.Rad2Deg;
+        if (angulo < 0) angulo += 360;
 
-        if (angle >= 15f && angle < 75f)
-            chosen = idle ? frontRight_Idle : (toggle ? frontRight_L : frontRight_R);
-        else if (angle >= 75f && angle < 105f)
-            chosen = idle ? backRight_Idle : (toggle ? backRight_L : backRight_R);
-        else if (angle >= 105f && angle < 165f)
-            chosen = idle ? backLeft_Idle : (toggle ? backLeft_L : backLeft_R);
-        else if (angle >= 165f && angle < 255f)
-            chosen = idle ? frontLeft_Idle : (toggle ? frontLeft_L : frontLeft_R);
-        else if (angle >= 255f && angle < 315f)
-            chosen = idle ? frontRight_Idle : (toggle ? frontRight_L : frontRight_R);
-        else
-            chosen = idle ? frontRight_Idle : (toggle ? frontRight_L : frontRight_R);
+        Sprite spriteSeleccionado = frenteDerecha_Idle;
 
-        sr.sprite = chosen;
+        // Distribución de direcciones
+        if (angulo >= 337.5f || angulo < 22.5f)        // Derecha
+            spriteSeleccionado = idle ? frenteDerecha_Idle : (alternar ? frenteDerecha_L : frenteDerecha_R);
+        else if (angulo >= 22.5f && angulo < 67.5f)    // Arriba-Derecha
+            spriteSeleccionado = idle ? atrasDerecha_Idle : (alternar ? atrasDerecha_L : atrasDerecha_R);
+        else if (angulo >= 67.5f && angulo < 112.5f)   // Arriba
+            spriteSeleccionado = idle ? atrasDerecha_Idle : (alternar ? atrasDerecha_L : atrasDerecha_R);
+        else if (angulo >= 112.5f && angulo < 157.5f)  // Arriba-Izquierda
+            spriteSeleccionado = idle ? atrasIzquierda_Idle : (alternar ? atrasIzquierda_L : atrasIzquierda_R);
+        else if (angulo >= 157.5f && angulo < 202.5f)  // Izquierda
+            spriteSeleccionado = idle ? frenteIzquierda_Idle : (alternar ? frenteIzquierda_L : frenteIzquierda_R);
+        else if (angulo >= 202.5f && angulo < 247.5f)  // Abajo-Izquierda
+            spriteSeleccionado = idle ? frenteIzquierda_Idle : (alternar ? frenteIzquierda_L : frenteIzquierda_R);
+        else if (angulo >= 247.5f && angulo < 292.5f)  // Abajo
+            spriteSeleccionado = idle ? frenteDerecha_Idle : (alternar ? frenteDerecha_L : frenteDerecha_R);
+        else if (angulo >= 292.5f && angulo < 337.5f)  // Abajo-Derecha
+            spriteSeleccionado = idle ? frenteDerecha_Idle : (alternar ? frenteDerecha_L : frenteDerecha_R);
+
+        spriteRenderer.sprite = spriteSeleccionado;
     }
 
-    bool IsInWater(Vector3 position)
+    bool CaminoTieneAgua(Vector3 inicio, Vector3 fin)
     {
-        return Physics2D.OverlapCircle(position, 0.2f, waterLayer) != null;
+        float distancia = Vector3.Distance(inicio, fin);
+        if (distancia < 0.1f) return false;
+
+        int muestras = Mathf.CeilToInt(distancia / 0.3f);
+
+        for (int i = 0; i <= muestras; i++)
+        {
+            float t = (float)i / (float)muestras;
+            Vector3 punto = Vector3.Lerp(inicio, fin, t);
+
+            if (Physics2D.OverlapCircle(punto, 0.2f, capaAgua) &&
+                !Physics2D.OverlapCircle(punto, 0.2f, capaWaypointPuente))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    bool IsOnGround(Vector3 position)
+    bool EsSueloValido(Vector3 posicion)
     {
-        return Physics2D.OverlapCircle(position, 0.2f, groundLayer) != null ||
-               Physics2D.OverlapCircle(position, 0.2f, bridgeLayer) != null;
+        return Physics2D.OverlapCircle(posicion, 0.3f, capaSuelo) != null;
+    }
+
+    // Para debug visual (solo en el editor)
+    void OnDrawGizmosSelected()
+    {
+#if UNITY_EDITOR
+        // Dibujar camino planeado
+        if (puntosCamino != null && puntosCamino.Count > 0)
+        {
+            Gizmos.color = Color.yellow;
+            Vector3 anterior = transform.position;
+
+            foreach (Vector3 punto in puntosCamino)
+            {
+                Gizmos.DrawWireSphere(punto, 0.2f);
+                Gizmos.DrawLine(anterior, punto);
+                anterior = punto;
+            }
+        }
+
+        // Dibujar dirección actual
+        if (moviendose)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(transform.position, direccionMovimiento * 1f);
+        }
+
+        // Dibujar área de búsqueda de waypoints
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, radioBusquedaMaximo);
+
+        // Dibujar objetivo final
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(objetivoFinal, 0.5f);
+#endif
     }
 }

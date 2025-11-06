@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class FogPlayer : MonoBehaviour
@@ -6,26 +7,29 @@ public class FogPlayer : MonoBehaviour
     [Header("Fog Settings")]
     public FogOfWar fogOfWar;
     public float visionRadius = 5f;
-    public float updateInterval = 0.05f;
+    public float updateInterval = 0.01f;
 
-    [Header("Secondary Fog")]
-    public Transform secondaryFog;
-    public float secondaryFogRadius = 8f;
-
-    private Vector3 lastPosition;
-    private float moveThreshold = 0.01f;
     private Coroutine fogUpdateCoroutine;
+    private Vector3 lastPosition;
+    private List<Vector3> visitedAreas = new List<Vector3>();
 
     void Start()
     {
         InitializeFogSystem();
         StartFogUpdates();
+        lastPosition = transform.position;
+
+        // Revelar posición inicial
+        if (fogOfWar != null)
+        {
+            fogOfWar.RevealArea(transform.position, visionRadius);
+            visitedAreas.Add(transform.position);
+        }
     }
 
     void Update()
     {
         HandleMovement();
-        UpdateSecondaryFog();
     }
 
     private void InitializeFogSystem()
@@ -33,10 +37,7 @@ public class FogPlayer : MonoBehaviour
         if (fogOfWar == null)
             fogOfWar = FindObjectOfType<FogOfWar>();
 
-        if (secondaryFog != null)
-        {
-            secondaryFog.localScale = Vector3.one * secondaryFogRadius * 2f;
-        }
+        // NO parentizar el FogOfWar - debe ser independiente
     }
 
     private void StartFogUpdates()
@@ -51,50 +52,44 @@ public class FogPlayer : MonoBehaviour
     {
         while (true)
         {
-            UpdateFogReveal();
+            if (fogOfWar != null)
+            {
+                UpdateFog();
+            }
             yield return new WaitForSeconds(updateInterval);
         }
     }
 
-    private void UpdateFogReveal()
+    private void UpdateFog()
     {
-        if (fogOfWar == null) return;
+        // Revelar posición actual
+        fogOfWar.RevealArea(transform.position, visionRadius);
 
-        float distanceMoved = Vector3.Distance(transform.position, lastPosition);
-        if (distanceMoved > moveThreshold)
+        // Si nos hemos movido significativamente, guardar como área visitada
+        if (Vector3.Distance(transform.position, lastPosition) > visionRadius * 0.5f)
         {
-            // Revelação normal (não permanente) para área atual
-            fogOfWar.RevealArea(transform.position, visionRadius, false);
+            visitedAreas.Add(transform.position);
             lastPosition = transform.position;
-        }
-    }
-
-    private void UpdateSecondaryFog()
-    {
-        if (secondaryFog != null)
-        {
-            secondaryFog.position = transform.position;
         }
     }
 
     private void HandleMovement()
     {
-        // Teu código de movimento existente
-        if (Input.GetKey(KeyCode.W))
-            transform.position += Vector3.up * Time.deltaTime * 5f;
-        if (Input.GetKey(KeyCode.S))
-            transform.position += Vector3.down * Time.deltaTime * 5f;
-        if (Input.GetKey(KeyCode.A))
-            transform.position += Vector3.left * Time.deltaTime * 5f;
-        if (Input.GetKey(KeyCode.D))
-            transform.position += Vector3.right * Time.deltaTime * 5f;
+        // Movimiento con ratón (como tenías originalmente)
+        if (Input.GetMouseButton(0))
+        {
+            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mouseWorldPos.z = 0;
+            transform.position = mouseWorldPos;
+        }
     }
 
+    // Método para revelar un área específica (para objetivos, edificios, etc.)
     public void RevealPermanentArea(Vector2 position, float radius)
     {
         if (fogOfWar != null)
         {
-            fogOfWar.RevealArea(position, radius, true);
+            fogOfWar.RevealArea(position, radius);
         }
     }
 
@@ -102,5 +97,12 @@ public class FogPlayer : MonoBehaviour
     {
         if (fogUpdateCoroutine != null)
             StopCoroutine(fogUpdateCoroutine);
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        // Visualizar área de visión
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, visionRadius);
     }
 }
