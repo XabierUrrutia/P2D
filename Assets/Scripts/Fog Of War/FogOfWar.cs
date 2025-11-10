@@ -12,36 +12,51 @@ public class FogOfWar : MonoBehaviour
     public SpriteRenderer visitedFogRenderer;
 
     [Header("Settings")]
-    public int textureResolution = 512;
-    public float worldSize = 100f;
+    public int textureResolution = 2500;
+    public float worldSize = 350f;
+    [Range(0, 255)]
+    public int visitedFogAlpha = 180;
+
+    [Header("Visual Scale")]
+    public float visualScale = 2f;
 
     private Color32[] blackFogPixels;
     private Color32[] visitedFogPixels;
+    private bool[] permanentRevealedPixels;
     private bool needsApply = false;
     private Vector2 worldScale;
     private Vector2Int pixelScale;
+
+    // Para manejar la posición anterior del jugador
+    private Vector2Int lastPlayerPixelPos;
+    private bool hasLastPosition = false;
 
     void Awake()
     {
         InitializeTextures();
         SetupFogSystem();
+        AdjustFogScale();
+    }
+
+    void Start()
+    {
+        AdjustFogScale();
     }
 
     private void InitializeTextures()
     {
-        // Criar texturas se não existirem
         if (blackFogTexture == null)
         {
             blackFogTexture = new Texture2D(textureResolution, textureResolution, TextureFormat.RGBA32, false);
             blackFogTexture.wrapMode = TextureWrapMode.Clamp;
-            blackFogTexture.filterMode = FilterMode.Trilinear;
+            blackFogTexture.filterMode = FilterMode.Bilinear;
         }
 
         if (visitedFogTexture == null)
         {
             visitedFogTexture = new Texture2D(textureResolution, textureResolution, TextureFormat.RGBA32, false);
             visitedFogTexture.wrapMode = TextureWrapMode.Clamp;
-            visitedFogTexture.filterMode = FilterMode.Trilinear;
+            visitedFogTexture.filterMode = FilterMode.Bilinear;
         }
 
         pixelScale = new Vector2Int(textureResolution, textureResolution);
@@ -50,23 +65,37 @@ public class FogOfWar : MonoBehaviour
 
     private void SetupFogSystem()
     {
-        // Inicializar arrays de pixels
         blackFogPixels = new Color32[pixelScale.x * pixelScale.y];
         visitedFogPixels = new Color32[pixelScale.x * pixelScale.y];
+        permanentRevealedPixels = new bool[pixelScale.x * pixelScale.y];
 
-        // Cores iniciais
         Color32 blackColor = new Color32(0, 0, 0, 255);
-        Color32 visitedColor = new Color32(0, 0, 0, 255);
+        Color32 visitedColor = new Color32(0, 0, 0, (byte)visitedFogAlpha);
 
-        // Preencher texturas
         for (int i = 0; i < blackFogPixels.Length; i++)
         {
             blackFogPixels[i] = blackColor;
             visitedFogPixels[i] = visitedColor;
+            permanentRevealedPixels[i] = false;
         }
 
         ApplyInitialTextures();
         CreateSprites();
+    }
+
+    private void AdjustFogScale()
+    {
+        float scale = visualScale;
+
+        if (blackFogRenderer != null)
+        {
+            blackFogRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+        }
+
+        if (visitedFogRenderer != null)
+        {
+            visitedFogRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+        }
     }
 
     private void ApplyInitialTextures()
@@ -85,6 +114,7 @@ public class FogOfWar : MonoBehaviour
                 new Rect(0, 0, textureResolution, textureResolution),
                 new Vector2(0.5f, 0.5f), 100f);
             blackFogRenderer.sprite = blackSprite;
+            blackFogRenderer.sortingOrder = 2;
         }
 
         if (visitedFogRenderer != null)
@@ -93,41 +123,34 @@ public class FogOfWar : MonoBehaviour
                 new Rect(0, 0, textureResolution, textureResolution),
                 new Vector2(0.5f, 0.5f), 100f);
             visitedFogRenderer.sprite = visitedSprite;
+            visitedFogRenderer.sortingOrder = 1;
         }
     }
 
-    public void RevealArea(Vector2 worldPos, float radius, bool permanentReveal = false)
+    public void UpdatePlayerPosition(Vector2 worldPos, float visionRadius)
     {
         Vector2Int pixelPos = WorldToPixel(worldPos);
-        int pixelRadius = Mathf.RoundToInt(radius * textureResolution / worldSize);
+        int pixelRadius = Mathf.RoundToInt(visionRadius * textureResolution / worldSize);
 
-        // Sempre revelar no fog visitado
-        UpdateFogArea(visitedFogPixels, pixelPos, pixelRadius, new Color32(0, 0, 0, 0));
-
-        // Se for revelação permanente, também revelar no fog preto
-        if (permanentReveal)
+        // Si tenemos una posición anterior, restaurar la niebla visitada en esa área
+        if (hasLastPosition)
         {
-            UpdateFogArea(blackFogPixels, pixelPos, pixelRadius, new Color32(0, 0, 0, 0));
+            RestoreVisitedFog(lastPlayerPixelPos, pixelRadius);
         }
+
+        // Revelar nueva posición
+        RevealArea(pixelPos, pixelRadius, false);
+
+        // Marcar como permanentemente revelada
+        RevealArea(pixelPos, pixelRadius, true);
+
+        lastPlayerPixelPos = pixelPos;
+        hasLastPosition = true;
 
         needsApply = true;
     }
 
-    private Vector2Int WorldToPixel(Vector2 worldPos)
-    {
-        Vector2 localPos = worldPos - (Vector2)transform.position;
-        Vector2 normalizedPos = new Vector2(
-            (localPos.x + worldSize * 0.5f) / worldSize,
-            (localPos.y + worldSize * 0.5f) / worldSize
-        );
-
-        return new Vector2Int(
-            Mathf.RoundToInt(normalizedPos.x * (textureResolution - 1)),
-            Mathf.RoundToInt(normalizedPos.y * (textureResolution - 1))
-        );
-    }
-
-    private void UpdateFogArea(Color32[] pixels, Vector2Int center, int radius, Color32 clearColor)
+    private void RevealArea(Vector2Int center, int radius, bool permanent)
     {
         int radiusSqr = radius * radius;
 
@@ -143,11 +166,68 @@ public class FogOfWar : MonoBehaviour
                     if (pixelX >= 0 && pixelX < textureResolution && pixelY >= 0 && pixelY < textureResolution)
                     {
                         int index = pixelY * textureResolution + pixelX;
-                        pixels[index] = clearColor;
+
+                        if (permanent)
+                        {
+                            // Revelación permanente: quitar niebla negra
+                            permanentRevealedPixels[index] = true;
+                            blackFogPixels[index] = new Color32(0, 0, 0, 0);
+                        }
+                        else
+                        {
+                            // Revelación temporal: área completamente visible
+                            visitedFogPixels[index] = new Color32(0, 0, 0, 0);
+                            blackFogPixels[index] = new Color32(0, 0, 0, 0);
+                        }
                     }
                 }
             }
         }
+    }
+
+    private void RestoreVisitedFog(Vector2Int oldCenter, int radius)
+    {
+        int radiusSqr = radius * radius;
+
+        for (int y = -radius; y <= radius; y++)
+        {
+            for (int x = -radius; x <= radius; x++)
+            {
+                if (x * x + y * y <= radiusSqr)
+                {
+                    int pixelX = oldCenter.x + x;
+                    int pixelY = oldCenter.y + y;
+
+                    if (pixelX >= 0 && pixelX < textureResolution && pixelY >= 0 && pixelY < textureResolution)
+                    {
+                        int index = pixelY * textureResolution + pixelX;
+
+                        // Restaurar niebla visitada (pero mantener transparente la niebla negra en áreas permanentemente reveladas)
+                        if (permanentRevealedPixels[index])
+                        {
+                            visitedFogPixels[index] = new Color32(0, 0, 0, (byte)visitedFogAlpha);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private Vector2Int WorldToPixel(Vector2 worldPos)
+    {
+        Vector2 localPos = worldPos - (Vector2)transform.position;
+        Vector2 normalizedPos = new Vector2(
+            (localPos.x + worldSize * 0.5f) / worldSize,
+            (localPos.y + worldSize * 0.5f) / worldSize
+        );
+
+        normalizedPos.x = Mathf.Clamp01(normalizedPos.x);
+        normalizedPos.y = Mathf.Clamp01(normalizedPos.y);
+
+        return new Vector2Int(
+            Mathf.RoundToInt(normalizedPos.x * (textureResolution - 1)),
+            Mathf.RoundToInt(normalizedPos.y * (textureResolution - 1))
+        );
     }
 
     private void LateUpdate()
@@ -160,25 +240,5 @@ public class FogOfWar : MonoBehaviour
             visitedFogTexture.Apply();
             needsApply = false;
         }
-    }
-
-    public void ClearLevelBounds(Rect bounds)
-    {
-        Vector2Int min = WorldToPixel(bounds.min);
-        Vector2Int max = WorldToPixel(bounds.max);
-
-        for (int y = min.y; y <= max.y; y++)
-        {
-            for (int x = min.x; x <= max.x; x++)
-            {
-                if (x >= 0 && x < textureResolution && y >= 0 && y < textureResolution)
-                {
-                    int index = y * textureResolution + x;
-                    blackFogPixels[index] = new Color32(0, 0, 0, 0);
-                    visitedFogPixels[index] = new Color32(0, 0, 0, 0);
-                }
-            }
-        }
-        needsApply = true;
     }
 }
