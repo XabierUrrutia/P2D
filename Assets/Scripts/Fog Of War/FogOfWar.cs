@@ -1,135 +1,207 @@
-using System.Collections;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class FogOfWar : MonoBehaviour
 {
-    [Header("Fog Textures")]
-    public Texture2D blackFogTexture;
-    public Texture2D visitedFogTexture;
+    [Header("Configuración Isométrica")]
+    public string playerTag = "Player"; // Tag para buscar al jugador
+    public float visionRadius = 5f;
+    public Vector2 isometricMapSize = new Vector2(100f, 100f);
 
-    [Header("Fog Masks")]
+    [Header("Renderers")]
     public SpriteRenderer blackFogRenderer;
-    public SpriteRenderer visitedFogRenderer;
+    public SpriteRenderer visionRenderer;
 
-    [Header("Settings")]
-    public int textureResolution = 512;
-    public float worldSize = 100f;
+    [Header("Texturas")]
+    public int textureSize = 1024;
 
+    private Transform player;
+    private Texture2D blackFogTexture;
+    private Texture2D visionTexture;
     private Color32[] blackFogPixels;
-    private Color32[] visitedFogPixels;
-    private bool needsApply = false;
-    private Vector2 worldScale;
-    private Vector2Int pixelScale;
+    private Color32[] visionPixels;
+    private bool[] revealedPixels;
 
-    void Awake()
+    private Vector3 lastPlayerPos;
+    private bool playerFound = false;
+
+    void Start()
     {
         InitializeTextures();
-        SetupFogSystem();
+        ScaleForIsometric();
+        FindPlayer();
     }
 
-    private void InitializeTextures()
+    void Update()
     {
-        // Criar texturas se não existirem
-        if (blackFogTexture == null)
+        // Si no hemos encontrado al jugador, intentar encontrarlo
+        if (!playerFound)
         {
-            blackFogTexture = new Texture2D(textureResolution, textureResolution, TextureFormat.RGBA32, false);
-            blackFogTexture.wrapMode = TextureWrapMode.Clamp;
-            blackFogTexture.filterMode = FilterMode.Trilinear;
+            FindPlayer();
+            return;
         }
 
-        if (visitedFogTexture == null)
+        // Actualizar si el jugador se movió
+        if (player != null && Vector3.Distance(player.position, lastPlayerPos) > 0.05f)
         {
-            visitedFogTexture = new Texture2D(textureResolution, textureResolution, TextureFormat.RGBA32, false);
-            visitedFogTexture.wrapMode = TextureWrapMode.Clamp;
-            visitedFogTexture.filterMode = FilterMode.Trilinear;
+            UpdateFogOfWar();
+            lastPlayerPos = player.position;
         }
-
-        pixelScale = new Vector2Int(textureResolution, textureResolution);
-        worldScale = new Vector2(worldSize, worldSize);
     }
 
-    private void SetupFogSystem()
+    void FindPlayer()
     {
-        // Inicializar arrays de pixels
-        blackFogPixels = new Color32[pixelScale.x * pixelScale.y];
-        visitedFogPixels = new Color32[pixelScale.x * pixelScale.y];
+        GameObject playerObj = GameObject.FindGameObjectWithTag(playerTag);
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+            playerFound = true;
+            lastPlayerPos = player.position;
+            Debug.Log($"Jugador encontrado: {player.name}");
 
-        // Cores iniciais
-        Color32 blackColor = new Color32(0, 0, 0, 255);
-        Color32 visitedColor = new Color32(0, 0, 0, 255);
+            // Actualizar inmediatamente
+            UpdateFogOfWar();
+        }
+    }
 
-        // Preencher texturas
+    // Método público para que otros scripts asignen el jugador
+    public void SetPlayer(Transform playerTransform)
+    {
+        player = playerTransform;
+        playerFound = true;
+        lastPlayerPos = player.position;
+        UpdateFogOfWar();
+    }
+
+    public void UpdatePlayerPosition(Vector3 position, float radius)
+    {
+        // Si no tenemos jugador, intentar encontrarlo
+        if (!playerFound)
+        {
+            FindPlayer();
+            return;
+        }
+
+        visionRadius = radius;
+        UpdateFogOfWar();
+    }
+
+    void InitializeTextures()
+    {
+        blackFogTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
+        visionTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
+
+        blackFogTexture.wrapMode = TextureWrapMode.Clamp;
+        visionTexture.wrapMode = TextureWrapMode.Clamp;
+
+        blackFogTexture.filterMode = FilterMode.Bilinear;
+        visionTexture.filterMode = FilterMode.Bilinear;
+
+        blackFogPixels = new Color32[textureSize * textureSize];
+        visionPixels = new Color32[textureSize * textureSize];
+        revealedPixels = new bool[textureSize * textureSize];
+
+        // Inicializar
+        Color32 black = new Color32(0, 0, 0, 255);
+        Color32 transparent = new Color32(0, 0, 0, 0);
+
         for (int i = 0; i < blackFogPixels.Length; i++)
         {
-            blackFogPixels[i] = blackColor;
-            visitedFogPixels[i] = visitedColor;
+            blackFogPixels[i] = black;
+            visionPixels[i] = transparent;
+            revealedPixels[i] = false;
         }
 
-        ApplyInitialTextures();
+        ApplyTextures();
         CreateSprites();
     }
 
-    private void ApplyInitialTextures()
+    void UpdateFogOfWar()
     {
-        blackFogTexture.SetPixels32(blackFogPixels);
-        visitedFogTexture.SetPixels32(visitedFogPixels);
-        blackFogTexture.Apply();
-        visitedFogTexture.Apply();
+        if (!playerFound || player == null) return;
+
+        ClearVisionTexture();
+
+        Vector2Int playerPixel = IsometricWorldToPixel(player.position);
+        int pixelRadius = Mathf.RoundToInt(visionRadius * textureSize / Mathf.Max(isometricMapSize.x, isometricMapSize.y));
+
+        DrawVisionCircle(playerPixel, pixelRadius);
+        UpdatePermanentRevealed(playerPixel, pixelRadius);
+        ApplyTextures();
     }
 
-    private void CreateSprites()
+    void ScaleForIsometric()
     {
+        float scaleX = isometricMapSize.x / 10f;
+        float scaleY = isometricMapSize.y / 10f;
+
         if (blackFogRenderer != null)
         {
-            Sprite blackSprite = Sprite.Create(blackFogTexture,
-                new Rect(0, 0, textureResolution, textureResolution),
-                new Vector2(0.5f, 0.5f), 100f);
-            blackFogRenderer.sprite = blackSprite;
+            blackFogRenderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
         }
 
-        if (visitedFogRenderer != null)
+        if (visionRenderer != null)
         {
-            Sprite visitedSprite = Sprite.Create(visitedFogTexture,
-                new Rect(0, 0, textureResolution, textureResolution),
-                new Vector2(0.5f, 0.5f), 100f);
-            visitedFogRenderer.sprite = visitedSprite;
+            float visionScale = visionRadius * 2f / 10f;
+            visionRenderer.transform.localScale = new Vector3(visionScale, visionScale, 1f);
         }
     }
 
-    public void RevealArea(Vector2 worldPos, float radius, bool permanentReveal = false)
+    Vector2Int IsometricWorldToPixel(Vector3 worldPos)
     {
-        Vector2Int pixelPos = WorldToPixel(worldPos);
-        int pixelRadius = Mathf.RoundToInt(radius * textureResolution / worldSize);
+        Vector3 localPos = worldPos - transform.position;
 
-        // Sempre revelar no fog visitado
-        UpdateFogArea(visitedFogPixels, pixelPos, pixelRadius, new Color32(0, 0, 0, 0));
+        float x = (localPos.x + isometricMapSize.x * 0.5f) / isometricMapSize.x;
+        float y = (localPos.y + isometricMapSize.y * 0.5f) / isometricMapSize.y;
 
-        // Se for revelação permanente, também revelar no fog preto
-        if (permanentReveal)
-        {
-            UpdateFogArea(blackFogPixels, pixelPos, pixelRadius, new Color32(0, 0, 0, 0));
-        }
-
-        needsApply = true;
-    }
-
-    private Vector2Int WorldToPixel(Vector2 worldPos)
-    {
-        Vector2 localPos = worldPos - (Vector2)transform.position;
-        Vector2 normalizedPos = new Vector2(
-            (localPos.x + worldSize * 0.5f) / worldSize,
-            (localPos.y + worldSize * 0.5f) / worldSize
-        );
+        x = Mathf.Clamp01(x);
+        y = Mathf.Clamp01(y);
 
         return new Vector2Int(
-            Mathf.RoundToInt(normalizedPos.x * (textureResolution - 1)),
-            Mathf.RoundToInt(normalizedPos.y * (textureResolution - 1))
+            Mathf.FloorToInt(x * (textureSize - 1)),
+            Mathf.FloorToInt(y * (textureSize - 1))
         );
     }
 
-    private void UpdateFogArea(Color32[] pixels, Vector2Int center, int radius, Color32 clearColor)
+    void ClearVisionTexture()
+    {
+        Color32 transparent = new Color32(0, 0, 0, 0);
+        for (int i = 0; i < visionPixels.Length; i++)
+        {
+            visionPixels[i] = transparent;
+        }
+    }
+
+    void DrawVisionCircle(Vector2Int center, int radius)
     {
         int radiusSqr = radius * radius;
+        Color32 transparent = new Color32(0, 0, 0, 0);
+
+        int startX = Mathf.Max(0, center.x - radius);
+        int endX = Mathf.Min(textureSize - 1, center.x + radius);
+        int startY = Mathf.Max(0, center.y - radius);
+        int endY = Mathf.Min(textureSize - 1, center.y + radius);
+
+        for (int y = startY; y <= endY; y++)
+        {
+            for (int x = startX; x <= endX; x++)
+            {
+                int dx = x - center.x;
+                int dy = y - center.y;
+
+                if (dx * dx + dy * dy <= radiusSqr)
+                {
+                    int index = y * textureSize + x;
+                    visionPixels[index] = transparent;
+                }
+            }
+        }
+    }
+
+    void UpdatePermanentRevealed(Vector2Int center, int radius)
+    {
+        int radiusSqr = radius * radius;
+        Color32 visited = new Color32(0, 0, 0, 150);
 
         for (int y = -radius; y <= radius; y++)
         {
@@ -140,45 +212,49 @@ public class FogOfWar : MonoBehaviour
                     int pixelX = center.x + x;
                     int pixelY = center.y + y;
 
-                    if (pixelX >= 0 && pixelX < textureResolution && pixelY >= 0 && pixelY < textureResolution)
+                    if (pixelX >= 0 && pixelX < textureSize && pixelY >= 0 && pixelY < textureSize)
                     {
-                        int index = pixelY * textureResolution + pixelX;
-                        pixels[index] = clearColor;
+                        int index = pixelY * textureSize + pixelX;
+                        if (!revealedPixels[index])
+                        {
+                            revealedPixels[index] = true;
+                            blackFogPixels[index] = visited;
+                        }
                     }
                 }
             }
         }
     }
 
-    private void LateUpdate()
+    void ApplyTextures()
     {
-        if (needsApply)
+        blackFogTexture.SetPixels32(blackFogPixels);
+        visionTexture.SetPixels32(visionPixels);
+
+        blackFogTexture.Apply();
+        visionTexture.Apply();
+    }
+
+    void CreateSprites()
+    {
+        if (blackFogRenderer != null)
         {
-            blackFogTexture.SetPixels32(blackFogPixels);
-            visitedFogTexture.SetPixels32(visitedFogPixels);
-            blackFogTexture.Apply();
-            visitedFogTexture.Apply();
-            needsApply = false;
+            Rect rect = new Rect(0, 0, textureSize, textureSize);
+            blackFogRenderer.sprite = Sprite.Create(blackFogTexture, rect, new Vector2(0.5f, 0.5f), 100f);
+            blackFogRenderer.sortingOrder = 10;
+        }
+
+        if (visionRenderer != null)
+        {
+            Rect rect = new Rect(0, 0, textureSize, textureSize);
+            visionRenderer.sprite = Sprite.Create(visionTexture, rect, new Vector2(0.5f, 0.5f), 100f);
+            visionRenderer.sortingOrder = 11;
         }
     }
 
-    public void ClearLevelBounds(Rect bounds)
+    public void SetVisionRadius(float newRadius)
     {
-        Vector2Int min = WorldToPixel(bounds.min);
-        Vector2Int max = WorldToPixel(bounds.max);
-
-        for (int y = min.y; y <= max.y; y++)
-        {
-            for (int x = min.x; x <= max.x; x++)
-            {
-                if (x >= 0 && x < textureResolution && y >= 0 && y < textureResolution)
-                {
-                    int index = y * textureResolution + x;
-                    blackFogPixels[index] = new Color32(0, 0, 0, 0);
-                    visitedFogPixels[index] = new Color32(0, 0, 0, 0);
-                }
-            }
-        }
-        needsApply = true;
+        visionRadius = newRadius;
+        ScaleForIsometric();
     }
 }
