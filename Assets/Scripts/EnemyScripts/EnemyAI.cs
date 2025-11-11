@@ -198,20 +198,5 @@ public class EnemyAI : MonoBehaviour
             Gizmos.color = Color.magenta;
             Gizmos.DrawLine(transform.position, baseJogador.position);
         }
-    }
-
-    // Método para debug en tiempo de ejecución
-    void OnGUI()
-    {
-        if (debugAtivo && Application.isPlaying)
-        {
-            GUIStyle style = new GUIStyle();
-            style.normal.textColor = perseguindoJogador ? Color.red : Color.white;
-            style.fontSize = 12;
-
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position);
-            string status = perseguindoJogador ? "PERSEGUINDO" : "INDO PARA BASE";
-            GUI.Label(new Rect(screenPos.x, Screen.height - screenPos.y, 200, 50), status, style);
-        }
-    }
+    } 
 }
