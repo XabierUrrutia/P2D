@@ -1107,8 +1107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fogOfWar: {fileID: 0}
-  visionRadius: 8
-  updateThreshold: 0.05
+  visionRadius: 2
 --- !u!1 &7200475562421419594
 GameObject:
   m_ObjectHideFlags: 0
