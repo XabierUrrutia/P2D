@@ -9,6 +9,8 @@ TagManager:
   - EnemyBullet
   - HealthBar
   - Tower
+  - PlayerBase
+  - Building
   layers:
   - Default
   - TransparentFX
@@ -25,7 +27,7 @@ TagManager:
   - PlayerBullet
   - FogOfWarMain
   - FogOfWarSecondary
-  - 
+  - Buildings
   - 
   - 
   - 
