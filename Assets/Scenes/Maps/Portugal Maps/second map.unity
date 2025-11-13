@@ -167906,7 +167906,7 @@ GameObject:
   - component: {fileID: 278943131}
   - component: {fileID: 278943130}
   m_Layer: 0
-  m_Name: EnemiesSpawner (1)
+  m_Name: PlayerSpwaner
   m_TagString: PlayerBase
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -167925,7 +167925,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 6345127346883322234, guid: 462e604a0087131468f7332b8b031e98, type: 3}
+  cantidadSoldados: 3
+  radioSpawn: 1.5
   cameraScript: {fileID: 1144464467}
+  usarFormacionCircular: 1
 --- !u!4 &278943131
 Transform:
   m_ObjectHideFlags: 0
@@ -171375,7 +171378,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 3682313185742942023, guid: 02a98bd66955df04a8c0118df4bd4ce9, type: 3}
-  enemyCount: 2
+  enemyCount: 3
   spawnRadius: 3
   minDistanceFromBase: 1
   spawnInCircle: 1
@@ -171853,7 +171856,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerTag: Player
-  visionRadius: 2
+  defaultVisionRadius: 5
   isometricMapSize: {x: 250, y: 200}
   blackFogRenderer: {fileID: 788905191}
   visionRenderer: {fileID: 1818796911}
@@ -614075,6 +614078,7 @@ MonoBehaviour:
   target: {fileID: 0}
   smoothSpeed: 0.125
   offset: {x: 0, y: 0, z: -10}
+  moveSpeed: 5
   useBounds: 0
   minX: -10
   maxX: 10
@@ -614174,6 +614178,109 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2115757588}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1217058726
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1217058728}
+  - component: {fileID: 1217058727}
+  - component: {fileID: 1217058729}
+  m_Layer: 0
+  m_Name: UnitSelection
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1217058727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1217058726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 060909910e66a3940a606befd580def6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  capaUnidades:
+    serializedVersion: 2
+    m_Bits: 1024
+  spriteCuadroSeleccion: {fileID: 21300000, guid: 553d38f9dbcb669409ee093be479cd1d, type: 3}
+  radioFormacion: 0.5
+  usarFormacionCircular: 1
+--- !u!4 &1217058728
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1217058726}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1347.8651, y: -145.19449, z: 1.4584843}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1217058729
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1217058726}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 4
+  m_Sprite: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 0
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
 --- !u!1 &1242093664
 GameObject:
   m_ObjectHideFlags: 0
@@ -632543,3 +632650,4 @@ SceneRoots:
   - {fileID: 1728725584}
   - {fileID: 667212615}
   - {fileID: 618198040}
+  - {fileID: 1217058728}

@@ -37,6 +37,9 @@ public class SimpleCharacterMovement : MonoBehaviour
     [Header("Marcador de Click")]
     public GameObject prefabMarcadorClick;
 
+    [Header("Selección")]
+    public GameObject indicadorSeleccion;
+
     // Variables internas
     private Vector3 objetivo;
     private bool moviendose = false;
@@ -50,6 +53,9 @@ public class SimpleCharacterMovement : MonoBehaviour
     private bool alternarAnim = false;
     private Vector2 ultimaDireccion = new Vector2(1, -1);
 
+    // Selección - IMPORTANTE: Inicialmente NO seleccionado
+    private bool estaSeleccionado = false;
+
     void Start()
     {
         cam = Camera.main;
@@ -57,21 +63,26 @@ public class SimpleCharacterMovement : MonoBehaviour
         objetivo = transform.position;
 
         ActualizarSprite(ultimaDireccion, false, true);
+
+        // Ocultar indicador de selección al inicio
+        if (indicadorSeleccion != null)
+            indicadorSeleccion.SetActive(false);
     }
 
     void Update()
     {
-        ProcesarInput();
+        // ELIMINADO: Ya no procesa input directamente
         Mover();
         ActualizarCooldown();
         ActualizarAnimacion();
     }
 
-    void ProcesarInput()
+    // Método público para mover la unidad desde el SelectionManager
+    public void MoverADestino(Vector3 destino)
     {
-        if (Input.GetMouseButtonDown(1) && puedeClickar)
+        if (puedeClickar && estaSeleccionado)
         {
-            Vector3 posicionRaton = cam.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 posicionRaton = destino;
             posicionRaton.z = 0;
 
             if (EsSueloValido(posicionRaton))
@@ -79,6 +90,7 @@ public class SimpleCharacterMovement : MonoBehaviour
                 ConfigurarCooldown();
                 CalcularRutaInteligente(transform.position, posicionRaton);
 
+                // Crear marcador en el destino específico de esta unidad
                 if (prefabMarcadorClick != null)
                 {
                     GameObject marcador = Instantiate(prefabMarcadorClick, posicionRaton, Quaternion.identity);
@@ -88,31 +100,42 @@ public class SimpleCharacterMovement : MonoBehaviour
         }
     }
 
+    // Métodos para manejar selección
+    public void Seleccionar()
+    {
+        estaSeleccionado = true;
+        if (indicadorSeleccion != null)
+            indicadorSeleccion.SetActive(true);
+
+        Debug.Log($"{name} seleccionado");
+    }
+
+    public void Deseleccionar()
+    {
+        estaSeleccionado = false;
+        if (indicadorSeleccion != null)
+            indicadorSeleccion.SetActive(false);
+
+        Debug.Log($"{name} deseleccionado");
+    }
+
+    // El resto del código se mantiene igual...
     void CalcularRutaInteligente(Vector3 inicio, Vector3 destino)
     {
         puntosCamino.Clear();
         moviendose = false;
 
-        // PRIMERO: Verificar si el camino directo es posible (sin agua)
         if (!CaminoTieneAgua(inicio, destino))
         {
-            // Camino directo sin agua
             puntosCamino.Add(destino);
-            Debug.Log("Usando camino directo (sin agua)");
             moviendose = true;
         }
         else
         {
-            Debug.Log("Camino tiene agua - buscando puente necesario...");
-
-            // LÓGICA SIMPLIFICADA: Buscar solo el puente más cercano que realmente conecte
             WaypointPuente puenteUtil = EncontrarPuenteSimple(inicio, destino);
 
             if (puenteUtil != null && puenteUtil.waypointConectado != null)
             {
-                Debug.Log($"Usando puente: {puenteUtil.name}");
-
-                // Solo usar este puente si realmente conecta con el destino
                 if (!CaminoTieneAgua(puenteUtil.waypointConectado.transform.position, destino))
                 {
                     puntosCamino.Add(puenteUtil.transform.position);
@@ -120,14 +143,6 @@ public class SimpleCharacterMovement : MonoBehaviour
                     puntosCamino.Add(destino);
                     moviendose = true;
                 }
-                else
-                {
-                    Debug.LogWarning("El puente no conecta con el destino - NO MOVER");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("No se encontró un puente usable. NO SE PUEDE LLEGAR AL DESTINO.");
             }
         }
     }
@@ -143,9 +158,6 @@ public class SimpleCharacterMovement : MonoBehaviour
             WaypointPuente waypoint = collider.GetComponent<WaypointPuente>();
             if (waypoint != null && waypoint.waypointConectado != null)
             {
-                // VERIFICACIÓN SIMPLE: 
-                // 1. El camino al puente NO debe tener agua
-                // 2. El camino desde el puente conectado al destino NO debe tener agua
                 bool caminoAlPuenteSeguro = !CaminoTieneAgua(inicio, waypoint.transform.position);
                 bool caminoDelPuenteSeguro = !CaminoTieneAgua(waypoint.waypointConectado.transform.position, destino);
 
@@ -160,7 +172,6 @@ public class SimpleCharacterMovement : MonoBehaviour
                 }
             }
         }
-
         return mejorPuente;
     }
 
@@ -170,20 +181,15 @@ public class SimpleCharacterMovement : MonoBehaviour
 
         Vector3 objetivoActual = puntosCamino[0];
         Vector3 direccion = (objetivoActual - transform.position).normalized;
-
-        // Mover hacia el objetivo
         transform.position += direccion * velocidad * Time.deltaTime;
         direccionMovimiento = direccion;
 
-        // Verificar si llegamos al punto actual
         if (Vector3.Distance(transform.position, objetivoActual) < distanciaParada)
         {
             puntosCamino.RemoveAt(0);
-
             if (puntosCamino.Count == 0)
             {
                 moviendose = false;
-                Debug.Log("Destino alcanzado");
             }
         }
     }
@@ -198,7 +204,6 @@ public class SimpleCharacterMovement : MonoBehaviour
                 temporizadorAnim = 0f;
                 alternarAnim = !alternarAnim;
             }
-
             ActualizarSprite(direccionMovimiento, alternarAnim);
             ultimaDireccion = direccionMovimiento;
         }
@@ -217,22 +222,21 @@ public class SimpleCharacterMovement : MonoBehaviour
 
         Sprite spriteSeleccionado = frenteDerecha_Idle;
 
-        // Distribución de direcciones
-        if (angulo >= 337.5f || angulo < 22.5f)        // Derecha
+        if (angulo >= 337.5f || angulo < 22.5f)
             spriteSeleccionado = idle ? frenteDerecha_Idle : (alternar ? frenteDerecha_L : frenteDerecha_R);
-        else if (angulo >= 22.5f && angulo < 67.5f)    // Arriba-Derecha
+        else if (angulo >= 22.5f && angulo < 67.5f)
             spriteSeleccionado = idle ? atrasDerecha_Idle : (alternar ? atrasDerecha_L : atrasDerecha_R);
-        else if (angulo >= 67.5f && angulo < 112.5f)   // Arriba
+        else if (angulo >= 67.5f && angulo < 112.5f)
             spriteSeleccionado = idle ? atrasDerecha_Idle : (alternar ? atrasDerecha_L : atrasDerecha_R);
-        else if (angulo >= 112.5f && angulo < 157.5f)  // Arriba-Izquierda
+        else if (angulo >= 112.5f && angulo < 157.5f)
             spriteSeleccionado = idle ? atrasIzquierda_Idle : (alternar ? atrasIzquierda_L : atrasIzquierda_R);
-        else if (angulo >= 157.5f && angulo < 202.5f)  // Izquierda
+        else if (angulo >= 157.5f && angulo < 202.5f)
             spriteSeleccionado = idle ? frenteIzquierda_Idle : (alternar ? frenteIzquierda_L : frenteIzquierda_R);
-        else if (angulo >= 202.5f && angulo < 247.5f)  // Abajo-Izquierda
+        else if (angulo >= 202.5f && angulo < 247.5f)
             spriteSeleccionado = idle ? frenteIzquierda_Idle : (alternar ? frenteIzquierda_L : frenteIzquierda_R);
-        else if (angulo >= 247.5f && angulo < 292.5f)  // Abajo
+        else if (angulo >= 247.5f && angulo < 292.5f)
             spriteSeleccionado = idle ? frenteDerecha_Idle : (alternar ? frenteDerecha_L : frenteDerecha_R);
-        else if (angulo >= 292.5f && angulo < 337.5f)  // Abajo-Derecha
+        else if (angulo >= 292.5f && angulo < 337.5f)
             spriteSeleccionado = idle ? frenteDerecha_Idle : (alternar ? frenteDerecha_L : frenteDerecha_R);
 
         spriteRenderer.sprite = spriteSeleccionado;
@@ -244,19 +248,16 @@ public class SimpleCharacterMovement : MonoBehaviour
         if (distancia < 0.1f) return false;
 
         int muestras = Mathf.CeilToInt(distancia / 0.3f);
-
         for (int i = 0; i <= muestras; i++)
         {
             float t = (float)i / (float)muestras;
             Vector3 punto = Vector3.Lerp(inicio, fin, t);
-
             if (Physics2D.OverlapCircle(punto, 0.2f, capaAgua) &&
                 !Physics2D.OverlapCircle(punto, 0.2f, capaWaypointPuente))
             {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -277,34 +278,5 @@ public class SimpleCharacterMovement : MonoBehaviour
         {
             puedeClickar = true;
         }
-    }
-
-    // Para debug visual
-    void OnDrawGizmosSelected()
-    {
-        // Dibujar camino planeado
-        if (puntosCamino != null && puntosCamino.Count > 0)
-        {
-            Gizmos.color = Color.yellow;
-            Vector3 anterior = transform.position;
-
-            foreach (Vector3 punto in puntosCamino)
-            {
-                Gizmos.DrawWireSphere(punto, 0.2f);
-                Gizmos.DrawLine(anterior, punto);
-                anterior = punto;
-            }
-        }
-
-        // Dibujar dirección actual
-        if (moviendose)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawRay(transform.position, direccionMovimiento * 1f);
-        }
-
-        // Dibujar área de búsqueda de waypoints
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, 12f);
     }
 }

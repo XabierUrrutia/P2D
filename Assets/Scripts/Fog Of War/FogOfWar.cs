@@ -4,8 +4,8 @@ using System.Collections.Generic;
 public class FogOfWar : MonoBehaviour
 {
     [Header("Configuración Isométrica")]
-    public string playerTag = "Player"; // Tag para buscar al jugador
-    public float visionRadius = 5f;
+    public string playerTag = "Player";
+    public float defaultVisionRadius = 5f;
     public Vector2 isometricMapSize = new Vector2(100f, 100f);
 
     [Header("Renderers")]
@@ -15,75 +15,77 @@ public class FogOfWar : MonoBehaviour
     [Header("Texturas")]
     public int textureSize = 1024;
 
-    private Transform player;
+    private List<FogPlayer> fogPlayers = new List<FogPlayer>();
     private Texture2D blackFogTexture;
     private Texture2D visionTexture;
     private Color32[] blackFogPixels;
     private Color32[] visionPixels;
     private bool[] revealedPixels;
 
-    private Vector3 lastPlayerPos;
-    private bool playerFound = false;
+    private bool needsUpdate = false;
 
     void Start()
     {
         InitializeTextures();
         ScaleForIsometric();
-        FindPlayer();
+        FindAllPlayers();
     }
 
     void Update()
     {
-        // Si no hemos encontrado al jugador, intentar encontrarlo
-        if (!playerFound)
-        {
-            FindPlayer();
-            return;
-        }
-
-        // Actualizar si el jugador se movió
-        if (player != null && Vector3.Distance(player.position, lastPlayerPos) > 0.05f)
+        if (needsUpdate)
         {
             UpdateFogOfWar();
-            lastPlayerPos = player.position;
+            needsUpdate = false;
         }
     }
 
-    void FindPlayer()
+    void FindAllPlayers()
     {
-        GameObject playerObj = GameObject.FindGameObjectWithTag(playerTag);
-        if (playerObj != null)
+        GameObject[] playerObjs = GameObject.FindGameObjectsWithTag(playerTag);
+        foreach (GameObject playerObj in playerObjs)
         {
-            player = playerObj.transform;
-            playerFound = true;
-            lastPlayerPos = player.position;
-            Debug.Log($"Jugador encontrado: {player.name}");
-
-            // Actualizar inmediatamente
-            UpdateFogOfWar();
+            FogPlayer fogPlayer = playerObj.GetComponent<FogPlayer>();
+            if (fogPlayer != null && !fogPlayers.Contains(fogPlayer))
+            {
+                fogPlayers.Add(fogPlayer);
+                fogPlayer.SetFogOfWar(this);
+            }
         }
-    }
+        Debug.Log($"Encontrados {fogPlayers.Count} jugadores");
 
-    // Método público para que otros scripts asignen el jugador
-    public void SetPlayer(Transform playerTransform)
-    {
-        player = playerTransform;
-        playerFound = true;
-        lastPlayerPos = player.position;
-        UpdateFogOfWar();
-    }
-
-    public void UpdatePlayerPosition(Vector3 position, float radius)
-    {
-        // Si no tenemos jugador, intentar encontrarlo
-        if (!playerFound)
+        if (fogPlayers.Count > 0)
         {
-            FindPlayer();
-            return;
+            needsUpdate = true;
         }
+    }
 
-        visionRadius = radius;
-        UpdateFogOfWar();
+    // Método público para que los jugadores se registren
+    public void RegisterPlayer(FogPlayer fogPlayer)
+    {
+        if (!fogPlayers.Contains(fogPlayer))
+        {
+            fogPlayers.Add(fogPlayer);
+            needsUpdate = true;
+            Debug.Log($"Jugador registrado: {fogPlayer.name}. Total: {fogPlayers.Count}");
+        }
+    }
+
+    // Método público para que los jugadores se eliminen
+    public void UnregisterPlayer(FogPlayer fogPlayer)
+    {
+        if (fogPlayers.Contains(fogPlayer))
+        {
+            fogPlayers.Remove(fogPlayer);
+            needsUpdate = true;
+            Debug.Log($"Jugador eliminado: {fogPlayer.name}. Total: {fogPlayers.Count}");
+        }
+    }
+
+    // Método para actualizar cuando un jugador se mueve
+    public void RequestUpdate()
+    {
+        needsUpdate = true;
     }
 
     void InitializeTextures()
@@ -118,15 +120,23 @@ public class FogOfWar : MonoBehaviour
 
     void UpdateFogOfWar()
     {
-        if (!playerFound || player == null) return;
+        if (fogPlayers.Count == 0) return;
 
         ClearVisionTexture();
 
-        Vector2Int playerPixel = IsometricWorldToPixel(player.position);
-        int pixelRadius = Mathf.RoundToInt(visionRadius * textureSize / Mathf.Max(isometricMapSize.x, isometricMapSize.y));
+        // Procesar cada jugador
+        foreach (FogPlayer fogPlayer in fogPlayers)
+        {
+            if (fogPlayer != null && fogPlayer.gameObject.activeInHierarchy)
+            {
+                Vector2Int playerPixel = IsometricWorldToPixel(fogPlayer.transform.position);
+                int pixelRadius = Mathf.RoundToInt(fogPlayer.visionRadius * textureSize / Mathf.Max(isometricMapSize.x, isometricMapSize.y));
 
-        DrawVisionCircle(playerPixel, pixelRadius);
-        UpdatePermanentRevealed(playerPixel, pixelRadius);
+                DrawVisionCircle(playerPixel, pixelRadius);
+                UpdatePermanentRevealed(playerPixel, pixelRadius);
+            }
+        }
+
         ApplyTextures();
     }
 
@@ -142,8 +152,7 @@ public class FogOfWar : MonoBehaviour
 
         if (visionRenderer != null)
         {
-            float visionScale = visionRadius * 2f / 10f;
-            visionRenderer.transform.localScale = new Vector3(visionScale, visionScale, 1f);
+            visionRenderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
         }
     }
 
@@ -252,9 +261,9 @@ public class FogOfWar : MonoBehaviour
         }
     }
 
-    public void SetVisionRadius(float newRadius)
+    // Limpiar cuando se destruye
+    void OnDestroy()
     {
-        visionRadius = newRadius;
-        ScaleForIsometric();
+        fogPlayers.Clear();
     }
 }

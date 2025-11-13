@@ -3,9 +3,9 @@ using UnityEngine;
 public class FogPlayer : MonoBehaviour
 {
     [Header("Fog Settings")]
-    public FogOfWar fogOfWar;
     public float visionRadius = 5f;
 
+    private FogOfWar fogOfWar;
     private Vector3 lastPosition;
 
     void Start()
@@ -16,19 +16,14 @@ public class FogPlayer : MonoBehaviour
 
         InitializeFogSystem();
         lastPosition = transform.position;
-
-        // Registrarse con el FogOfWar
-        if (fogOfWar != null)
-        {
-            fogOfWar.SetPlayer(transform);
-        }
     }
 
     void Update()
     {
+        // Actualizar si nos movimos
         if (fogOfWar != null && Vector3.Distance(transform.position, lastPosition) > 0.01f)
         {
-            fogOfWar.UpdatePlayerPosition(transform.position, visionRadius);
+            fogOfWar.RequestUpdate();
             lastPosition = transform.position;
         }
     }
@@ -46,7 +41,14 @@ public class FogPlayer : MonoBehaviour
         }
 
         // Registrarse con el FogOfWar
-        fogOfWar.SetPlayer(transform);
+        fogOfWar.RegisterPlayer(this);
+    }
+
+    // Método para que el FogOfWar se asigne a sí mismo
+    public void SetFogOfWar(FogOfWar newFogOfWar)
+    {
+        fogOfWar = newFogOfWar;
+        fogOfWar.RegisterPlayer(this);
     }
 
     public void SetVisionRadius(float newRadius)
@@ -54,12 +56,35 @@ public class FogPlayer : MonoBehaviour
         visionRadius = newRadius;
         if (fogOfWar != null)
         {
-            fogOfWar.SetVisionRadius(newRadius);
+            fogOfWar.RequestUpdate();
         }
     }
 
     void OnDestroy()
     {
-        // Limpiar referencia si es necesario
+        // Desregistrarse del FogOfWar al destruirse
+        if (fogOfWar != null)
+        {
+            fogOfWar.UnregisterPlayer(this);
+        }
+    }
+
+    void OnEnable()
+    {
+        // Re-registrarse si se reactiva
+        if (fogOfWar != null)
+        {
+            fogOfWar.RegisterPlayer(this);
+            fogOfWar.RequestUpdate();
+        }
+    }
+
+    void OnDisable()
+    {
+        // Desregistrarse si se desactiva
+        if (fogOfWar != null)
+        {
+            fogOfWar.UnregisterPlayer(this);
+        }
     }
 }

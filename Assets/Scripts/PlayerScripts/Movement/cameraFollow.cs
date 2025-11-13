@@ -6,6 +6,10 @@ public class cameraFollow : MonoBehaviour
     public float smoothSpeed = 0.125f;
     public Vector3 offset = new Vector3(0, 0, -10);
 
+    [Header("Movimiento Libre con Teclado")]
+    public float moveSpeed = 5f;
+    private bool isManualControl = true;
+
     [Header("Límites de la Cámara")]
     public bool useBounds = false;
     public float minX = -10f;
@@ -15,11 +19,25 @@ public class cameraFollow : MonoBehaviour
 
     void LateUpdate()
     {
-        if (target != null)
+        if (isManualControl)
         {
+            // Movimiento manual con WASD
+            Vector3 moveInput = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
+            Vector3 desiredPosition = transform.position + moveInput * moveSpeed * Time.deltaTime;
+
+            if (useBounds)
+            {
+                desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
+                desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
+            }
+
+            transform.position = desiredPosition;
+        }
+        else if (target != null)
+        {
+            // Seguimiento normal del personaje
             Vector3 desiredPosition = target.position + offset;
 
-            // Aplicar límites si están activados
             if (useBounds)
             {
                 desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
@@ -31,7 +49,6 @@ public class cameraFollow : MonoBehaviour
         }
     }
 
-    // Dibujar área de límites en el Editor
     void OnDrawGizmosSelected()
     {
         if (useBounds)
