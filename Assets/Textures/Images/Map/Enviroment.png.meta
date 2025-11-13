@@ -118,7 +118,7 @@ TextureImporter:
         width: 66
         height: 40
       alignment: 9
-      pivot: {x: 0.46247587, y: 0.7313606}
+      pivot: {x: 0.4624759, y: 0.7313606}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -172,6 +172,48 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Enviroment_3
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 275
+        width: 66
+        height: 40
+      alignment: 9
+      pivot: {x: 0.4624759, y: 0.7313606}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 097b1e0ca181ce34298ba0d05e60d678
+      internalID: 898529013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enviroment_4
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 275
+        width: 66
+        height: 40
+      alignment: 9
+      pivot: {x: 0.4624759, y: 0.7313606}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 893e8b19ab09af14199767b5f965dd52
+      internalID: -587866864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -186,6 +228,8 @@ TextureImporter:
       Enviroment_0: 311554117
       Enviroment_1: -547331641
       Enviroment_2: -1593884865
+      Enviroment_3: 898529013
+      Enviroment_4: -587866864
       enviroment and soldiers_0: 1781082014
       enviroment and soldiers_1: 45207061
       enviroment and soldiers_10: -996765286

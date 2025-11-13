@@ -540,7 +540,7 @@ MonoBehaviour:
   weaponPoint: {fileID: 47086507285344403}
   fireRate: 0.8
   bulletSpeed: 8
-  attackRange: 4
+  attackRange: 2
   bulletDamage: 20
   player: {fileID: 0}
 --- !u!114 &8350767624913946287
@@ -610,7 +610,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alcanceDeteccao: 10
-  distanciaParagemAtaque: 4
+  distanciaParagemAtaque: 2
   intervaloChecagem: 0.3
   baseJogador: {fileID: 0}
 --- !u!212 &3861743930884156928
