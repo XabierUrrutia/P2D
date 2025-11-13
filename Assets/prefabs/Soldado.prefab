@@ -977,18 +977,18 @@ MonoBehaviour:
   capaWaypointPuente:
     serializedVersion: 2
     m_Bits: 8
-  frenteDerecha_L: {fileID: -181730044, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  frenteDerecha_R: {fileID: -173054587, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  frenteDerecha_Idle: {fileID: -181730044, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  frenteIzquierda_L: {fileID: 864297175, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  frenteIzquierda_R: {fileID: -1959177616, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  frenteIzquierda_Idle: {fileID: 864297175, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  atrasDerecha_L: {fileID: -168612078, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  atrasDerecha_R: {fileID: 2116724660, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  atrasDerecha_Idle: {fileID: -168612078, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  atrasIzquierda_L: {fileID: 1671368020, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  atrasIzquierda_R: {fileID: -39433920, guid: fa5739fe88082434693d9904205f094e, type: 3}
-  atrasIzquierda_Idle: {fileID: 1671368020, guid: fa5739fe88082434693d9904205f094e, type: 3}
+  frenteDerecha_L: {fileID: -1128656789, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteDerecha_R: {fileID: -204712283, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteDerecha_Idle: {fileID: -1128656789, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_L: {fileID: 1391082748, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_R: {fileID: -996765286, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_Idle: {fileID: 1391082748, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_L: {fileID: 1781082014, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_R: {fileID: 45207061, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_Idle: {fileID: 1781082014, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_L: {fileID: 476376009, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_R: {fileID: -1675413397, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_Idle: {fileID: 476376009, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
   prefabMarcadorClick: {fileID: 3122627236748015639, guid: c917403c9642cfb489362c271e9600d3, type: 3}
 --- !u!212 &1337135939285130247
 SpriteRenderer:
@@ -1028,9 +1028,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: -74154417
-  m_SortingLayer: 11
-  m_SortingOrder: 1
+  m_SortingLayerID: -530352131
+  m_SortingLayer: 2
+  m_SortingOrder: 2
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1107,7 +1107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fogOfWar: {fileID: 0}
-  visionRadius: 2
+  visionRadius: 1
 --- !u!1 &7200475562421419594
 GameObject:
   m_ObjectHideFlags: 0

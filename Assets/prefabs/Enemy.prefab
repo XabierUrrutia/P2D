@@ -540,7 +540,7 @@ MonoBehaviour:
   weaponPoint: {fileID: 47086507285344403}
   fireRate: 0.8
   bulletSpeed: 8
-  attackRange: 4
+  attackRange: 2
   bulletDamage: 20
   player: {fileID: 0}
 --- !u!114 &8350767624913946287
@@ -585,18 +585,18 @@ MonoBehaviour:
   capaWaypointPuente:
     serializedVersion: 2
     m_Bits: 8
-  frenteDerecha_L: {fileID: -2011035483, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frenteDerecha_R: {fileID: 1719607675, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frenteDerecha_Idle: {fileID: -2011035483, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frenteIzquierda_L: {fileID: -1265277196, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frenteIzquierda_R: {fileID: 1590358356, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frenteIzquierda_Idle: {fileID: -1265277196, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  atrasDerecha_L: {fileID: 1427194497, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  atrasDerecha_R: {fileID: 1396168544, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  atrasDerecha_Idle: {fileID: 1427194497, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  atrasIzquierda_L: {fileID: -1335276787, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  atrasIzquierda_R: {fileID: 291260847, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  atrasIzquierda_Idle: {fileID: -1335276787, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
+  frenteDerecha_L: {fileID: -1990608756, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteDerecha_R: {fileID: 1820621907, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteDerecha_Idle: {fileID: -1990608756, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_L: {fileID: 130866632, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_R: {fileID: -1533805471, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_Idle: {fileID: 130866632, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_L: {fileID: 2004603549, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_R: {fileID: 768375120, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_Idle: {fileID: 2004603549, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_L: {fileID: -87643458, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_R: {fileID: 1181508458, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_Idle: {fileID: -87643458, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
 --- !u!114 &-4801706182203069257
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -610,7 +610,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alcanceDeteccao: 10
-  distanciaParagemAtaque: 4
+  distanciaParagemAtaque: 2
   intervaloChecagem: 0.3
   baseJogador: {fileID: 0}
 --- !u!212 &3861743930884156928
