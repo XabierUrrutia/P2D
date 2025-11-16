@@ -990,6 +990,7 @@ MonoBehaviour:
   atrasIzquierda_R: {fileID: -1675413397, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
   atrasIzquierda_Idle: {fileID: 476376009, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
   prefabMarcadorClick: {fileID: 3122627236748015639, guid: c917403c9642cfb489362c271e9600d3, type: 3}
+  indicadorSeleccion: {fileID: 0}
 --- !u!212 &1337135939285130247
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1028,8 +1029,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: -530352131
-  m_SortingLayer: 2
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 2
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1057,11 +1058,11 @@ MonoBehaviour:
   bulletPrefab: {fileID: 6354660447642033725, guid: c9abec0dc57494844b3d56109f7d1685, type: 3}
   weaponPoint: {fileID: 8032589865569974587}
   fireRate: 1
-  maxAmmo: 20
-  weaponName: G3 Rifle
-  bulletSpeed: 5
-  bulletDamage: 20
-  detectionRange: 4
+  maxAmmo: 10
+  weaponName: G3 RIFLE
+  bulletSpeed: 4
+  bulletDamage: 1
+  detectionRange: 2
   enemyLayerMask:
     serializedVersion: 2
     m_Bits: 512
@@ -1073,7 +1074,7 @@ MonoBehaviour:
   accuracy: 0.95
   ammoText: {fileID: 3788421899003464514}
   weaponNameText: {fileID: 2794987670168869510}
-  showRangeInGame: 0
+  showRangeInGame: 1
   rangeColor: {r: 1, g: 1, b: 0, a: 0.3}
   targetLineColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!114 &9170590893412081567
@@ -1106,8 +1107,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af7272dd146d0ac4bafcc52df01a4d8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fogOfWar: {fileID: 0}
-  visionRadius: 1
+  visionRadius: 2
+  updateThreshold: 0.05
+  forceUpdateInterval: 0.1
 --- !u!1 &7200475562421419594
 GameObject:
   m_ObjectHideFlags: 0
