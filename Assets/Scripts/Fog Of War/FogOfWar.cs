@@ -3,40 +3,97 @@ using System.Collections.Generic;
 
 public class FogOfWar : MonoBehaviour
 {
-    [Header("Configuración Isométrica")]
+    [Header("Configuración del Mapa")]
     public string playerTag = "Player";
     public float defaultVisionRadius = 5f;
-    public Vector2 isometricMapSize = new Vector2(100f, 100f);
+    public Vector2 isometricMapSize = new Vector2(300f, 200f);
+
+    [Header("Posición del Mapa en el Mundo")]
+    public Vector2 mapWorldPosition = new Vector2(-1575f, -240f);
 
     [Header("Renderers")]
     public SpriteRenderer blackFogRenderer;
     public SpriteRenderer visionRenderer;
+    public SpriteRenderer visitedRenderer;
 
     [Header("Texturas")]
     public int textureSize = 1024;
 
+    [Header("Configuración Áreas Visitadas")]
+    public Color visitedColor = new Color(0.3f, 0.3f, 0.3f, 0.4f);
+
     private List<FogPlayer> fogPlayers = new List<FogPlayer>();
     private Texture2D blackFogTexture;
     private Texture2D visionTexture;
+    private Texture2D visitedTexture;
     private Color32[] blackFogPixels;
     private Color32[] visionPixels;
+    private Color32[] visitedPixels;
     private bool[] revealedPixels;
+    private bool[] currentVisionPixels;
+    private bool[] visitedFlags;
 
     private bool needsUpdate = false;
+    private Bounds worldBounds;
+    private float pixelsPerUnitX;
+    private float pixelsPerUnitY;
 
     void Start()
     {
+        CalculateWorldBounds();
+        CalculatePixelsPerUnit();
         InitializeTextures();
-        ScaleForIsometric();
+        PositionFogRenderers();
+        SetupMaterials();
         FindAllPlayers();
     }
 
-    void Update()
+    void LateUpdate()
     {
         if (needsUpdate)
         {
             UpdateFogOfWar();
             needsUpdate = false;
+        }
+    }
+
+    void CalculateWorldBounds()
+    {
+        Vector3 center = new Vector3(
+            mapWorldPosition.x + isometricMapSize.x * 0.5f,
+            mapWorldPosition.y + isometricMapSize.y * 0.5f,
+            0f
+        );
+
+        Vector3 size = new Vector3(isometricMapSize.x, isometricMapSize.y, 0f);
+        worldBounds = new Bounds(center, size);
+    }
+
+    void CalculatePixelsPerUnit()
+    {
+        pixelsPerUnitX = textureSize / isometricMapSize.x;
+        pixelsPerUnitY = textureSize / isometricMapSize.y;
+    }
+
+    void SetupMaterials()
+    {
+        // Configura materiales para blending adecuado
+        if (visionRenderer != null)
+        {
+            visionRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            visionRenderer.color = Color.white;
+        }
+
+        if (blackFogRenderer != null)
+        {
+            blackFogRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            blackFogRenderer.color = Color.white;
+        }
+
+        if (visitedRenderer != null)
+        {
+            visitedRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            visitedRenderer.color = Color.white;
         }
     }
 
@@ -52,7 +109,6 @@ public class FogOfWar : MonoBehaviour
                 fogPlayer.SetFogOfWar(this);
             }
         }
-        Debug.Log($"Encontrados {fogPlayers.Count} jugadores");
 
         if (fogPlayers.Count > 0)
         {
@@ -60,29 +116,24 @@ public class FogOfWar : MonoBehaviour
         }
     }
 
-    // Método público para que los jugadores se registren
     public void RegisterPlayer(FogPlayer fogPlayer)
     {
         if (!fogPlayers.Contains(fogPlayer))
         {
             fogPlayers.Add(fogPlayer);
             needsUpdate = true;
-            Debug.Log($"Jugador registrado: {fogPlayer.name}. Total: {fogPlayers.Count}");
         }
     }
 
-    // Método público para que los jugadores se eliminen
     public void UnregisterPlayer(FogPlayer fogPlayer)
     {
         if (fogPlayers.Contains(fogPlayer))
         {
             fogPlayers.Remove(fogPlayer);
             needsUpdate = true;
-            Debug.Log($"Jugador eliminado: {fogPlayer.name}. Total: {fogPlayers.Count}");
         }
     }
 
-    // Método para actualizar cuando un jugador se mueve
     public void RequestUpdate()
     {
         needsUpdate = true;
@@ -92,26 +143,41 @@ public class FogOfWar : MonoBehaviour
     {
         blackFogTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
         visionTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
+        visitedTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
 
         blackFogTexture.wrapMode = TextureWrapMode.Clamp;
         visionTexture.wrapMode = TextureWrapMode.Clamp;
+        visitedTexture.wrapMode = TextureWrapMode.Clamp;
 
-        blackFogTexture.filterMode = FilterMode.Bilinear;
-        visionTexture.filterMode = FilterMode.Bilinear;
+        blackFogTexture.filterMode = FilterMode.Point;
+        visionTexture.filterMode = FilterMode.Point;
+        visitedTexture.filterMode = FilterMode.Point;
 
-        blackFogPixels = new Color32[textureSize * textureSize];
-        visionPixels = new Color32[textureSize * textureSize];
-        revealedPixels = new bool[textureSize * textureSize];
+        int totalPixels = textureSize * textureSize;
+        blackFogPixels = new Color32[totalPixels];
+        visionPixels = new Color32[totalPixels];
+        visitedPixels = new Color32[totalPixels];
+        revealedPixels = new bool[totalPixels];
+        currentVisionPixels = new bool[totalPixels];
+        visitedFlags = new bool[totalPixels];
 
-        // Inicializar
         Color32 black = new Color32(0, 0, 0, 255);
         Color32 transparent = new Color32(0, 0, 0, 0);
+        Color32 visitedColor32 = new Color32(
+            (byte)(visitedColor.r * 255),
+            (byte)(visitedColor.g * 255),
+            (byte)(visitedColor.b * 255),
+            (byte)(visitedColor.a * 255)
+        );
 
-        for (int i = 0; i < blackFogPixels.Length; i++)
+        for (int i = 0; i < totalPixels; i++)
         {
             blackFogPixels[i] = black;
             visionPixels[i] = transparent;
+            visitedPixels[i] = transparent;
             revealedPixels[i] = false;
+            currentVisionPixels[i] = false;
+            visitedFlags[i] = false;
         }
 
         ApplyTextures();
@@ -124,52 +190,38 @@ public class FogOfWar : MonoBehaviour
 
         ClearVisionTexture();
 
-        // Procesar cada jugador
         foreach (FogPlayer fogPlayer in fogPlayers)
         {
             if (fogPlayer != null && fogPlayer.gameObject.activeInHierarchy)
             {
-                Vector2Int playerPixel = IsometricWorldToPixel(fogPlayer.transform.position);
-                int pixelRadius = Mathf.RoundToInt(fogPlayer.visionRadius * textureSize / Mathf.Max(isometricMapSize.x, isometricMapSize.y));
+                Vector3 playerWorldPos = fogPlayer.transform.position;
+                Vector2Int playerPixel = WorldToPixel(playerWorldPos);
+
+                float avgPixelsPerUnit = (pixelsPerUnitX + pixelsPerUnitY) * 0.5f;
+                int pixelRadius = Mathf.RoundToInt(fogPlayer.visionRadius * avgPixelsPerUnit);
+                pixelRadius = Mathf.Max(1, pixelRadius);
 
                 DrawVisionCircle(playerPixel, pixelRadius);
-                UpdatePermanentRevealed(playerPixel, pixelRadius);
+                UpdateVisitedAreas(playerPixel, pixelRadius);
             }
         }
 
         ApplyTextures();
+        DebugTextureStates();
     }
 
-    void ScaleForIsometric()
+    Vector2Int WorldToPixel(Vector3 worldPos)
     {
-        float scaleX = isometricMapSize.x / 10f;
-        float scaleY = isometricMapSize.y / 10f;
+        float relativeX = (worldPos.x - mapWorldPosition.x) / isometricMapSize.x;
+        float relativeY = (worldPos.y - mapWorldPosition.y) / isometricMapSize.y;
 
-        if (blackFogRenderer != null)
-        {
-            blackFogRenderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
-        }
+        relativeX = Mathf.Clamp01(relativeX);
+        relativeY = Mathf.Clamp01(relativeY);
 
-        if (visionRenderer != null)
-        {
-            visionRenderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
-        }
-    }
+        int pixelX = Mathf.FloorToInt(relativeX * (textureSize - 1));
+        int pixelY = Mathf.FloorToInt(relativeY * (textureSize - 1));
 
-    Vector2Int IsometricWorldToPixel(Vector3 worldPos)
-    {
-        Vector3 localPos = worldPos - transform.position;
-
-        float x = (localPos.x + isometricMapSize.x * 0.5f) / isometricMapSize.x;
-        float y = (localPos.y + isometricMapSize.y * 0.5f) / isometricMapSize.y;
-
-        x = Mathf.Clamp01(x);
-        y = Mathf.Clamp01(y);
-
-        return new Vector2Int(
-            Mathf.FloorToInt(x * (textureSize - 1)),
-            Mathf.FloorToInt(y * (textureSize - 1))
-        );
+        return new Vector2Int(pixelX, pixelY);
     }
 
     void ClearVisionTexture()
@@ -178,6 +230,7 @@ public class FogOfWar : MonoBehaviour
         for (int i = 0; i < visionPixels.Length; i++)
         {
             visionPixels[i] = transparent;
+            currentVisionPixels[i] = false;
         }
     }
 
@@ -197,38 +250,54 @@ public class FogOfWar : MonoBehaviour
             {
                 int dx = x - center.x;
                 int dy = y - center.y;
+                int distSqr = dx * dx + dy * dy;
 
-                if (dx * dx + dy * dy <= radiusSqr)
+                if (distSqr <= radiusSqr)
                 {
                     int index = y * textureSize + x;
                     visionPixels[index] = transparent;
+                    currentVisionPixels[index] = true;
+
+                    // Marcar como revelado permanentemente
+                    if (!revealedPixels[index])
+                    {
+                        revealedPixels[index] = true;
+                        blackFogPixels[index] = new Color32(0, 0, 0, 150); // Semitransparente
+                    }
                 }
             }
         }
     }
 
-    void UpdatePermanentRevealed(Vector2Int center, int radius)
+    void UpdateVisitedAreas(Vector2Int center, int radius)
     {
         int radiusSqr = radius * radius;
-        Color32 visited = new Color32(0, 0, 0, 150);
+        Color32 visitedColor32 = new Color32(
+            (byte)(visitedColor.r * 255),
+            (byte)(visitedColor.g * 255),
+            (byte)(visitedColor.b * 255),
+            (byte)(visitedColor.a * 255)
+        );
 
-        for (int y = -radius; y <= radius; y++)
+        int startX = Mathf.Max(0, center.x - radius);
+        int endX = Mathf.Min(textureSize - 1, center.x + radius);
+        int startY = Mathf.Max(0, center.y - radius);
+        int endY = Mathf.Min(textureSize - 1, center.y + radius);
+
+        for (int y = startY; y <= endY; y++)
         {
-            for (int x = -radius; x <= radius; x++)
+            for (int x = startX; x <= endX; x++)
             {
-                if (x * x + y * y <= radiusSqr)
-                {
-                    int pixelX = center.x + x;
-                    int pixelY = center.y + y;
+                int dx = x - center.x;
+                int dy = y - center.y;
 
-                    if (pixelX >= 0 && pixelX < textureSize && pixelY >= 0 && pixelY < textureSize)
+                if (dx * dx + dy * dy <= radiusSqr)
+                {
+                    int index = y * textureSize + x;
+                    if (!visitedFlags[index])
                     {
-                        int index = pixelY * textureSize + pixelX;
-                        if (!revealedPixels[index])
-                        {
-                            revealedPixels[index] = true;
-                            blackFogPixels[index] = visited;
-                        }
+                        visitedFlags[index] = true;
+                        visitedPixels[index] = visitedColor32;
                     }
                 }
             }
@@ -237,33 +306,186 @@ public class FogOfWar : MonoBehaviour
 
     void ApplyTextures()
     {
+        // Áreas con visión actual: completamente transparentes para mostrar el mapa real
+        // Áreas visitadas sin visión: color gris semitransparente
+        // Áreas no exploradas: niebla negra
+
+        Color32 transparent = new Color32(0, 0, 0, 0);
+        Color32 visitedColor32 = new Color32(
+            (byte)(visitedColor.r * 255),
+            (byte)(visitedColor.g * 255),
+            (byte)(visitedColor.b * 255),
+            (byte)(visitedColor.a * 255)
+        );
+
+        for (int i = 0; i < visitedPixels.Length; i++)
+        {
+            if (currentVisionPixels[i])
+            {
+                // En visión actual: transparente para ver mapa real
+                visitedPixels[i] = transparent;
+                blackFogPixels[i] = transparent;
+            }
+            else if (visitedFlags[i])
+            {
+                // Visitado sin visión: mantener color visitado
+                visitedPixels[i] = visitedColor32;
+                // Niebla semitransparente en áreas visitadas
+                blackFogPixels[i] = new Color32(0, 0, 0, 150);
+            }
+            else
+            {
+                // No explorado: niebla opaca
+                blackFogPixels[i] = new Color32(0, 0, 0, 255);
+                visitedPixels[i] = transparent;
+            }
+        }
+
         blackFogTexture.SetPixels32(blackFogPixels);
+        visitedTexture.SetPixels32(visitedPixels);
         visionTexture.SetPixels32(visionPixels);
 
         blackFogTexture.Apply();
+        visitedTexture.Apply();
         visionTexture.Apply();
     }
 
     void CreateSprites()
     {
+        // ORDEN CORREGIDO para efecto "linterna":
+        // 1. Mapa base (ya existe en escena)
+        // 2. Áreas visitadas (gris estático)
+        // 3. Niebla negra (dinámica)
+        // 4. Visión actual (recorta la niebla)
+
+        if (visitedRenderer != null)
+        {
+            Rect rect = new Rect(0, 0, textureSize, textureSize);
+            Vector2 pivot = new Vector2(0.5f, 0.5f);
+            float pixelsPerUnit = 100f;
+            visitedRenderer.sprite = Sprite.Create(visitedTexture, rect, pivot, pixelsPerUnit);
+            visitedRenderer.sortingOrder = 5; // Debajo de la niebla
+        }
+
         if (blackFogRenderer != null)
         {
             Rect rect = new Rect(0, 0, textureSize, textureSize);
-            blackFogRenderer.sprite = Sprite.Create(blackFogTexture, rect, new Vector2(0.5f, 0.5f), 100f);
-            blackFogRenderer.sortingOrder = 10;
+            Vector2 pivot = new Vector2(0.5f, 0.5f);
+            float pixelsPerUnit = 100f;
+            blackFogRenderer.sprite = Sprite.Create(blackFogTexture, rect, pivot, pixelsPerUnit);
+            blackFogRenderer.sortingOrder = 6; // Encima de visitado
         }
 
         if (visionRenderer != null)
         {
             Rect rect = new Rect(0, 0, textureSize, textureSize);
-            visionRenderer.sprite = Sprite.Create(visionTexture, rect, new Vector2(0.5f, 0.5f), 100f);
-            visionRenderer.sortingOrder = 11;
+            Vector2 pivot = new Vector2(0.5f, 0.5f);
+            float pixelsPerUnit = 100f;
+            visionRenderer.sprite = Sprite.Create(visionTexture, rect, pivot, pixelsPerUnit);
+            visionRenderer.sortingOrder = 7; // TOPE - recorta la niebla
         }
     }
 
-    // Limpiar cuando se destruye
+    void PositionFogRenderers()
+    {
+        Vector3 rendererPosition = new Vector3(
+            mapWorldPosition.x + isometricMapSize.x * 0.5f,
+            mapWorldPosition.y + isometricMapSize.y * 0.5f,
+            0f
+        );
+
+        if (visitedRenderer != null)
+        {
+            visitedRenderer.transform.position = rendererPosition;
+            float scaleX = isometricMapSize.x / (textureSize / 100f);
+            float scaleY = isometricMapSize.y / (textureSize / 100f);
+            visitedRenderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+        }
+
+        if (blackFogRenderer != null)
+        {
+            blackFogRenderer.transform.position = rendererPosition;
+            float scaleX = isometricMapSize.x / (textureSize / 100f);
+            float scaleY = isometricMapSize.y / (textureSize / 100f);
+            blackFogRenderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+        }
+
+        if (visionRenderer != null)
+        {
+            visionRenderer.transform.position = rendererPosition;
+            float scaleX = isometricMapSize.x / (textureSize / 100f);
+            float scaleY = isometricMapSize.y / (textureSize / 100f);
+            visionRenderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+        }
+    }
+
+    void DebugTextureStates()
+    {
+        int visiblePixels = 0;
+        int visitedPixelsCount = 0;
+        int revealedPixelsCount = 0;
+
+        for (int i = 0; i < currentVisionPixels.Length; i++)
+        {
+            if (currentVisionPixels[i]) visiblePixels++;
+            if (visitedFlags[i]) visitedPixelsCount++;
+            if (revealedPixels[i]) revealedPixelsCount++;
+        }
+    }
+
+    public void SetVisitedColor(Color newColor)
+    {
+        visitedColor = newColor;
+        needsUpdate = true;
+    }
+
+    public void DebugPosition(Vector3 worldPosition, string objectName = "")
+    {
+        Vector2Int pixel = WorldToPixel(worldPosition);
+    }
+
+    public bool IsPositionVisible(Vector3 worldPosition)
+    {
+        Vector2Int pixel = WorldToPixel(worldPosition);
+        int index = pixel.y * textureSize + pixel.x;
+        return index >= 0 && index < currentVisionPixels.Length && currentVisionPixels[index];
+    }
+
+    public bool IsPositionRevealed(Vector3 worldPosition)
+    {
+        Vector2Int pixel = WorldToPixel(worldPosition);
+        int index = pixel.y * textureSize + pixel.x;
+        return index >= 0 && index < revealedPixels.Length && revealedPixels[index];
+    }
+
+    public bool IsPositionVisited(Vector3 worldPosition)
+    {
+        Vector2Int pixel = WorldToPixel(worldPosition);
+        int index = pixel.y * textureSize + pixel.x;
+        return index >= 0 && index < visitedFlags.Length && visitedFlags[index];
+    }
+
     void OnDestroy()
     {
+        if (blackFogTexture != null) Destroy(blackFogTexture);
+        if (visionTexture != null) Destroy(visionTexture);
+        if (visitedTexture != null) Destroy(visitedTexture);
         fogPlayers.Clear();
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(worldBounds.center, worldBounds.size);
+
+        Gizmos.color = Color.green;
+        foreach (FogPlayer player in fogPlayers)
+        {
+            if (player != null)
+            {
+                Gizmos.DrawSphere(player.transform.position, 0.5f);
+                Gizmos.DrawWireSphere(player.transform.position, player.visionRadius);
+            }
+        }
     }
 }

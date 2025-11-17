@@ -1,6 +1,6 @@
 using UnityEngine;
-using TMPro;
 using System.Collections;
+using TMPro;
 
 public class PlayerShooting : MonoBehaviour
 {
@@ -33,7 +33,7 @@ public class PlayerShooting : MonoBehaviour
 
     [Header("Range Visualization")]
     public bool showRangeInGame = true;
-    public Color rangeColor = new Color(1f, 1f, 0f, 0.3f); // Amarillo semitransparente
+    public Color rangeColor = new Color(1f, 1f, 0f, 0.3f);
     public Color targetLineColor = Color.red;
 
     private int currentAmmo;
@@ -49,6 +49,13 @@ public class PlayerShooting : MonoBehaviour
     {
         currentAmmo = maxAmmo;
         mainCam = Camera.main;
+
+        // **CORRECCIÓN: Verificar y crear weaponPoint si no existe**
+        if (weaponPoint == null)
+        {
+            CreateWeaponPoint();
+        }
+
         UpdateUI();
 
         // Crear visualización del rango
@@ -62,6 +69,17 @@ public class PlayerShooting : MonoBehaviour
         {
             aimCoroutine = StartCoroutine(UpdateAimTarget());
         }
+    }
+
+    // **NUEVO MÉTODO: Crear weaponPoint automáticamente**
+    void CreateWeaponPoint()
+    {
+        GameObject weaponPointObj = new GameObject("WeaponPoint");
+        weaponPointObj.transform.SetParent(transform);
+        weaponPointObj.transform.localPosition = new Vector3(0.5f, 0.2f, 0); // Ajusta esta posición según tu prefab
+        weaponPoint = weaponPointObj.transform;
+
+        Debug.Log("WeaponPoint creado automáticamente en: " + weaponPoint.position);
     }
 
     void Update()
@@ -105,7 +123,6 @@ public class PlayerShooting : MonoBehaviour
         rangeCircle.useWorldSpace = false;
         rangeCircle.loop = true;
 
-        // Dibujar círculo
         DrawCircle(rangeCircle, detectionRange, 50);
     }
 
@@ -161,7 +178,7 @@ public class PlayerShooting : MonoBehaviour
         else
         {
             // Disparo manual con clic del mouse
-            if (Input.GetMouseButtonDown(0) && Time.time >= nextFireTime && currentAmmo > 0 && !isBurstFiring)
+            if (Input.GetMouseButton(0) && Time.time >= nextFireTime && currentAmmo > 0 && !isBurstFiring)
             {
                 Vector3 mouseWorld = mainCam.ScreenToWorldPoint(Input.mousePosition);
                 mouseWorld.z = 0;
@@ -188,7 +205,14 @@ public class PlayerShooting : MonoBehaviour
 
     void ShootAtTarget(Vector3 targetPosition)
     {
-        if (bulletPrefab == null || weaponPoint == null) return;
+        if (bulletPrefab == null || weaponPoint == null)
+        {
+            Debug.LogError("Faltan referencias: bulletPrefab o weaponPoint");
+            return;
+        }
+
+        // **DEBUG: Verificar posiciones**
+        Debug.Log($"Disparando desde: {weaponPoint.position} hacia: {targetPosition}");
 
         Vector2 direction = (targetPosition - weaponPoint.position).normalized;
 
@@ -201,7 +225,12 @@ public class PlayerShooting : MonoBehaviour
             direction.Normalize();
         }
 
+        // **CORRECCIÓN: Asegurar que la bala se instancia en weaponPoint.position**
         GameObject bullet = Instantiate(bulletPrefab, weaponPoint.position, Quaternion.identity);
+
+        // **DEBUG: Verificar posición de la bala instanciada**
+        Debug.Log($"Bala instanciada en: {bullet.transform.position}");
+
         Bullet b = bullet.GetComponent<Bullet>();
         if (b != null)
         {
@@ -214,7 +243,14 @@ public class PlayerShooting : MonoBehaviour
         {
             Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
             if (rb != null)
+            {
                 rb.velocity = direction * bulletSpeed;
+                Debug.Log($"Velocidad de bala: {rb.velocity}");
+            }
+            else
+            {
+                Debug.LogError("La bala no tiene componente Bullet ni Rigidbody2D");
+            }
         }
 
         currentAmmo--;
@@ -311,7 +347,6 @@ public class PlayerShooting : MonoBehaviour
             weaponNameText.text = weaponName;
     }
 
-    // Visualización del rango de detección en el Editor
     void OnDrawGizmosSelected()
     {
         // Dibujar rango de detección
@@ -324,33 +359,18 @@ public class PlayerShooting : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawLine(weaponPoint.position, currentTarget.position);
         }
+
+        // **NUEVO: Dibujar weaponPoint**
+        if (weaponPoint != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(weaponPoint.position, 0.1f);
+        }
     }
 
     void OnDestroy()
     {
         if (aimCoroutine != null)
             StopCoroutine(aimCoroutine);
-    }
-
-    // Métodos públicos para controlar la visualización
-    public void ShowRange(bool show)
-    {
-        if (rangeCircle != null)
-            rangeCircle.enabled = show;
-    }
-
-    public void SetRangeColor(Color color)
-    {
-        if (rangeCircle != null)
-        {
-            rangeCircle.startColor = color;
-            rangeCircle.endColor = color;
-        }
-    }
-
-    public void UpdateRangeVisualization()
-    {
-        if (rangeCircle != null)
-            DrawCircle(rangeCircle, detectionRange, 50);
     }
 }

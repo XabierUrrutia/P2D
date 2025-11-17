@@ -11,7 +11,7 @@ public class EnemyShooting : MonoBehaviour
     public int bulletDamage = 1;
 
     [Header("Referencias")]
-    public Transform player; // Ahora puedes asignar manualmente
+    public Transform player; // Mantener por compatibilidad, pero no usar directamente
 
     private float nextFireTime;
     private EnemyAI enemyAI;
@@ -21,31 +21,44 @@ public class EnemyShooting : MonoBehaviour
     {
         enemyAI = GetComponent<EnemyAI>();
 
-        // Buscar jugador si no está asignado
+        if (enemyAI == null)
+        {
+            Debug.LogError($"{gameObject.name}: EnemyAI component not found!");
+        }
+
+        // Buscar jugador si no está asignado (para compatibilidad)
         if (player == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj != null) player = playerObj.transform;
-        }
-
-        if (player == null && debugAtivo)
-        {
-            Debug.LogError($"{gameObject.name}: Não foi possível encontrar o jogador para disparar!");
         }
     }
 
     void Update()
     {
-        if (player == null)
+        // Obtener el objetivo actual del EnemyAI
+        Transform target = GetCurrentTarget();
+
+        if (target == null)
         {
-            // Intentar encontrar el jugador si se perdió la referencia
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) player = playerObj.transform;
+            // Si no hay objetivo del EnemyAI, usar el jugador por defecto (compatibilidad)
+            if (player != null)
+            {
+                CheckAndShoot(player);
+            }
             return;
         }
 
-        // Calcular distancia al jugador
-        float dist = Vector2.Distance(transform.position, player.position);
+        // Disparar al objetivo actual del EnemyAI
+        CheckAndShoot(target);
+    }
+
+    void CheckAndShoot(Transform target)
+    {
+        if (target == null) return;
+
+        // Calcular distancia al objetivo
+        float dist = Vector2.Distance(transform.position, target.position);
 
         // Verificar condiciones para disparar
         bool podeDisparar = dist <= attackRange &&
@@ -55,20 +68,36 @@ public class EnemyShooting : MonoBehaviour
 
         if (podeDisparar)
         {
-            ShootAtPlayer();
+            ShootAtTarget(target);
             nextFireTime = Time.time + fireRate;
 
             if (debugAtivo)
-                Debug.Log($"{gameObject.name}: Disparando no jogador a {dist} unidades de distância");
+                Debug.Log($"{gameObject.name}: Disparando en {target.name} a {dist:F1} unidades");
         }
     }
 
-    void ShootAtPlayer()
+    Transform GetCurrentTarget()
     {
-        if (bulletPrefab == null || weaponPoint == null || player == null) return;
+        // Usar siempre el objetivo del EnemyAI si está disponible
+        if (enemyAI != null)
+        {
+            Transform aiTarget = enemyAI.GetJogadorAlvo();
+            if (aiTarget != null)
+            {
+                return aiTarget;
+            }
+        }
 
-        // Calcular dirección al jugador
-        Vector2 dir = (player.position - weaponPoint.position).normalized;
+        // Fallback: usar el jugador asignado manualmente
+        return player;
+    }
+
+    void ShootAtTarget(Transform target)
+    {
+        if (bulletPrefab == null || weaponPoint == null || target == null) return;
+
+        // Calcular dirección al objetivo
+        Vector2 dir = (target.position - weaponPoint.position).normalized;
 
         // Crear bala
         GameObject bullet = Instantiate(bulletPrefab, weaponPoint.position, Quaternion.identity);
@@ -89,27 +118,44 @@ public class EnemyShooting : MonoBehaviour
             if (rb != null) rb.velocity = dir * bulletSpeed;
         }
 
+        // Rotar la bala en la dirección del movimiento
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        bullet.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
         // Destruir bala después de un tiempo
         Destroy(bullet, 3f);
+
+        // Debug visual
+        if (debugAtivo)
+        {
+            Debug.DrawLine(weaponPoint.position, target.position, Color.red, 0.5f);
+        }
     }
 
     // Método público para verificar si puede disparar
     public bool PuedeDisparar()
     {
-        if (player == null) return false;
+        Transform target = GetCurrentTarget();
+        if (target == null) return false;
 
-        float dist = Vector2.Distance(transform.position, player.position);
+        float dist = Vector2.Distance(transform.position, target.position);
         return dist <= attackRange && Time.time >= nextFireTime;
     }
 
     // Para debug visual
     void OnDrawGizmosSelected()
     {
-        if (Application.isPlaying && player != null)
+        // Dibujar rango de ataque
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+
+        // Dibujar línea al objetivo actual
+        Transform target = GetCurrentTarget();
+        if (target != null)
         {
-            float dist = Vector2.Distance(transform.position, player.position);
-            Gizmos.color = dist <= attackRange ? Color.red : Color.white;
-            Gizmos.DrawWireSphere(transform.position, attackRange);
+            float dist = Vector2.Distance(transform.position, target.position);
+            Gizmos.color = dist <= attackRange ? Color.red : Color.yellow;
+            Gizmos.DrawLine(transform.position, target.position);
         }
     }
 }

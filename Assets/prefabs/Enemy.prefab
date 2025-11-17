@@ -539,7 +539,7 @@ MonoBehaviour:
   bulletPrefab: {fileID: 6354660447642033725, guid: 1c8560e4fe920794a964165ed7a69cb5, type: 3}
   weaponPoint: {fileID: 47086507285344403}
   fireRate: 0.8
-  bulletSpeed: 8
+  bulletSpeed: 4
   attackRange: 2
   bulletDamage: 20
   player: {fileID: 0}
@@ -556,7 +556,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  healthBarOffset: {x: 0, y: 1, z: 0}
+  healthBarOffset: {x: 0, y: 0.5, z: 0}
   healthSlider: {fileID: 268058574934190108}
   showHealthBarTime: 3
   alwaysShowHealthBar: 0
@@ -572,7 +572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98ac4dc6e6beff04caca7f32d7e17a2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velocidad: 2
+  velocidad: 1.5
   distanciaParada: 0.1
   radioBusquedaMaximo: 50
   maxPuentesEnRuta: 5
@@ -609,10 +609,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9a337fe44cbb754d974296a7aa115fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  alcanceDeteccao: 10
-  distanciaParagemAtaque: 2
+  alcanceDeteccao: 4
+  distanciaParagemAtaque: 4
   intervaloChecagem: 0.3
   baseJogador: {fileID: 0}
+  debugAtivo: 0
 --- !u!212 &3861743930884156928
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -651,8 +652,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: -1117488143
-  m_SortingLayer: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 2
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
