@@ -965,7 +965,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0206ad2e4fa4e944b33078db9467cee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velocidad: 2
+  velocidad: 1.5
   distanciaParada: 0.1
   cooldownClick: 0.7
   capaSuelo:
@@ -1061,7 +1061,7 @@ MonoBehaviour:
   maxAmmo: 10
   weaponName: G3 RIFLE
   bulletSpeed: 4
-  bulletDamage: 1
+  bulletDamage: 20
   detectionRange: 2
   enemyLayerMask:
     serializedVersion: 2
@@ -1074,7 +1074,7 @@ MonoBehaviour:
   accuracy: 0.95
   ammoText: {fileID: 3788421899003464514}
   weaponNameText: {fileID: 2794987670168869510}
-  showRangeInGame: 1
+  showRangeInGame: 0
   rangeColor: {r: 1, g: 1, b: 0, a: 0.3}
   targetLineColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!114 &9170590893412081567
@@ -1108,8 +1108,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visionRadius: 2
-  updateThreshold: 0.05
-  forceUpdateInterval: 0.1
+  updateThreshold: 0.1
+  forceUpdateInterval: 0.2
 --- !u!1 &7200475562421419594
 GameObject:
   m_ObjectHideFlags: 0

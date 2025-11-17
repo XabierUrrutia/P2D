@@ -48,21 +48,14 @@ public class PlayerSpawner : MonoBehaviour
                 GameObject soldado = Instantiate(playerPrefab, posicionesSpawn[i], transform.rotation);
                 soldadosSpawneados.Add(soldado);
 
-                Debug.Log($"Soldado {i + 1} spawneado en: {posicionesSpawn[i]}");
             }
 
             // Asignar el PRIMER soldado a la cámara (o puedes cambiar esto)
             if (cameraScript != null && soldadosSpawneados.Count > 0)
             {
                 cameraScript.target = soldadosSpawneados[0].transform;
-                Debug.Log("Cámara asignada al primer soldado");
             }
 
-            Debug.Log($"Se spawnearon {soldadosSpawneados.Count} soldados");
-        }
-        else
-        {
-            Debug.LogError("No hay playerPrefab asignado en el inspector!");
         }
     }
 

@@ -54,7 +54,6 @@ public class EnemySpawner : MonoBehaviour
             tries++;
         }
 
-        Debug.Log($"Enemigos generados: {spawned} (tentativas: {tries})");
     }
 
     System.Collections.IEnumerator SpawnWaves()

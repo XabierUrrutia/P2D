@@ -572,7 +572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98ac4dc6e6beff04caca7f32d7e17a2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velocidad: 1
+  velocidad: 1.5
   distanciaParada: 0.1
   radioBusquedaMaximo: 50
   maxPuentesEnRuta: 5
@@ -609,10 +609,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9a337fe44cbb754d974296a7aa115fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  alcanceDeteccao: 2
+  alcanceDeteccao: 4
   distanciaParagemAtaque: 4
   intervaloChecagem: 0.3
   baseJogador: {fileID: 0}
+  debugAtivo: 0
 --- !u!212 &3861743930884156928
 SpriteRenderer:
   m_ObjectHideFlags: 0

@@ -38,9 +38,6 @@ public class FogPlayer : MonoBehaviour
                 fogOfWar.RequestUpdate();
                 lastPosition = transform.position;
                 lastUpdateTime = Time.time;
-
-                // Debug de posición
-                Debug.Log($"{name} movido a: {transform.position}");
             }
         }
     }
@@ -59,7 +56,8 @@ public class FogPlayer : MonoBehaviour
         fogOfWar.RegisterPlayer(this);
         isInitialized = true;
 
-        Debug.Log($"FogPlayer inicializado: {name} en posición: {transform.position}");
+        // Forzar primera actualización
+        fogOfWar.RequestUpdate();
     }
 
     public void SetFogOfWar(FogOfWar newFogOfWar)
@@ -69,6 +67,7 @@ public class FogPlayer : MonoBehaviour
         {
             fogOfWar.RegisterPlayer(this);
             isInitialized = true;
+            fogOfWar.RequestUpdate();
         }
     }
 
