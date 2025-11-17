@@ -614354,7 +614354,7 @@ MonoBehaviour:
   capaUnidades:
     serializedVersion: 2
     m_Bits: 1024
-  spriteCuadroSeleccion: {fileID: 21300000, guid: 553d38f9dbcb669409ee093be479cd1d, type: 3}
+  spriteCuadroSeleccion: {fileID: 7482667652216324306, guid: 8ef06eaa0974e644c9e3e459278163b1, type: 3}
   radioFormacion: 0.5
   usarFormacionCircular: 1
 --- !u!4 &1217058728
