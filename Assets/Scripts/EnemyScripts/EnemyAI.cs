@@ -11,23 +11,38 @@ public class EnemyAI : MonoBehaviour
     public float distanciaParagemAtaque = 4f;
     public float intervaloChecagem = 0.3f;
 
+    [Header("Sistema de Patrullaje")]
+    public bool usarPatrullaje = true;
+    public float intervaloPatrullaje = 8f;
+    public float duracionParada = 3f;
+    public float radioPuntosPatrullaje = 5f;
+    public float radioMovimientoParada = 2f;
+
     [Header("Referencias")]
     public Transform baseJogador;
 
     private EnemyController movimento;
     private EnemyShooting atirador;
-    private Transform jogadorAlvo; // Jugador actual que está siendo perseguido
+    private Transform jogadorAlvo;
     private List<Transform> jogadoresDisponiveis = new List<Transform>();
-    private Vector3 alvoAleatorio;
-    private bool aPerseguir = false;
-    private bool perseguindoJogador = false;
 
     // Control de tiempo
     private float proximaChecagemTime = 0f;
     private float ultimoRecalculoPerseguicao = 0f;
     private float ultimaBuscaJogadoresTime = 0f;
     private const float INTERVALO_RECALCULO_PERSEGUICAO = 1f;
-    private const float INTERVALO_BUSCA_JOGADORES = 2f; // Buscar jugadores cada 2 segundos
+    private const float INTERVALO_BUSCA_JOGADORES = 2f;
+
+    // Sistema de patrullaje
+    private bool estaPatrullando = false;
+    private float tiempoUltimoPatrullaje = 0f;
+    private float tiempoInicioParada = 0f;
+    private bool enParada = false;
+    private Vector3 puntoPatrullajeActual;
+    private Vector3 posicionBaseOriginal;
+    private Vector3 posicionInicioParada;
+    private bool enMovimientoParada = false;
+    private Vector3 puntoMovimientoParada;
 
     // Debug
     public bool debugAtivo = false;
@@ -39,11 +54,19 @@ public class EnemyAI : MonoBehaviour
 
         BuscarReferenciasIniciais();
         BuscarTodosJogadores();
+
+        if (baseJogador != null)
+        {
+            posicionBaseOriginal = baseJogador.position;
+        }
+        else
+        {
+            posicionBaseOriginal = transform.position;
+        }
     }
 
     void BuscarReferenciasIniciais()
     {
-        // Buscar base - primero intentar referencia manual, luego por tag
         if (baseJogador == null)
         {
             GameObject baseObj = GameObject.FindGameObjectWithTag("PlayerBase");
@@ -54,7 +77,6 @@ public class EnemyAI : MonoBehaviour
             }
         }
 
-        // Si todavía no tenemos base, intentar con EnemyManager
         if (baseJogador == null && EnemyManager.Instance != null)
         {
             baseJogador = EnemyManager.Instance.playerBase;
@@ -67,12 +89,10 @@ public class EnemyAI : MonoBehaviour
     {
         jogadoresDisponiveis.Clear();
 
-        // Buscar todos los objetos con tag "Player"
         GameObject[] todosJogadores = GameObject.FindGameObjectsWithTag("Player");
 
         foreach (GameObject jogadorObj in todosJogadores)
         {
-            // Verificar que el jugador esté activo y tenga salud
             PlayerHealth health = jogadorObj.GetComponent<PlayerHealth>();
             if (health != null && health.enabled && jogadorObj.activeInHierarchy)
             {
@@ -108,7 +128,6 @@ public class EnemyAI : MonoBehaviour
 
     void RemoverJogadoresInativos()
     {
-        // Remover jugadores que ya no existen o están inactivos
         for (int i = jogadoresDisponiveis.Count - 1; i >= 0; i--)
         {
             if (jogadoresDisponiveis[i] == null ||
@@ -134,7 +153,6 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            // Solo remover inactivos entre búsquedas completas
             RemoverJogadoresInativos();
         }
 
@@ -156,30 +174,29 @@ public class EnemyAI : MonoBehaviour
             if (debugAtivo && Time.frameCount % 60 == 0)
             {
                 Debug.Log($"{gameObject.name} - Distância ao jogador mais próximo: {distanciaAoJogador}, " +
-                         $"Alcance: {alcanceDeteccao}, Perseguindo: {perseguindoJogador}");
+                         $"Alcance: {alcanceDeteccao}, Perseguindo: {EstaPersiguiendoJogador()}");
             }
 
             // Verificar detección del jugador
             bool jogadorDetectado = distanciaAoJogador <= alcanceDeteccao;
 
             // Actualizar estado de persecución
-            if (jogadorDetectado && !perseguindoJogador)
+            if (jogadorDetectado && !EstaPersiguiendoJogador())
             {
-                // Comenzar a perseguir
-                perseguindoJogador = true;
-                aPerseguir = true;
+                // Comenzar a perseguir - detener patrullaje
                 jogadorAlvo = jogadorProximo;
+                estaPatrullando = false;
+                enParada = false;
+                enMovimientoParada = false;
                 if (debugAtivo) Debug.Log($"{gameObject.name}: Começando a perseguir o jogador: {jogadorAlvo.name}");
             }
-            else if (!jogadorDetectado && perseguindoJogador && distanciaAoJogador > alcanceDeteccao * 1.5f)
+            else if (!jogadorDetectado && EstaPersiguiendoJogador() && distanciaAoJogador > alcanceDeteccao * 1.5f)
             {
                 // Dejar de perseguir (con histeresis para evitar cambios bruscos)
-                perseguindoJogador = false;
-                aPerseguir = false;
                 jogadorAlvo = null;
                 if (debugAtivo) Debug.Log($"{gameObject.name}: Parando de perseguir o jogador");
             }
-            else if (perseguindoJogador && jogadorAlvo != jogadorProximo && jogadorDetectado)
+            else if (EstaPersiguiendoJogador() && jogadorAlvo != jogadorProximo && jogadorDetectado)
             {
                 // Cambiar a un jugador más cercano si es necesario
                 jogadorAlvo = jogadorProximo;
@@ -187,26 +204,154 @@ public class EnemyAI : MonoBehaviour
             }
 
             // Ejecutar comportamiento según el estado
-            if (perseguindoJogador && jogadorAlvo != null)
+            if (EstaPersiguiendoJogador() && jogadorAlvo != null)
             {
                 PerseguirJogador(jogadorAlvo, distanciaAoJogador);
             }
             else
             {
-                IrParaBase();
+                GestionarPatrullajeYBase();
             }
         }
         else
         {
-            // No hay jugadores disponibles, ir a la base
-            if (perseguindoJogador)
+            // No hay jugadores disponibles
+            if (EstaPersiguiendoJogador())
             {
-                perseguindoJogador = false;
-                aPerseguir = false;
                 jogadorAlvo = null;
             }
+            GestionarPatrullajeYBase();
+        }
+    }
+
+    void GestionarPatrullajeYBase()
+    {
+        if (usarPatrullaje && !EstaPersiguiendoJogador())
+        {
+            GestionarPatrullaje();
+        }
+        else
+        {
             IrParaBase();
         }
+    }
+
+    void GestionarPatrullaje()
+    {
+        // Si está en parada, gestionar el movimiento durante la parada
+        if (enParada)
+        {
+            GestionarMovimientoParada();
+            return;
+        }
+
+        // Si no está patrullando, iniciar patrullaje
+        if (!estaPatrullando)
+        {
+            IniciarPatrullaje();
+            return;
+        }
+
+        // Verificar si es tiempo de hacer una parada
+        if (Time.time - tiempoUltimoPatrullaje >= intervaloPatrullaje)
+        {
+            IniciarParada();
+            return;
+        }
+
+        // Continuar patrullando hacia el punto actual
+        if (estaPatrullando)
+        {
+            // Verificar si llegó al punto de patrullaje
+            float distanciaAlPunto = Vector3.Distance(transform.position, puntoPatrullajeActual);
+            if (distanciaAlPunto < movimento.distanciaParada)
+            {
+                // Elegir nuevo punto de patrullaje
+                GenerarNuevoPuntoPatrullaje();
+            }
+        }
+    }
+
+    void GestionarMovimientoParada()
+    {
+        // Verificar si la parada ha terminado
+        if (Time.time - tiempoInicioParada >= duracionParada)
+        {
+            FinalizarParada();
+            return;
+        }
+
+        // Si no está moviéndose durante la parada, iniciar movimiento
+        if (!enMovimientoParada)
+        {
+            IniciarMovimientoParada();
+            return;
+        }
+
+        // Si está moviéndose durante la parada, verificar si llegó al punto
+        if (enMovimientoParada)
+        {
+            float distanciaAlPunto = Vector3.Distance(transform.position, puntoMovimientoParada);
+            if (distanciaAlPunto < movimento.distanciaParada)
+            {
+                // Elegir nuevo punto de movimiento durante parada
+                IniciarMovimientoParada();
+            }
+        }
+    }
+
+    void IniciarPatrullaje()
+    {
+        estaPatrullando = true;
+        tiempoUltimoPatrullaje = Time.time;
+        GenerarNuevoPuntoPatrullaje();
+        if (debugAtivo) Debug.Log($"{gameObject.name}: Iniciando patrullaje hacia {puntoPatrullajeActual}");
+    }
+
+    void GenerarNuevoPuntoPatrullaje()
+    {
+        // Generar punto aleatorio alrededor de la posición base
+        Vector2 puntoAleatorio = Random.insideUnitCircle * radioPuntosPatrullaje;
+        puntoPatrullajeActual = posicionBaseOriginal + new Vector3(puntoAleatorio.x, puntoAleatorio.y, 0);
+
+        movimento.SetTarget(puntoPatrullajeActual);
+
+        if (debugAtivo) Debug.Log($"{gameObject.name}: Nuevo punto de patrullaje: {puntoPatrullajeActual}");
+    }
+
+    void IniciarParada()
+    {
+        enParada = true;
+        estaPatrullando = false;
+        enMovimientoParada = false;
+        tiempoInicioParada = Time.time;
+        posicionInicioParada = transform.position;
+
+        movimento.StopMoving();
+
+        if (debugAtivo) Debug.Log($"{gameObject.name}: Iniciando parada de {duracionParada} segundos con movimiento en radio {radioMovimientoParada}");
+    }
+
+    void IniciarMovimientoParada()
+    {
+        // Generar punto aleatorio dentro del radio de movimiento de parada
+        Vector2 puntoAleatorio = Random.insideUnitCircle * radioMovimientoParada;
+        puntoMovimientoParada = posicionInicioParada + new Vector3(puntoAleatorio.x, puntoAleatorio.y, 0);
+
+        movimento.SetTarget(puntoMovimientoParada);
+        enMovimientoParada = true;
+
+        if (debugAtivo) Debug.Log($"{gameObject.name}: Movimiento durante parada hacia {puntoMovimientoParada}");
+    }
+
+    void FinalizarParada()
+    {
+        enParada = false;
+        enMovimientoParada = false;
+        tiempoUltimoPatrullaje = Time.time;
+        IniciarPatrullaje();
+
+        if (debugAtivo) Debug.Log($"{gameObject.name}: Fin de parada, volviendo al patrullaje normal");
     }
 
     void PerseguirJogador(Transform jogador, float distanciaAoJogador)
@@ -241,7 +386,6 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Método público para añadir un jugador manualmente (útil cuando se crean nuevos jugadores)
     public void AdicionarJogador(Transform novoJogador)
     {
         if (!jogadoresDisponiveis.Contains(novoJogador))
@@ -251,7 +395,6 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Método público para remover un jugador (cuando muere)
     public void RemoverJogador(Transform jogadorMorto)
     {
         if (jogadoresDisponiveis.Contains(jogadorMorto))
@@ -260,22 +403,30 @@ public class EnemyAI : MonoBehaviour
             if (jogadorAlvo == jogadorMorto)
             {
                 jogadorAlvo = null;
-                perseguindoJogador = false;
             }
             if (debugAtivo) Debug.Log($"{gameObject.name}: Jogador removido: {jogadorMorto.name}");
         }
     }
 
-    // Método público para verificar si está persiguiendo al jugador
     public bool EstaPersiguiendoJogador()
     {
-        return perseguindoJogador;
+        return jogadorAlvo != null;
     }
 
-    // Método público para obtener el jugador actual
     public Transform GetJogadorAlvo()
     {
         return jogadorAlvo;
+    }
+
+    public void SetUsarPatrullaje(bool usar)
+    {
+        usarPatrullaje = usar;
+        if (!usar)
+        {
+            estaPatrullando = false;
+            enParada = false;
+            enMovimientoParada = false;
+        }
     }
 
     void OnDrawGizmosSelected()
@@ -289,7 +440,7 @@ public class EnemyAI : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, distanciaParagemAtaque);
 
         // Dibujar línea al jugador si está siendo perseguido
-        if (Application.isPlaying && perseguindoJogador && jogadorAlvo != null)
+        if (Application.isPlaying && EstaPersiguiendoJogador() && jogadorAlvo != null)
         {
             Gizmos.color = Color.green;
             Gizmos.DrawLine(transform.position, jogadorAlvo.position);
@@ -305,8 +456,44 @@ public class EnemyAI : MonoBehaviour
             }
         }
 
+        // Dibujar información de patrullaje
+        if (usarPatrullaje)
+        {
+            // Área de patrullaje
+            Gizmos.color = new Color(1, 0.5f, 0, 0.3f);
+            Gizmos.DrawWireSphere(posicionBaseOriginal, radioPuntosPatrullaje);
+
+            // Punto actual de patrullaje
+            if (Application.isPlaying && estaPatrullando)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(puntoPatrullajeActual, 0.5f);
+                Gizmos.DrawLine(transform.position, puntoPatrullajeActual);
+            }
+
+            // Información de movimiento durante parada
+            if (enParada)
+            {
+                // Radio de movimiento durante parada
+                Gizmos.color = new Color(1, 0, 1, 0.3f);
+                Gizmos.DrawWireSphere(posicionInicioParada, radioMovimientoParada);
+
+                // Punto de movimiento durante parada
+                if (enMovimientoParada)
+                {
+                    Gizmos.color = Color.white;
+                    Gizmos.DrawWireSphere(puntoMovimientoParada, 0.3f);
+                    Gizmos.DrawLine(transform.position, puntoMovimientoParada);
+                }
+
+                // Indicador visual de parada
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawWireSphere(transform.position, 0.8f);
+            }
+        }
+
         // Dibujar línea a la base si no está persiguiendo
-        if (Application.isPlaying && !perseguindoJogador && baseJogador != null)
+        if (Application.isPlaying && !EstaPersiguiendoJogador() && baseJogador != null)
         {
             Gizmos.color = Color.magenta;
             Gizmos.DrawLine(transform.position, baseJogador.position);

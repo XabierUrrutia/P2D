@@ -612,6 +612,11 @@ MonoBehaviour:
   alcanceDeteccao: 4
   distanciaParagemAtaque: 4
   intervaloChecagem: 0.3
+  usarPatrullaje: 1
+  intervaloPatrullaje: 8
+  duracionParada: 3
+  radioPuntosPatrullaje: 5
+  radioMovimientoParada: 2
   baseJogador: {fileID: 0}
   debugAtivo: 0
 --- !u!212 &3861743930884156928

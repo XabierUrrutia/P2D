@@ -1,7 +1,7 @@
 // Building.cs
 using UnityEngine;
 
-public class Building : MonoBehaviour
+public class UIBuilding : MonoBehaviour
 {
     [SerializeField] private BuildingData buildingData;
 
