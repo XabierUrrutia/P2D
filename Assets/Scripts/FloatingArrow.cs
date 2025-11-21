@@ -15,6 +15,10 @@ public class FloatingArrow : MonoBehaviour
     void Update()
     {
         float newY = Mathf.Sin(Time.time * frequency) * amplitude;
-        transform.localPosition = startPos + new Vector3(0, newY, 0);
+
+        Vector3 pos = transform.localPosition;
+        pos.y = startPos.y + newY;
+
+        transform.localPosition = pos;
     }
 }
