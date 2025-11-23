@@ -167889,7 +167889,7 @@ GameObject:
   - component: {fileID: 147493043}
   - component: {fileID: 147493042}
   - component: {fileID: 147493041}
-  - component: {fileID: 147493040}
+  - component: {fileID: 147493045}
   m_Layer: 0
   m_Name: Scripts
   m_TagString: Untagged
@@ -167897,23 +167897,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &147493040
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 147493039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a21c261724749df4c94535b7779eda27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stepCompletePanel: {fileID: 558538369}
-  proceedButton: {fileID: 1364692440}
-  stepMessageText: {fileID: 227119759}
-  nextSceneName: tutorial 2 map
-  triggerStepIndex: 1
 --- !u!114 &147493041
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167977,6 +167960,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1755456274}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &147493045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 147493039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9a9174aafdc2b4e904aa4d6924b554, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stepCompletePanel: {fileID: 558538369}
+  proceedButton: {fileID: 640087128}
+  stepMessageText: {fileID: 748897565}
+  nextSceneName: 
+  enemyTag: Enemy
+  specificEnemy: {fileID: 3682313185742942023, guid: 0b3d82038f131d045a8472c3356460af, type: 3}
 --- !u!1 &160035658
 GameObject:
   m_ObjectHideFlags: 0

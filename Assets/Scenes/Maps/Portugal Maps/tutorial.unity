@@ -167912,7 +167912,7 @@ MonoBehaviour:
   stepCompletePanel: {fileID: 558538369}
   proceedButton: {fileID: 1364692440}
   stepMessageText: {fileID: 227119759}
-  nextSceneName: tutorial 2 map
+  nextSceneName: tutorial 1
   triggerStepIndex: 1
 --- !u!114 &147493041
 MonoBehaviour:
