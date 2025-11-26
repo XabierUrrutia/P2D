@@ -11,6 +11,8 @@ TagManager:
   - Tower
   - PlayerBase
   - Building
+  - VisitedFog
+  - PlayerVision
   layers:
   - Default
   - TransparentFX

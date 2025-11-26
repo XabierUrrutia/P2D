@@ -1,93 +1,70 @@
-using UnityEngine;
+ï»¿using UnityEngine;
+using UnityEngine.UI; // Necesario para Slider
 
 public class EnemyFogVisibility : MonoBehaviour
 {
-    [Header("Configuración de Visibilidad")]
-    public bool alwaysVisibleInFog = false; // Para debugging
-    public float visibilityCheckInterval = 0.1f;
-
     private FogOfWar fogOfWar;
-    private Renderer[] renderers;
-    private Collider2D[] colliders;
-    private MonoBehaviour[] scripts;
-    private float lastCheckTime;
-    private bool isVisible = true;
+    private SpriteRenderer spriteRenderer;
+    private Slider healthBar; // Referencia al slider de vida
+    private Canvas healthBarCanvas; // Referencia al canvas si existe
+    private bool wasVisible = false;
 
     void Start()
     {
+        spriteRenderer = GetComponent<SpriteRenderer>();
         fogOfWar = FindObjectOfType<FogOfWar>();
-        renderers = GetComponentsInChildren<Renderer>();
-        colliders = GetComponentsInChildren<Collider2D>();
-        scripts = GetComponents<MonoBehaviour>();
 
-        // Ocultar inicialmente hasta primera verificación
-        SetVisibility(false);
+        // Buscar el slider de vida en los hijos o en el objeto
+        healthBar = GetComponentInChildren<Slider>(true);
 
-        lastCheckTime = Time.time;
+        // Si el health bar estÃ¡ en un Canvas World Space
+        healthBarCanvas = GetComponentInChildren<Canvas>(true);
+
+        if (fogOfWar == null)
+        {
+            Debug.LogError("No se encontrÃ³ el sistema FogOfWar en la escena");
+            enabled = false;
+            return;
+        }
     }
 
     void Update()
     {
-        if (alwaysVisibleInFog) return;
-
-        if (Time.time - lastCheckTime >= visibilityCheckInterval)
-        {
-            CheckVisibility();
-            lastCheckTime = Time.time;
-        }
-    }
-
-    void CheckVisibility()
-    {
         if (fogOfWar == null) return;
 
-        bool shouldBeVisible = fogOfWar.IsPositionVisible(transform.position);
+        bool isCurrentlyVisible = fogOfWar.IsPositionVisible(transform.position);
 
-        if (shouldBeVisible != isVisible)
+        if (isCurrentlyVisible != wasVisible)
         {
-            SetVisibility(shouldBeVisible);
+            UpdateVisibility(isCurrentlyVisible);
+            wasVisible = isCurrentlyVisible;
         }
     }
 
-    void SetVisibility(bool visible)
+    void UpdateVisibility(bool isVisible)
     {
-        isVisible = visible;
+        // Ocultar/mostrar el sprite del enemigo
+        spriteRenderer.enabled = isVisible;
 
-        // Mostrar/ocultar renderers
-        foreach (Renderer rend in renderers)
+        // Ocultar/mostrar la barra de vida
+        if (healthBar != null)
         {
-            if (rend != null)
-                rend.enabled = visible;
+            healthBar.gameObject.SetActive(isVisible);
         }
 
-        // Opcional: habilitar/deshabilitar colliders
-        foreach (Collider2D col in colliders)
+        // Ocultar/mostrar el canvas completo si existe
+        if (healthBarCanvas != null)
         {
-            if (col != null)
-                col.enabled = visible;
-        }
-
-        // Opcional: habilitar/deshabilitar scripts específicos
-        foreach (MonoBehaviour script in scripts)
-        {
-            if (script != null && script != this && script.enabled)
-            {
-                // No deshabilitar scripts esenciales como movimiento básico
-                // pero sí scripts de IA, ataque, etc.
-                if (script.GetType() != typeof(EnemyFogVisibility))
-                {
-                    script.enabled = visible;
-                }
-            }
+            healthBarCanvas.enabled = isVisible;
         }
     }
 
-    void OnDrawGizmos()
+    void OnBecameVisible()
     {
-        if (!isVisible && !alwaysVisibleInFog)
+        // Backup en caso de que el renderer se active por otros medios
+        if (!fogOfWar.IsPositionVisible(transform.position))
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, 0.5f);
+            UpdateVisibility(false);
         }
     }
 }

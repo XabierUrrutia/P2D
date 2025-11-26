@@ -4,38 +4,5 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes:
-  - enabled: 1
-    path: Assets/Scenes/Interface/MainMenu.unity
-    guid: 79129a040b0b92a408d0a09a3bd9723a
-  - enabled: 1
-    path: Assets/Scenes/Interface/OptionsMenu.unity
-    guid: 57e6fc2fd8c21a14294f0ed6868bbda1
-  - enabled: 1
-    path: Assets/Scenes/Maps/Portugal.unity
-    guid: 316404c692a93684199279ff6b09bba7
-  - enabled: 1
-    path: Assets/Scenes/Maps/Portugal Maps/first map.unity
-    guid: 3b39449264821894d9f845130dbfe914
-  - enabled: 1
-    path: Assets/Scenes/Maps/Portugal Maps/second map.unity
-    guid: 9c323c6084506b54f93805a6c0246303
-  - enabled: 1
-    path: Assets/Scenes/Maps/Portugal Maps/third map.unity
-    guid: c73778d132d308c40a9c9988072391ed
-  - enabled: 1
-    path: Assets/Scenes/Interface/Game Over.unity
-    guid: 2670b7d491cbd824b9a519b51bf6fa1b
-  - enabled: 0
-    path: Assets/Scenes/Maps/Portugal Maps/tutorial 1 map.unity
-    guid: f42dea245cae73f428d3993cf3074a94
-  - enabled: 1
-    path: Assets/Scenes/Maps/Portugal Maps/tutorial 1.unity
-    guid: a05c95e24cc3a144ab4dba8b4dcb64e4
-  - enabled: 0
-    path: Assets/Scenes/Maps/Portugal Maps/tutorial 2 map.unity
-    guid: 5dfff7ab182e612409feecd65a6dd83e
-  - enabled: 1
-    path: Assets/Scenes/Maps/Portugal Maps/tutorial.unity
-    guid: 92b874f13261656469616fa217fe2dd5
+  m_Scenes: []
   m_configObjects: {}

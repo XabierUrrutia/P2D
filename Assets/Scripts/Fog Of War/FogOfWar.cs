@@ -23,6 +23,7 @@ public class FogOfWar : MonoBehaviour
     public Color visitedColor = new Color(0.3f, 0.3f, 0.3f, 0.4f);
 
     private List<FogPlayer> fogPlayers = new List<FogPlayer>();
+    private List<FogStaticVision> staticVisions = new List<FogStaticVision>();
     private Texture2D blackFogTexture;
     private Texture2D visionTexture;
     private Texture2D visitedTexture;
@@ -186,10 +187,11 @@ public class FogOfWar : MonoBehaviour
 
     void UpdateFogOfWar()
     {
-        if (fogPlayers.Count == 0) return;
+        if (fogPlayers.Count == 0 && staticVisions.Count == 0) return;
 
         ClearVisionTexture();
 
+        // Procesar visión de jugadores (tu código existente)
         foreach (FogPlayer fogPlayer in fogPlayers)
         {
             if (fogPlayer != null && fogPlayer.gameObject.activeInHierarchy)
@@ -203,6 +205,23 @@ public class FogOfWar : MonoBehaviour
 
                 DrawVisionCircle(playerPixel, pixelRadius);
                 UpdateVisitedAreas(playerPixel, pixelRadius);
+            }
+        }
+
+        // PROCESAR VISIÓN ESTÁTICA DE BASES (NUEVO CÓDIGO)
+        foreach (FogStaticVision staticVision in staticVisions)
+        {
+            if (staticVision != null && staticVision.gameObject.activeInHierarchy)
+            {
+                Vector3 staticWorldPos = staticVision.GetPosition();
+                Vector2Int staticPixel = WorldToPixel(staticWorldPos);
+
+                float avgPixelsPerUnit = (pixelsPerUnitX + pixelsPerUnitY) * 0.5f;
+                int pixelRadius = Mathf.RoundToInt(staticVision.visionRadius * avgPixelsPerUnit);
+                pixelRadius = Mathf.Max(1, pixelRadius);
+
+                DrawVisionCircle(staticPixel, pixelRadius);
+                UpdateVisitedAreas(staticPixel, pixelRadius);
             }
         }
 
@@ -486,6 +505,23 @@ public class FogOfWar : MonoBehaviour
                 Gizmos.DrawSphere(player.transform.position, 0.5f);
                 Gizmos.DrawWireSphere(player.transform.position, player.visionRadius);
             }
+        }
+    }
+    public void RegisterStaticVision(FogStaticVision staticVision)
+    {
+        if (!staticVisions.Contains(staticVision))
+        {
+            staticVisions.Add(staticVision);
+            needsUpdate = true;
+        }
+    }
+
+    public void UnregisterStaticVision(FogStaticVision staticVision)
+    {
+        if (staticVisions.Contains(staticVision))
+        {
+            staticVisions.Remove(staticVision);
+            needsUpdate = true;
         }
     }
 }

@@ -1209,9 +1209,9 @@ MonoBehaviour:
   accuracy: 0.95
   ammoText: {fileID: 3788421899003464514}
   weaponNameText: {fileID: 2794987670168869510}
-  showRangeInGame: 0
+  showRangeInGame: 1
   rangeColor: {r: 1, g: 1, b: 0, a: 0.3}
-  targetLineColor: {r: 1, g: 0, b: 0, a: 1}
+  targetLineColor: {r: 1, g: 0, b: 0, a: 0}
 --- !u!114 &9170590893412081567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1257,9 +1257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73269feb874781e4f9753527d15f0308, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buildingLayerMask:
-    serializedVersion: 2
-    m_Bits: 32768
+  detectionRange: 5
 --- !u!1 &7200475562421419594
 GameObject:
   m_ObjectHideFlags: 0
