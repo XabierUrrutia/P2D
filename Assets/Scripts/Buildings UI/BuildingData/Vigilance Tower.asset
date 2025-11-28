@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee5e9f53adf4cb744b112afd47dea7f6, type: 3}
   m_Name: Vigilance Tower
   m_EditorClassIdentifier: 
-  buildingName: Vigilance Towe
-  buildingSprite: {fileID: -2087411618, guid: 04590444ea1e6704eac2442725b08da3, type: 3}
-  buildingPrefab: {fileID: 224775570577891645, guid: 89d7c7fb8bfbf5a49b9a38986e14d103, type: 3}
-  cost: 0
+  buildingName: Vigilance Tower
+  buildingSprite: {fileID: 452267333, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  buildingPrefab: {fileID: 1525862255766077723, guid: b42bf87d34d13774d8b26357558e4b0e, type: 3}
+  cost: 1
+  buildTime: 3
   gridSize: {x: 1, y: 1}

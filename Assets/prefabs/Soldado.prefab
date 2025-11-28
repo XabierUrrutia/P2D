@@ -1209,7 +1209,7 @@ MonoBehaviour:
   accuracy: 0.95
   ammoText: {fileID: 3788421899003464514}
   weaponNameText: {fileID: 2794987670168869510}
-  showRangeInGame: 1
+  showRangeInGame: 0
   rangeColor: {r: 1, g: 1, b: 0, a: 0.3}
   targetLineColor: {r: 1, g: 0, b: 0, a: 0}
 --- !u!114 &9170590893412081567

@@ -15,5 +15,6 @@ MonoBehaviour:
   buildingName: Hangar
   buildingSprite: {fileID: 177993540, guid: 04590444ea1e6704eac2442725b08da3, type: 3}
   buildingPrefab: {fileID: 1854884012207657142, guid: 3f97397589827324d8d3ba8fd811d530, type: 3}
-  cost: 0
+  cost: 3
+  buildTime: 3
   gridSize: {x: 1, y: 1}

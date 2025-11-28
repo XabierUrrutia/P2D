@@ -164,12 +164,6 @@ public class FogOfWar : MonoBehaviour
 
         Color32 black = new Color32(0, 0, 0, 255);
         Color32 transparent = new Color32(0, 0, 0, 0);
-        Color32 visitedColor32 = new Color32(
-            (byte)(visitedColor.r * 255),
-            (byte)(visitedColor.g * 255),
-            (byte)(visitedColor.b * 255),
-            (byte)(visitedColor.a * 255)
-        );
 
         for (int i = 0; i < totalPixels; i++)
         {
@@ -191,7 +185,7 @@ public class FogOfWar : MonoBehaviour
 
         ClearVisionTexture();
 
-        // Procesar visión de jugadores (tu código existente)
+        // Procesar visión de jugadores
         foreach (FogPlayer fogPlayer in fogPlayers)
         {
             if (fogPlayer != null && fogPlayer.gameObject.activeInHierarchy)
@@ -208,7 +202,7 @@ public class FogOfWar : MonoBehaviour
             }
         }
 
-        // PROCESAR VISIÓN ESTÁTICA DE BASES (NUEVO CÓDIGO)
+        // Procesar visión estática de bases
         foreach (FogStaticVision staticVision in staticVisions)
         {
             if (staticVision != null && staticVision.gameObject.activeInHierarchy)
@@ -325,10 +319,6 @@ public class FogOfWar : MonoBehaviour
 
     void ApplyTextures()
     {
-        // Áreas con visión actual: completamente transparentes para mostrar el mapa real
-        // Áreas visitadas sin visión: color gris semitransparente
-        // Áreas no exploradas: niebla negra
-
         Color32 transparent = new Color32(0, 0, 0, 0);
         Color32 visitedColor32 = new Color32(
             (byte)(visitedColor.r * 255),
@@ -341,20 +331,16 @@ public class FogOfWar : MonoBehaviour
         {
             if (currentVisionPixels[i])
             {
-                // En visión actual: transparente para ver mapa real
                 visitedPixels[i] = transparent;
                 blackFogPixels[i] = transparent;
             }
             else if (visitedFlags[i])
             {
-                // Visitado sin visión: mantener color visitado
                 visitedPixels[i] = visitedColor32;
-                // Niebla semitransparente en áreas visitadas
                 blackFogPixels[i] = new Color32(0, 0, 0, 150);
             }
             else
             {
-                // No explorado: niebla opaca
                 blackFogPixels[i] = new Color32(0, 0, 0, 255);
                 visitedPixels[i] = transparent;
             }
@@ -371,19 +357,13 @@ public class FogOfWar : MonoBehaviour
 
     void CreateSprites()
     {
-        // ORDEN CORREGIDO para efecto "linterna":
-        // 1. Mapa base (ya existe en escena)
-        // 2. Áreas visitadas (gris estático)
-        // 3. Niebla negra (dinámica)
-        // 4. Visión actual (recorta la niebla)
-
         if (visitedRenderer != null)
         {
             Rect rect = new Rect(0, 0, textureSize, textureSize);
             Vector2 pivot = new Vector2(0.5f, 0.5f);
             float pixelsPerUnit = 100f;
             visitedRenderer.sprite = Sprite.Create(visitedTexture, rect, pivot, pixelsPerUnit);
-            visitedRenderer.sortingOrder = 5; // Debajo de la niebla
+            visitedRenderer.sortingOrder = 5;
         }
 
         if (blackFogRenderer != null)
@@ -392,7 +372,7 @@ public class FogOfWar : MonoBehaviour
             Vector2 pivot = new Vector2(0.5f, 0.5f);
             float pixelsPerUnit = 100f;
             blackFogRenderer.sprite = Sprite.Create(blackFogTexture, rect, pivot, pixelsPerUnit);
-            blackFogRenderer.sortingOrder = 6; // Encima de visitado
+            blackFogRenderer.sortingOrder = 6;
         }
 
         if (visionRenderer != null)
@@ -401,7 +381,7 @@ public class FogOfWar : MonoBehaviour
             Vector2 pivot = new Vector2(0.5f, 0.5f);
             float pixelsPerUnit = 100f;
             visionRenderer.sprite = Sprite.Create(visionTexture, rect, pivot, pixelsPerUnit);
-            visionRenderer.sortingOrder = 7; // TOPE - recorta la niebla
+            visionRenderer.sortingOrder = 7;
         }
     }
 
@@ -463,25 +443,44 @@ public class FogOfWar : MonoBehaviour
         Vector2Int pixel = WorldToPixel(worldPosition);
     }
 
+    // Métodos públicos de consulta (único, sem duplicação)
     public bool IsPositionVisible(Vector3 worldPosition)
     {
         Vector2Int pixel = WorldToPixel(worldPosition);
         int index = pixel.y * textureSize + pixel.x;
-        return index >= 0 && index < currentVisionPixels.Length && currentVisionPixels[index];
+        if (index < 0 || index >= currentVisionPixels.Length) return false;
+        return currentVisionPixels[index];
     }
 
     public bool IsPositionRevealed(Vector3 worldPosition)
     {
         Vector2Int pixel = WorldToPixel(worldPosition);
         int index = pixel.y * textureSize + pixel.x;
-        return index >= 0 && index < revealedPixels.Length && revealedPixels[index];
+        if (index < 0 || index >= revealedPixels.Length) return false;
+        return revealedPixels[index];
     }
 
     public bool IsPositionVisited(Vector3 worldPosition)
     {
         Vector2Int pixel = WorldToPixel(worldPosition);
         int index = pixel.y * textureSize + pixel.x;
-        return index >= 0 && index < visitedFlags.Length && visitedFlags[index];
+        if (index < 0 || index >= visitedFlags.Length) return false;
+        return visitedFlags[index];
+    }
+
+    // Combinado útil para validação de construção
+    public bool IsPositionVisitedOrVisible(Vector3 worldPos)
+    {
+        Vector2Int px = WorldToPixel(worldPos);
+        int index = px.y * textureSize + px.x;
+        if (index < 0 || index >= revealedPixels.Length) return false;
+        return revealedPixels[index] || currentVisionPixels[index] || visitedFlags[index];
+    }
+
+    // Expor WorldToPixel se necessário (útil para debug)
+    public Vector2Int GetPixelForWorldPosition(Vector3 worldPos)
+    {
+        return WorldToPixel(worldPos);
     }
 
     void OnDestroy()
@@ -490,6 +489,7 @@ public class FogOfWar : MonoBehaviour
         if (visionTexture != null) Destroy(visionTexture);
         if (visitedTexture != null) Destroy(visitedTexture);
         fogPlayers.Clear();
+        staticVisions.Clear();
     }
 
     void OnDrawGizmosSelected()
@@ -507,6 +507,7 @@ public class FogOfWar : MonoBehaviour
             }
         }
     }
+
     public void RegisterStaticVision(FogStaticVision staticVision)
     {
         if (!staticVisions.Contains(staticVision))

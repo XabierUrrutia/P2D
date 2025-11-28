@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ee5e9f53adf4cb744b112afd47dea7f6, type: 3}
-  m_Name: Hangar
+  m_Name: Cube Factory
   m_EditorClassIdentifier: 
-  buildingName: Hangar
-  buildingSprite: {fileID: -780830347, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  buildingPrefab: {fileID: 3956915481108066332, guid: e8e3b5d1b2094814189658cd34abd94f, type: 3}
-  cost: 1
+  buildingName: Cube Factory
+  buildingSprite: {fileID: -982189450, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  buildingPrefab: {fileID: 3259702835758711629, guid: dfebc5dce3c484b4d99e7952ae7eb144, type: 3}
+  cost: 2
   buildTime: 3
   gridSize: {x: 1, y: 1}

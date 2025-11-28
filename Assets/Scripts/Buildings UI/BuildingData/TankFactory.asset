@@ -10,10 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ee5e9f53adf4cb744b112afd47dea7f6, type: 3}
-  m_Name: Fence
+  m_Name: TankFactory
   m_EditorClassIdentifier: 
-  buildingName: Fence
-  buildingSprite: {fileID: -768614023, guid: 04590444ea1e6704eac2442725b08da3, type: 3}
-  buildingPrefab: {fileID: 2800918382627285954, guid: 8b445211a8c4fb3478263ac69ebe245b, type: 3}
-  cost: 0
+  buildingName: Tank Factory
+  buildingSprite: {fileID: 1405387626, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  buildingPrefab: {fileID: 6708317264880824817, guid: 592115e5a8c33ed409f91b5404089e7e, type: 3}
+  cost: 5
+  buildTime: 3
   gridSize: {x: 1, y: 1}

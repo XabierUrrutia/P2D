@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ee5e9f53adf4cb744b112afd47dea7f6, type: 3}
-  m_Name: Hangar
+  m_Name: Open Hangar
   m_EditorClassIdentifier: 
-  buildingName: Hangar
-  buildingSprite: {fileID: -780830347, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  buildingPrefab: {fileID: 3956915481108066332, guid: e8e3b5d1b2094814189658cd34abd94f, type: 3}
-  cost: 1
+  buildingName: Open Hangar
+  buildingSprite: {fileID: -477995842, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  buildingPrefab: {fileID: 2057124343739751168, guid: 3ea8618cb4fa4e24c852bc9d9330ba1f, type: 3}
+  cost: 4
   buildTime: 3
   gridSize: {x: 1, y: 1}

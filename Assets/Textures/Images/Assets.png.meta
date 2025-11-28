@@ -2742,8 +2742,8 @@ TextureImporter:
         y: 994
         width: 119
         height: 213
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.49373826, y: 0.35379702}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -2784,8 +2784,8 @@ TextureImporter:
         y: 981
         width: 264
         height: 228
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.4363919, y: 0.33096206}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -2805,8 +2805,8 @@ TextureImporter:
         y: 1003
         width: 243
         height: 183
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.38471842, y: 0.40815243}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -2826,8 +2826,8 @@ TextureImporter:
         y: 987
         width: 274
         height: 216
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.40209383, y: 0.350964}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -2843,12 +2843,12 @@ TextureImporter:
       name: Assets_130
       rect:
         serializedVersion: 2
-        x: 1764
+        x: 1765
         y: 1017
         width: 243
         height: 182
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.38205194, y: 0.40960023}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -3079,7 +3079,7 @@ TextureImporter:
         width: 110
         height: 86
       alignment: 9
-      pivot: {x: 0.5154467, y: 1}
+      pivot: {x: 0.52181566, y: 0.69042045}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -3099,8 +3099,8 @@ TextureImporter:
         y: 203
         width: 110
         height: 86
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.5360929, y: 0.6629369}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -3116,12 +3116,12 @@ TextureImporter:
       name: Assets_143
       rect:
         serializedVersion: 2
-        x: 554
-        y: 218
+        x: 546
+        y: 201
         width: 112
-        height: 71
+        height: 86
       alignment: 9
-      pivot: {x: 0.5, y: 1}
+      pivot: {x: 0.50625503, y: 0.7175765}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -3364,6 +3364,132 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Assets_155
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 375
+        width: 240
+        height: 203
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 698c0ee2336e0ad4dbf0b4155a04c033
+      internalID: -1318716479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assets_156
+      rect:
+        serializedVersion: 2
+        x: 653
+        y: 376
+        width: 239
+        height: 201
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 45d652fdd3d82d3438706c1aa7ba0653
+      internalID: -244753516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assets_157
+      rect:
+        serializedVersion: 2
+        x: 672
+        y: 203
+        width: 112
+        height: 88
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bdc7f0a5affb56044afd811b90d11bd7
+      internalID: -100002872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assets_158
+      rect:
+        serializedVersion: 2
+        x: 802
+        y: 204
+        width: 112
+        height: 88
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: efc17fb8e7ae4f64dbc4db4369f9d63e
+      internalID: 1599835735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assets_159
+      rect:
+        serializedVersion: 2
+        x: 935
+        y: 221
+        width: 110
+        height: 71
+      alignment: 9
+      pivot: {x: 0.49886364, y: 0.8389428}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a1d83ddeecb0f9244a7f9e992fedc20a
+      internalID: 1601572186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assets_160
+      rect:
+        serializedVersion: 2
+        x: 1052
+        y: 220
+        width: 112
+        height: 72
+      alignment: 9
+      pivot: {x: 0.5030332, y: 0.87200123}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f2174844e9db0e540b1632a1ecbfee00
+      internalID: -1303068389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -3438,7 +3564,13 @@ TextureImporter:
       Assets_152: 1336641959
       Assets_153: 1777551418
       Assets_154: -1125307023
+      Assets_155: -1318716479
+      Assets_156: -244753516
+      Assets_157: -100002872
+      Assets_158: 1599835735
+      Assets_159: 1601572186
       Assets_16: -101884835
+      Assets_160: -1303068389
       Assets_17: -1864941832
       Assets_18: -1502002337
       Assets_19: 459009742
