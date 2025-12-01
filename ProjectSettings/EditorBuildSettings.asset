@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Maps/Portugal Maps/second map.unity
+    guid: 9c323c6084506b54f93805a6c0246303
   m_configObjects: {}

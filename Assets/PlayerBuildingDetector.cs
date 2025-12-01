@@ -7,6 +7,7 @@ public class PlayerBuildingDetector : MonoBehaviour
     public float detectionRange = 5f;
 
     private List<Building> allBuildings = new List<Building>();
+    private EnemyBase currentEnemyBase = null;
     private Building currentBuilding = null;
 
     void Start()
@@ -19,6 +20,7 @@ public class PlayerBuildingDetector : MonoBehaviour
     void Update()
     {
         CheckBuildingsInRange();
+        CheckEnemyBaseInRange();
     }
 
     void CheckBuildingsInRange()
@@ -66,12 +68,60 @@ public class PlayerBuildingDetector : MonoBehaviour
         }
     }
 
-    // Importante: limpiar cuando el jugador se destruye
+    void CheckEnemyBaseInRange()
+    {
+        // Buscar todas las bases enemigas en la escena
+        EnemyBase[] enemyBases = FindObjectsOfType<EnemyBase>();
+        EnemyBase closestBase = null;
+        float closestDistance = Mathf.Infinity;
+
+        foreach (EnemyBase enemyBase in enemyBases)
+        {
+            if (enemyBase == null || enemyBase.isConquered) continue;
+
+            float distance = Vector2.Distance(transform.position, enemyBase.transform.position);
+
+            if (distance <= enemyBase.conquestRange && distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestBase = enemyBase;
+            }
+        }
+
+        // Si cambió la base más cercana
+        if (currentEnemyBase != closestBase)
+        {
+            // Desregistrarse de la base anterior
+            if (currentEnemyBase != null)
+            {
+                currentEnemyBase.UnregisterPlayer(this);
+            }
+
+            // Registrarse en la nueva base
+            currentEnemyBase = closestBase;
+            if (currentEnemyBase != null)
+            {
+                currentEnemyBase.RegisterPlayer(this);
+            }
+        }
+
+        // Si no hay bases en rango, asegurarse de que currentEnemyBase es null
+        if (closestBase == null && currentEnemyBase != null)
+        {
+            currentEnemyBase.UnregisterPlayer(this);
+            currentEnemyBase = null;
+        }
+    }
+
     void OnDestroy()
     {
         if (currentBuilding != null)
         {
             currentBuilding.UnregisterPlayer(this);
+        }
+        if (currentEnemyBase != null)
+        {
+            currentEnemyBase.UnregisterPlayer(this);
         }
     }
 
@@ -80,6 +130,10 @@ public class PlayerBuildingDetector : MonoBehaviour
         if (currentBuilding != null)
         {
             currentBuilding.UnregisterPlayer(this);
+        }
+        if (currentEnemyBase != null)
+        {
+            currentEnemyBase.UnregisterPlayer(this);
         }
     }
 }
