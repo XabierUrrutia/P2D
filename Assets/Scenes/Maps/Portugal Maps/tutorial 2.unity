@@ -613500,6 +613500,13 @@ MonoBehaviour:
   maxX: 10
   minY: -10
   maxY: 10
+  cam: {fileID: 1144464465}
+  zoomSpeed: 5
+  zoomSmoothSpeed: 10
+  minOrthoSize: 2
+  maxOrthoSize: 10
+  minFOV: 15
+  maxFOV: 60
 --- !u!1 &1193003085
 GameObject:
   m_ObjectHideFlags: 0
