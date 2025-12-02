@@ -1,8 +1,9 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WinPanel : MonoBehaviour
 {
-    [Tooltip("Drag here the UI GameObject that represents the WIN screen (initially inactive)")]
+    [Tooltip("Panel UI que mostra WIN (inactive por default)")]
     public GameObject winPanelUI;
 
     private bool _shown = false;
@@ -21,10 +22,33 @@ public class WinPanel : MonoBehaviour
         if (winPanelUI != null)
             winPanelUI.SetActive(true);
 
-        // Pausa o jogo
         Time.timeScale = 0f;
 
-        Debug.Log("[WinPanel] Vitória - painel mostrado.");
+        if (LevelManager.Instance == null)
+        {
+            Debug.LogWarning("[WinPanel] LevelManager não encontrado. Não foi possível marcar/desbloquear níveis.");
+            return;
+        }
+
+        // Tentar obter o nível atual de forma robusta:
+        int lvl = LevelManager.Instance.CurrentLevel;
+        if (lvl <= 0)
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
+            lvl = LevelManager.Instance.GetLevelIndexByScene(sceneName);
+            Debug.Log($"[WinPanel] CurrentLevel indefinido. Determinado por cena: '{sceneName}' -> nível {lvl}");
+        }
+
+        if (lvl > 0)
+        {
+            LevelManager.Instance.MarkLevelCompleted(lvl);
+            LevelManager.Instance.UnlockNextLevel(lvl);
+            Debug.Log($"[WinPanel] Nível {lvl} concluído. Próximo desbloqueado (se houver).");
+        }
+        else
+        {
+            Debug.LogWarning("[WinPanel] Não foi possível determinar o nível atual para marcar/desbloquear.");
+        }
     }
 
     public void HideWin()

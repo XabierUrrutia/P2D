@@ -167966,9 +167966,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 596e89dad44265d4592045569f1acf88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  narratorText: {fileID: 0}
-  nextButton: {fileID: 0}
-  panelToClose: {fileID: 0}
+  narratorText: {fileID: 2094456968}
+  nextButton: {fileID: 237539176}
+  panelToClose: {fileID: 558538369}
   fala1: 'Narrator: You are profissional in the movement thing, good job mate!!'
   fala2: 'Narrator: Now you need to shoot and kill the enemy, move to the enemy and
     wait until you kill him.'
@@ -168030,9 +168030,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stepCompletePanel: {fileID: 558538369}
-  proceedButton: {fileID: 0}
-  stepMessageText: {fileID: 0}
-  nextSceneName: 
+  proceedButton: {fileID: 1364692440}
+  stepMessageText: {fileID: 227119759}
+  nextSceneName: tutorial 2
   enemyTag: Enemy
   specificEnemy: {fileID: 3682313185742942023, guid: 0b3d82038f131d045a8472c3356460af, type: 3}
 --- !u!1 &160035658
@@ -172915,7 +172915,7 @@ GameObject:
   - component: {fileID: 683514941}
   - component: {fileID: 683514940}
   m_Layer: 5
-  m_Name: LinePause
+  m_Name: LinePauseButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

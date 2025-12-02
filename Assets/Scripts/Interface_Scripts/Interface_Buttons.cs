@@ -97,7 +97,22 @@ public class MainMenu : MonoBehaviour
     {
         LoadSceneAndSave(2);
     }
-
+    public void GoTutorial1()
+    {
+        LoadSceneAndSave(6);
+    }
+    public void GoToLevel1()
+    {
+        LoadSceneAndSave(4);
+    }
+    public void GoToLevel2()
+    {
+        LoadSceneAndSave(3);
+    }
+    public void GoToLevel3()
+    {
+        LoadSceneAndSave(5);
+    }
     public void GoBack()
     {
         // Se as Options foram abertas em modo aditivo, fecha-as em vez de recarregar a cena anterior
