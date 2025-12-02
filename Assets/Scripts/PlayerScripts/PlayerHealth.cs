@@ -147,6 +147,26 @@ public class PlayerHealth : MonoBehaviour
         isDead = true;
         Debug.Log("Personaje muerto!");
 
+        // 🔊 SOM DE MORTE
+        if (SoundColector.Instance != null)
+        {
+            // Se tiveres tag "Tank" → som de morte de tanque
+            if (CompareTag("Tank"))
+            {
+                SoundColector.Instance.PlayTankDeath();
+            }
+            // (Opcional) se tiveres tag "Building", podes fazer:
+            // else if (CompareTag("Building"))
+            // {
+            //     SoundColector.Instance.PlayBuildingDestroyed();
+            // }
+            else
+            {
+                // Qualquer outro -> infanteria
+                SoundColector.Instance.PlayInfantryDeath();
+            }
+        }
+
         // Notificar al GameManager que este jugador ha muerto
         if (isRegistered && GameManager.Instance != null)
         {

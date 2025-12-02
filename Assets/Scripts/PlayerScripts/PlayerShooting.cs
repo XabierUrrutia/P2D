@@ -50,7 +50,7 @@ public class PlayerShooting : MonoBehaviour
         currentAmmo = maxAmmo;
         mainCam = Camera.main;
 
-        // **CORRECCIÓN: Verificar y crear weaponPoint si no existe**
+        // Verificar y crear weaponPoint si no existe
         if (weaponPoint == null)
         {
             CreateWeaponPoint();
@@ -71,12 +71,11 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
-    // **NUEVO MÉTODO: Crear weaponPoint automáticamente**
     void CreateWeaponPoint()
     {
         GameObject weaponPointObj = new GameObject("WeaponPoint");
         weaponPointObj.transform.SetParent(transform);
-        weaponPointObj.transform.localPosition = new Vector3(0.5f, 0.2f, 0); // Ajusta esta posición según tu prefab
+        weaponPointObj.transform.localPosition = new Vector3(0.5f, 0.2f, 0);
         weaponPoint = weaponPointObj.transform;
 
         Debug.Log("WeaponPoint creado automáticamente en: " + weaponPoint.position);
@@ -101,7 +100,7 @@ public class PlayerShooting : MonoBehaviour
             }
         }
 
-        // Opción para cambiar entre modo automático y manual
+        // Cambiar entre modo automático y manual
         if (Input.GetKeyDown(KeyCode.T))
         {
             ToggleAutoAim();
@@ -170,7 +169,7 @@ public class PlayerShooting : MonoBehaviour
                 }
                 else
                 {
-                    ShootAtTarget(currentTarget.position);
+                    ShootAtTarget(currentTarget.position); // som ativo
                     nextFireTime = Time.time + fireRate;
                 }
             }
@@ -189,7 +188,7 @@ public class PlayerShooting : MonoBehaviour
                 }
                 else
                 {
-                    ShootAtTarget(mouseWorld);
+                    ShootAtTarget(mouseWorld); // som ativo
                     nextFireTime = Time.time + fireRate;
                 }
             }
@@ -203,7 +202,7 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
-    void ShootAtTarget(Vector3 targetPosition)
+    void ShootAtTarget(Vector3 targetPosition, bool playSound = true)
     {
         if (bulletPrefab == null || weaponPoint == null)
         {
@@ -211,12 +210,11 @@ public class PlayerShooting : MonoBehaviour
             return;
         }
 
-        // **DEBUG: Verificar posiciones**
         Debug.Log($"Disparando desde: {weaponPoint.position} hacia: {targetPosition}");
 
         Vector2 direction = (targetPosition - weaponPoint.position).normalized;
 
-        // Aplicar imprecisión para hacerlo más realista
+        // Aplicar imprecisión
         if (accuracy < 1.0f)
         {
             float inaccuracy = (1.0f - accuracy) * 2.0f;
@@ -225,10 +223,8 @@ public class PlayerShooting : MonoBehaviour
             direction.Normalize();
         }
 
-        // **CORRECCIÓN: Asegurar que la bala se instancia en weaponPoint.position**
         GameObject bullet = Instantiate(bulletPrefab, weaponPoint.position, Quaternion.identity);
 
-        // **DEBUG: Verificar posición de la bala instanciada**
         Debug.Log($"Bala instanciada en: {bullet.transform.position}");
 
         Bullet b = bullet.GetComponent<Bullet>();
@@ -253,6 +249,15 @@ public class PlayerShooting : MonoBehaviour
             }
         }
 
+        // 🔊 SOM DE DISPARO (pode ser desligado em burst)
+        if (playSound && SoundColector.Instance != null)
+        {
+            if (CompareTag("Tank"))
+                SoundColector.Instance.PlayTankShot();
+            else
+                SoundColector.Instance.PlayInfantryShot();
+        }
+
         currentAmmo--;
         UpdateUI();
     }
@@ -264,7 +269,8 @@ public class PlayerShooting : MonoBehaviour
         int shotsFired = 0;
         while (shotsFired < burstCount && currentAmmo > 0)
         {
-            ShootAtTarget(targetPosition);
+            bool playSound = (shotsFired == 0); // só o 1º tiro faz som
+            ShootAtTarget(targetPosition, playSound);
             shotsFired++;
 
             if (shotsFired < burstCount)
@@ -297,11 +303,12 @@ public class PlayerShooting : MonoBehaviour
         {
             if (enemyCollider.CompareTag("Enemy"))
             {
-                // Verificar si el enemigo está en línea de visión
-                RaycastHit2D hit = Physics2D.Raycast(transform.position,
+                RaycastHit2D hit = Physics2D.Raycast(
+                    transform.position,
                     enemyCollider.transform.position - transform.position,
                     detectionRange,
-                    enemyLayerMask | (1 << LayerMask.NameToLayer("Obstacle")));
+                    enemyLayerMask | (1 << LayerMask.NameToLayer("Obstacle"))
+                );
 
                 if (hit.collider != null && hit.collider.CompareTag("Enemy"))
                 {
@@ -349,18 +356,15 @@ public class PlayerShooting : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        // Dibujar rango de detección
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
 
-        // Dibujar línea al objetivo si existe
-        if (currentTarget != null && autoAimEnabled)
+        if (currentTarget != null && autoAimEnabled && weaponPoint != null)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawLine(weaponPoint.position, currentTarget.position);
         }
 
-        // **NUEVO: Dibujar weaponPoint**
         if (weaponPoint != null)
         {
             Gizmos.color = Color.green;

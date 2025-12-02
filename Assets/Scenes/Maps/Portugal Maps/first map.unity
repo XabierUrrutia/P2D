@@ -173763,6 +173763,73 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2115757588}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &166418989
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 166418991}
+  - component: {fileID: 166418990}
+  m_Layer: 0
+  m_Name: SoundColectorRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &166418990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166418989}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 935c01238e623e149b2690541b2943b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  backgroundMusicClips:
+  - {fileID: 8300000, guid: c18b25eff367a5844be7d78de2848a1e, type: 3}
+  musicVolume: 0.7
+  sfxVolume: 1
+  randomizeSfxPitch: 1
+  minSfxPitch: 0.9
+  maxSfxPitch: 1.1
+  debugLogs: 1
+  Building_Exp_1: {fileID: 8300000, guid: 45eca6929e1e9514ebb0cdc5732bda40, type: 3}
+  Building_Exp_2: {fileID: 8300000, guid: 915c25cfbd6b5204ca8561eeb579ef89, type: 3}
+  Infantry_1: {fileID: 8300000, guid: cb61056a730d0a042ab735d2e18e49ed, type: 3}
+  Infantry_2: {fileID: 8300000, guid: 5df84390f2a0e924ba5d65b250d7e84d, type: 3}
+  Infantry_3: {fileID: 8300000, guid: 8d25d5f60f6374046a242f7de3e62a5b, type: 3}
+  Infantry_Moving: {fileID: 8300000, guid: 50735d51e89f483418e89aa72386f738, type: 3}
+  Infantry_Shot: {fileID: 8300000, guid: b74f506ee1dee354dbd48db9a9d3885d, type: 3}
+  InfantryDeath_1: {fileID: 8300000, guid: f966821a6322c1e4e9bfea76d82e3544, type: 3}
+  InfantryDeath_2: {fileID: 8300000, guid: 68b4755c03d282d44a123c5053d924fb, type: 3}
+  InfantryDeath_3: {fileID: 8300000, guid: 03abdf960b5e7de439f651c1f2ec8e0a, type: 3}
+  Tank_1: {fileID: 0}
+  Tank_2: {fileID: 0}
+  Tank_3: {fileID: 0}
+  Tank_Fire_1: {fileID: 0}
+  Tank_Fire_2: {fileID: 0}
+--- !u!4 &166418991
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166418989}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &167175620
 GameObject:
   m_ObjectHideFlags: 0
@@ -178473,7 +178540,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 3682313185742942023, guid: 02a98bd66955df04a8c0118df4bd4ce9, type: 3}
-  enemyCount: 1
+  enemyCount: 250
   spawnRadius: 3
   minDistanceFromBase: 1
   spawnInCircle: 1
@@ -623683,6 +623750,7 @@ MonoBehaviour:
   spriteCuadroSeleccion: {fileID: 7482667652216324306, guid: 8ef06eaa0974e644c9e3e459278163b1, type: 3}
   radioFormacion: 0.5
   usarFormacionCircular: 1
+  intervaloMinSomMovimiento: 0.15
 --- !u!4 &1217058728
 Transform:
   m_ObjectHideFlags: 0
@@ -644522,3 +644590,4 @@ SceneRoots:
   - {fileID: 1217058728}
   - {fileID: 1755456274}
   - {fileID: 307033571}
+  - {fileID: 166418991}
