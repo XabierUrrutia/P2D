@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 [RequireComponent(typeof(Button))]
 public class LevelButton : MonoBehaviour
@@ -11,8 +10,6 @@ public class LevelButton : MonoBehaviour
     [Header("UI References (opcionais)")]
     public GameObject lockedIcon;
     public GameObject completedIcon;
-    public TextMeshProUGUI levelLabel;
-    public TextMeshProUGUI difficultyLabel;
 
     private Button btn;
 
@@ -35,12 +32,9 @@ public class LevelButton : MonoBehaviour
 
         bool unlocked = LevelManager.Instance.IsUnlocked(levelIndex);
         bool completed = LevelManager.Instance.IsCompleted(levelIndex);
-        Difficulty diff = LevelManager.Instance.GetDifficulty(levelIndex);
 
         if (lockedIcon != null) lockedIcon.SetActive(!unlocked);
         if (completedIcon != null) completedIcon.SetActive(completed);
-        if (levelLabel != null) levelLabel.text = $"Nível {levelIndex}";
-        if (difficultyLabel != null) difficultyLabel.text = $"Dificuldade: {diff}";
 
         btn.interactable = unlocked;
     }
@@ -49,15 +43,5 @@ public class LevelButton : MonoBehaviour
     {
         // Carrega o nível (poderias mostrar um painel de confirmação aqui)
         LevelManager.Instance.LoadLevel(levelIndex);
-    }
-
-    // Método público para ligar a um botão que altera a dificuldade
-    public void CycleDifficulty()
-    {
-        if (LevelManager.Instance == null) return;
-        Difficulty current = LevelManager.Instance.GetDifficulty(levelIndex);
-        Difficulty next = (Difficulty)(((int)current + 1) % 3);
-        LevelManager.Instance.SetDifficulty(levelIndex, next);
-        Refresh();
     }
 }

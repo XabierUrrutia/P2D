@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 public class MoneyManager : MonoBehaviour
 {
@@ -12,7 +13,7 @@ public class MoneyManager : MonoBehaviour
     public int CurrentMoney { get { return currentMoney; } }
 
     [Header("UI Referencia")]
-    public UnityEngine.UI.Text moneyText;
+    public TextMeshProUGUI moneyText;
 
     void Awake()
     {
@@ -53,7 +54,7 @@ public class MoneyManager : MonoBehaviour
     {
         if (moneyText != null)
         {
-            moneyText.text = $"Dinero: {currentMoney}";
+            moneyText.text = $" {currentMoney}€";
         }
     }
 }
