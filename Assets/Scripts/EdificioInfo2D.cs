@@ -108,48 +108,10 @@ public class EdificioInfo2D : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (string.IsNullOrEmpty(nombreEscenaDestino)) return;
-
-        // Se houver LevelManager, verificar se a cena está desbloqueada
-        if (LevelManager.Instance != null)
+        if (!string.IsNullOrEmpty(nombreEscenaDestino))
         {
-            bool unlocked = LevelManager.Instance.IsSceneUnlocked(nombreEscenaDestino);
-            if (!unlocked)
-            {
-                Debug.Log($"[EdificioInfo2D] Level '{nombreEscenaDestino}' bloqued. Complete the previus level to play.");
-                // Opcional: mostrar mensagem no tooltip temporariamente
-                ShowLockedTooltip();
-                return;
-            }
+            SceneManager.LoadScene(nombreEscenaDestino);
         }
-
-        SceneManager.LoadScene(nombreEscenaDestino);
-    }
-
-    void ShowLockedTooltip()
-    {
-        if (miTooltip == null) return;
-
-        TextMeshProUGUI[] textosTMP = miTooltip.GetComponentsInChildren<TextMeshProUGUI>(true);
-        foreach (TextMeshProUGUI texto in textosTMP)
-        {
-            if (texto.name.Contains("Desc") || texto.gameObject.name.Contains("Desc"))
-            {
-                texto.text = "Bloqueado: completa o nível anterior.";
-            }
-        }
-
-        miTooltip.SetActive(true);
-        ActualizarPosicionIsometrica();
-        CancelInvoke(nameof(RestoreTooltipText));
-        Invoke(nameof(RestoreTooltipText), 2f);
-    }
-
-    void RestoreTooltipText()
-    {
-        ActualizarTextoTooltip();
-        if (miTooltip != null)
-            miTooltip.SetActive(false);
     }
 
     void OnDestroy()

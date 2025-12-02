@@ -17,39 +17,8 @@ public class cameraFollow : MonoBehaviour
     public float minY = -10f;
     public float maxY = 10f;
 
-    [Header("Zoom (Mouse Scroll)")]
-    [Tooltip("Camera a controlar. Se vazio, tentará obter Camera.main ou Camera no mesmo GameObject.")]
-    public Camera cam;
-    public float zoomSpeed = 5f;
-    public float zoomSmoothSpeed = 10f;
-    public float minOrthoSize = 2f;
-    public float maxOrthoSize = 10f;
-    public float minFOV = 15f;
-    public float maxFOV = 60f;
-
-    private float _targetZoom; // orthoSize ou FOV dependendo do tipo
-    private bool _isOrthographic = true;
-
-    void Start()
-    {
-        if (cam == null)
-        {
-            cam = GetComponent<Camera>();
-            if (cam == null)
-                cam = Camera.main;
-        }
-
-        if (cam != null)
-        {
-            _isOrthographic = cam.orthographic;
-            _targetZoom = _isOrthographic ? cam.orthographicSize : cam.fieldOfView;
-        }
-    }
-
     void LateUpdate()
     {
-        HandleZoomInput();
-
         if (isManualControl)
         {
             // Movimiento manual con WASD
@@ -77,40 +46,6 @@ public class cameraFollow : MonoBehaviour
 
             Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
             transform.position = smoothedPosition;
-        }
-
-        // Aplicar zoom suavemente
-        if (cam != null)
-        {
-            if (_isOrthographic)
-            {
-                cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, _targetZoom, Time.deltaTime * zoomSmoothSpeed);
-            }
-            else
-            {
-                cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, _targetZoom, Time.deltaTime * zoomSmoothSpeed);
-            }
-        }
-    }
-
-    void HandleZoomInput()
-    {
-        if (cam == null) return;
-
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (Mathf.Abs(scroll) > 0.0001f)
-        {
-            // Scroll para cima (positivo) deve aproximar (zoom in): diminuir orthoSize / FOV
-            float delta = -scroll * zoomSpeed;
-
-            if (_isOrthographic)
-            {
-                _targetZoom = Mathf.Clamp(_targetZoom + delta, minOrthoSize, maxOrthoSize);
-            }
-            else
-            {
-                _targetZoom = Mathf.Clamp(_targetZoom + delta, minFOV, maxFOV);
-            }
         }
     }
 
