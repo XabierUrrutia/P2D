@@ -1,20 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class UnitSelectionManager : MonoBehaviour
 {
-    [Header("Configuración de Selección")]
+    [Header("Configuraci�n de Selecci�n")]
     public LayerMask capaUnidades;
     public Sprite spriteCuadroSeleccion;
 
-    [Header("Configuración de Formación")]
+    [Header("Configuraci�n de Formaci�n")]
     public float radioFormacion = 1.5f;
     public bool usarFormacionCircular = true;
-
-    [Header("Tweaks de Audio")]
-    [Tooltip("Tempo mínimo entre sons de movimento (em segundos).")]
-    public float intervaloMinSomMovimiento = 0.15f;
-    private float ultimoSomMovimientoTime = -999f;
 
     private Vector3 inicioArrastre;
     private Vector3 finArrastre;
@@ -50,13 +45,7 @@ public class UnitSelectionManager : MonoBehaviour
             inicioArrastre = Input.mousePosition;
             arrastrando = true;
 
-            RaycastHit2D hit = Physics2D.Raycast(
-                cam.ScreenToWorldPoint(Input.mousePosition),
-                Vector2.zero,
-                Mathf.Infinity,
-                capaUnidades
-            );
-
+            RaycastHit2D hit = Physics2D.Raycast(cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero, Mathf.Infinity, capaUnidades);
             if (hit.collider != null)
             {
                 SimpleCharacterMovement unidad = hit.collider.GetComponent<SimpleCharacterMovement>();
@@ -66,15 +55,7 @@ public class UnitSelectionManager : MonoBehaviour
                     {
                         DeseleccionarTodas();
                     }
-
-                    bool eraNueva = !unidadesSeleccionadas.Contains(unidad);
                     SeleccionarUnidad(unidad);
-
-                    // 🔊 Som de seleção (clique simples) – só se for nova
-                    if (eraNueva)
-                    {
-                        PlaySelectionSoundFor(unidad);
-                    }
                 }
             }
             else
@@ -120,23 +101,6 @@ public class UnitSelectionManager : MonoBehaviour
                     unidadesSeleccionadas[i].MoverADestino(destinos[i]);
                 }
             }
-
-            // 🔊 Som de movimento com cooldown
-            if (SoundColector.Instance != null &&
-                Time.time - ultimoSomMovimientoTime >= intervaloMinSomMovimiento)
-            {
-                SimpleCharacterMovement primeraUnidad = unidadesSeleccionadas[0];
-
-                if (primeraUnidad != null)
-                {
-                    if (primeraUnidad.CompareTag("Tank"))
-                        SoundColector.Instance.PlayTankMove();
-                    else
-                        SoundColector.Instance.PlayInfantryMove();
-
-                    ultimoSomMovimientoTime = Time.time;
-                }
-            }
         }
     }
 
@@ -152,7 +116,7 @@ public class UnitSelectionManager : MonoBehaviour
 
         if (usarFormacionCircular)
         {
-            // Formación circular alrededor del punto
+            // Formaci�n circular alrededor del punto
             for (int i = 0; i < cantidadUnidades; i++)
             {
                 float angulo = i * (2f * Mathf.PI / cantidadUnidades);
@@ -163,7 +127,7 @@ public class UnitSelectionManager : MonoBehaviour
         }
         else
         {
-            // Formación en cuadrícula
+            // Formaci�n en cuadr�cula
             int filas = Mathf.CeilToInt(Mathf.Sqrt(cantidadUnidades));
             int columnas = Mathf.CeilToInt((float)cantidadUnidades / filas);
 
@@ -187,15 +151,8 @@ public class UnitSelectionManager : MonoBehaviour
 
     void SeleccionarUnidadesEnCuadro()
     {
-        Vector2 min = cam.ScreenToWorldPoint(new Vector3(
-            Mathf.Min(inicioArrastre.x, finArrastre.x),
-            Mathf.Min(inicioArrastre.y, finArrastre.y),
-            0));
-
-        Vector2 max = cam.ScreenToWorldPoint(new Vector3(
-            Mathf.Max(inicioArrastre.x, finArrastre.x),
-            Mathf.Max(inicioArrastre.y, finArrastre.y),
-            0));
+        Vector2 min = cam.ScreenToWorldPoint(new Vector3(Mathf.Min(inicioArrastre.x, finArrastre.x), Mathf.Min(inicioArrastre.y, finArrastre.y), 0));
+        Vector2 max = cam.ScreenToWorldPoint(new Vector3(Mathf.Max(inicioArrastre.x, finArrastre.x), Mathf.Max(inicioArrastre.y, finArrastre.y), 0));
 
         Collider2D[] unidadesEnArea = Physics2D.OverlapAreaAll(min, max, capaUnidades);
 
@@ -204,27 +161,13 @@ public class UnitSelectionManager : MonoBehaviour
             DeseleccionarTodas();
         }
 
-        SimpleCharacterMovement primeraNueva = null;
-
         foreach (Collider2D collider in unidadesEnArea)
         {
             SimpleCharacterMovement unidad = collider.GetComponent<SimpleCharacterMovement>();
             if (unidad != null)
             {
-                bool eraNueva = !unidadesSeleccionadas.Contains(unidad);
                 SeleccionarUnidad(unidad);
-
-                if (eraNueva && primeraNueva == null)
-                {
-                    primeraNueva = unidad;
-                }
             }
-        }
-
-        // 🔊 Som de seleção (apenas 1 por arrasto)
-        if (primeraNueva != null)
-        {
-            PlaySelectionSoundFor(primeraNueva);
         }
 
         Debug.Log($"Unidades seleccionadas: {unidadesSeleccionadas.Count}");
@@ -266,18 +209,17 @@ public class UnitSelectionManager : MonoBehaviour
         Vector3 inicioMundo = cam.ScreenToWorldPoint(new Vector3(inicioArrastre.x, inicioArrastre.y, 0));
         Vector3 finMundo = cam.ScreenToWorldPoint(new Vector3(finArrastre.x, finArrastre.y, 0));
 
-        inicioMundo.z = 0;
-        finMundo.z = 0;
+        inicioMundo.z = finMundo.z = 0;
 
         Vector3 centro = (inicioMundo + finMundo) / 2f;
-        Vector3 tamaño = new Vector3(
+        Vector3 tama�o = new Vector3(
             Mathf.Abs(finMundo.x - inicioMundo.x),
             Mathf.Abs(finMundo.y - inicioMundo.y),
             1f
         );
 
         cuadroObj.transform.position = centro;
-        cuadroObj.transform.localScale = tamaño;
+        cuadroObj.transform.localScale = tama�o;
 
         cuadroObj.SetActive(true);
     }
@@ -285,18 +227,5 @@ public class UnitSelectionManager : MonoBehaviour
     void OcultarCuadroSeleccion()
     {
         cuadroObj.SetActive(false);
-    }
-
-    // ---------- HELPER DE ÁUDIO ----------
-
-    void PlaySelectionSoundFor(SimpleCharacterMovement unidad)
-    {
-        if (SoundColector.Instance == null || unidad == null)
-            return;
-
-        if (unidad.CompareTag("Tank"))
-            SoundColector.Instance.PlayTankSelect();
-        else
-            SoundColector.Instance.PlayInfantrySelect();
     }
 }
