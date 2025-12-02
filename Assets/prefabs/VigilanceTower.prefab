@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8545013345395879501}
   - component: {fileID: 2070790427810710314}
   - component: {fileID: 8413187952084833357}
+  - component: {fileID: 2114215818986538966}
   m_Layer: 0
   m_Name: VigilanceTower
   m_TagString: Untagged
@@ -28,10 +29,11 @@ Transform:
   m_GameObject: {fileID: 1525862255766077723}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 1.998, y: 0, z: 0}
+  m_LocalScale: {x: -0.99802256, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6846239869762172353}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1839735485 &8545013345395879501
@@ -191,3 +193,68 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
+--- !u!114 &2114215818986538966
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525862255766077723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20f8a45e7ce4a4f4bad65204187767dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bulletPrefab: {fileID: 6354660447642033725, guid: c9abec0dc57494844b3d56109f7d1685, type: 3}
+  weaponPoint: {fileID: 0}
+  fireRate: 1
+  maxAmmo: 10
+  weaponName: G3 RIFLE
+  bulletSpeed: 10
+  bulletDamage: 1
+  detectionRange: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  autoAimEnabled: 1
+  aimUpdateRate: 0.2
+  burstMode: 0
+  burstCount: 3
+  burstDelay: 0.2
+  accuracy: 0.95
+  ammoText: {fileID: 0}
+  weaponNameText: {fileID: 0}
+  showRangeInGame: 1
+  rangeColor: {r: 1, g: 1, b: 0, a: 0.3}
+  targetLineColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!1 &5557330132126578214
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6846239869762172353}
+  m_Layer: 0
+  m_Name: WeaponPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6846239869762172353
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5557330132126578214}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.001, y: 2.262, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8289521193302009487}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
