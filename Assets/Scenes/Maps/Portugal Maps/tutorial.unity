@@ -168606,7 +168606,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 6345127346883322234, guid: 462e604a0087131468f7332b8b031e98, type: 3}
   cantidadSoldados: 1
   radioSpawn: 1.5
-  cameraScript: {fileID: 0}
+  cameraScript: {fileID: 1144464467}
   usarFormacionCircular: 1
 --- !u!4 &278943131
 Transform:
@@ -615648,6 +615648,7 @@ GameObject:
   - component: {fileID: 1144464466}
   - component: {fileID: 1144464465}
   - component: {fileID: 1144464464}
+  - component: {fileID: 1144464467}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -615730,6 +615731,27 @@ Transform:
   - {fileID: 1903782911}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1144464467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1144464463}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ac4e419863eb634482db9f5d1ae958f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  smoothSpeed: 0.125
+  offset: {x: 0, y: 0, z: -10}
+  moveSpeed: 5
+  useBounds: 0
+  minX: -10
+  maxX: 10
+  minY: -10
+  maxY: 10
 --- !u!1 &1193003085
 GameObject:
   m_ObjectHideFlags: 0
