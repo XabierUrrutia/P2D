@@ -63,6 +63,12 @@ public class EnemyAI : MonoBehaviour
         {
             posicionBaseOriginal = transform.position;
         }
+
+        // Verificar si estamos en oleada de venganza
+        if (EnemyWaveManager.Instance != null && EnemyWaveManager.Instance.IsRevengeWaveActive())
+        {
+            ModoVenganza();
+        }
     }
 
     void BuscarReferenciasIniciais()
@@ -83,6 +89,20 @@ public class EnemyAI : MonoBehaviour
             if (debugAtivo && baseJogador != null)
                 Debug.Log($"{gameObject.name}: Base encontrada via EnemyManager: {baseJogador.name}");
         }
+    }
+
+    void ModoVenganza()
+    {
+        // En modo venganza, los enemigos son más agresivos
+        usarPatrullaje = false;
+        estaPatrullando = false;
+        enParada = false;
+        enMovimientoParada = false;
+
+        // Aumentar alcance de detección en modo venganza
+        alcanceDeteccao *= 1.5f;
+
+        if (debugAtivo) Debug.Log($"{name}: ¡Modo venganza activado!");
     }
 
     void BuscarTodosJogadores()
@@ -141,6 +161,9 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
+        // Verificar si el juego está pausado
+        if (Time.timeScale == 0) return;
+
         // Controlar frecuencia de chequeos para mejorar rendimiento
         if (Time.time < proximaChecagemTime) return;
         proximaChecagemTime = Time.time + intervaloChecagem;
@@ -426,6 +449,20 @@ public class EnemyAI : MonoBehaviour
             estaPatrullando = false;
             enParada = false;
             enMovimientoParada = false;
+        }
+    }
+
+    public void ActivarModoVenganza()
+    {
+        ModoVenganza();
+    }
+
+    void OnDestroy()
+    {
+        // Desregistrar con EnemyWaveManager
+        if (EnemyWaveManager.Instance != null)
+        {
+            EnemyWaveManager.Instance.UnregisterEnemy(gameObject);
         }
     }
 
