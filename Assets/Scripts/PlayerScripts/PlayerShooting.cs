@@ -349,7 +349,7 @@ public class PlayerShooting : MonoBehaviour
     void UpdateUI()
     {
         if (ammoText != null)
-            ammoText.text = $"AMMO: {currentAmmo}/{maxAmmo}";
+            ammoText.text = $"{currentAmmo}/{maxAmmo}";
         if (weaponNameText != null)
             weaponNameText.text = weaponName;
     }

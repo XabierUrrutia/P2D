@@ -54,7 +54,7 @@ public class MoneyManager : MonoBehaviour
     {
         if (moneyText != null)
         {
-            moneyText.text = $" {currentMoney}€";
+            moneyText.text = $"{currentMoney}";
         }
     }
 }
