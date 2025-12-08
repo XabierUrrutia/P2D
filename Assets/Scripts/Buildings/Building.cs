@@ -27,7 +27,7 @@ public class Building : MonoBehaviour
 
     [Header("Slider de Progreso")]
     public Slider conquestSlider;
-    public Vector3 sliderOffset = new Vector3(0, -0.8f, 0);
+    public Vector3 sliderOffset = new Vector3(0, -0f, 0);
 
     [Header("Estados")]
     public bool isConquered = false;

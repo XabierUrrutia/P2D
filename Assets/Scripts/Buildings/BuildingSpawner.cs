@@ -27,6 +27,12 @@ public class BuildingSpawner : MonoBehaviour
     public float minDistanceBetweenBuildings = 2f; // ainda verificado apenas como segurança
     public int maxSpawnAttempts = 50;
 
+    [Header("Snap / fallback")]
+    [Tooltip("Se true, procurar o tile mais próximo em volta do site quando o site não cair exatamente numa célula com tile.")]
+    public bool snapToNearestTile = true;
+    [Tooltip("Raio (em células) para procurar um tile próximo quando snap estiver ativo.")]
+    public int snapSearchRadius = 2;
+
     private List<Vector3> spawnedPositions = new List<Vector3>();
 
     void Start()
@@ -79,17 +85,57 @@ public class BuildingSpawner : MonoBehaviour
 
             Vector3 spawnPos = site.position;
 
-            // Se temos tilemap, alinhar ao centro da célula do tile
+            // Se temos tilemap, alinhar ao centro da célula do tile (ou procurar a célula mais próxima)
             if (groundTilemap != null)
             {
-                Vector3Int cellPos = groundTilemap.WorldToCell(spawnPos);
+                // garantir que a conversão considere o plano da tilemap (z costuma ser 0)
+                Vector3 worldForCell = new Vector3(spawnPos.x, spawnPos.y, groundTilemap.transform.position.z);
+                Vector3Int cellPos = groundTilemap.WorldToCell(worldForCell);
+
                 if (groundTilemap.HasTile(cellPos))
                 {
                     spawnPos = groundTilemap.GetCellCenterWorld(cellPos);
                 }
                 else
                 {
-                    Debug.LogWarning($"[Spawner] Site '{site.name}' não tem tile no Tilemap na posição {cellPos}. Usando posição world sem snap.");
+                    if (snapToNearestTile && snapSearchRadius > 0)
+                    {
+                        // procurar tile mais próximo num raio de células
+                        Vector3Int bestCell = new Vector3Int(int.MinValue, int.MinValue, 0);
+                        float bestDist = float.MaxValue;
+                        for (int dx = -snapSearchRadius; dx <= snapSearchRadius; dx++)
+                        {
+                            for (int dy = -snapSearchRadius; dy <= snapSearchRadius; dy++)
+                            {
+                                Vector3Int check = new Vector3Int(cellPos.x + dx, cellPos.y + dy, cellPos.z);
+                                if (groundTilemap.HasTile(check))
+                                {
+                                    Vector3 center = groundTilemap.GetCellCenterWorld(check);
+                                    float d = Vector2.SqrMagnitude(new Vector2((float)center.x - spawnPos.x, (float)center.y - spawnPos.y));
+                                    if (d < bestDist)
+                                    {
+                                        bestDist = d;
+                                        bestCell = check;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (bestCell.x != int.MinValue)
+                        {
+                            Vector3 chosenCenter = groundTilemap.GetCellCenterWorld(bestCell);
+                            Debug.LogWarning($"[Spawner] Site '{site.name}' não tem tile em {cellPos}. Snap para tile mais próximo em {bestCell} (mundo {chosenCenter}).");
+                            spawnPos = chosenCenter;
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[Spawner] Site '{site.name}' não tem tile no Tilemap na posição {cellPos} e nenhum tile foi encontrado no raio {snapSearchRadius}. Usando posição world sem snap.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[Spawner] Site '{site.name}' não tem tile no Tilemap na posição {cellPos}. Usando posição world sem snap.");
+                    }
                 }
             }
 
@@ -113,6 +159,28 @@ public class BuildingSpawner : MonoBehaviour
             GameObject newBuilding = Instantiate(prefab, spawnPos, Quaternion.identity);
             newBuilding.name = prefab.name + $"_Site{i + 1}";
             spawnedPositions.Add(spawnPos);
+
+            // assegura que o prefab tenha BuildingOwnership e atribui renda conforme tipo
+            var ownership = newBuilding.GetComponent<BuildingOwnership>();
+            if (ownership == null)
+                ownership = newBuilding.AddComponent<BuildingOwnership>();
+
+            // definir rendimentos por tipo: index 0 = mais próximo (pequeno), 1 = medio, 2 = grande (mais longe)
+            if (i == 0)
+            {
+                ownership.incomePerTick = Mathf.Max(1, ownership.incomePerTick); // pequeno
+            }
+            else if (i == 1)
+            {
+                ownership.incomePerTick = Mathf.Max(2, ownership.incomePerTick); // médio
+            }
+            else // i == 2 (mais longe)
+            {
+                ownership.incomePerTick = Mathf.Max(4, ownership.incomePerTick); // grande
+            }
+
+            // iniciar como neutro (captura deverá vir de gameplay)
+            ownership.owner = BuildingOwnership.Owner.Neutral;
 
             // cria/associa ponto de spawn de inimigo como filho do edifício para referência
             Transform enemySite = null;

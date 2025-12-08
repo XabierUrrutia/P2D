@@ -14,6 +14,11 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+
+            // Garantir que este GameObject é root antes de torná-lo persistente
+            if (transform.parent != null)
+                transform.SetParent(null);
+
             DontDestroyOnLoad(gameObject);
         }
         else

@@ -177522,15 +177522,17 @@ MonoBehaviour:
   buildingType2: {fileID: 3099775169405973820, guid: 87d6f9b993486fd478292b76e9fadc62, type: 3}
   buildingType3: {fileID: 3099775169405973820, guid: 9c876a3bc5d2b974084496626d3f5b64, type: 3}
   playerBase: {fileID: 1942439258}
-  spawnSiteA: {fileID: 209483933}
+  spawnSiteA: {fileID: 1203286560}
   spawnSiteB: {fileID: 2011276622}
-  spawnSiteC: {fileID: 1203286560}
+  spawnSiteC: {fileID: 209483933}
   enemySpawnA: {fileID: 1491090445}
   enemySpawnB: {fileID: 240519940}
   enemySpawnC: {fileID: 1889832323}
   groundTilemap: {fileID: 96624013}
   minDistanceBetweenBuildings: 10
   maxSpawnAttempts: 100
+  snapToNearestTile: 1
+  snapSearchRadius: 2
 --- !u!4 &307033571
 Transform:
   m_ObjectHideFlags: 0
@@ -179023,7 +179025,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentMoney: 0
-  moneyText: {fileID: 0}
+  moneyText: {fileID: 1826719883}
+  incomeTickInterval: 1
 --- !u!1 &566420557
 GameObject:
   m_ObjectHideFlags: 0

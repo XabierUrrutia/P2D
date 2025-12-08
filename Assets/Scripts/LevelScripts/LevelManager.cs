@@ -27,6 +27,11 @@ public class LevelManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+
+            // Garantir que este GameObject é root antes de torná-lo persistente
+            if (transform.parent != null)
+                transform.SetParent(null);
+
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -35,7 +40,7 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        // Garantir que ao início pelo menos o nível 1 esteja desbloqueado
+        // Garantir que ao in?cio pelo menos o n?vel 1 esteja desbloqueado
         if (!PlayerPrefs.HasKey(KeyUnlocked))
             PlayerPrefs.SetInt(KeyUnlocked, 1);
 

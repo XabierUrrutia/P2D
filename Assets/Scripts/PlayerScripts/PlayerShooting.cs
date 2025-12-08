@@ -45,6 +45,45 @@ public class PlayerShooting : MonoBehaviour
     private LineRenderer rangeCircle;
     private LineRenderer targetLine;
 
+    // forced target API
+    private Transform forcedTarget = null;
+
+    // PUBLIC API: permite que manager force um inimigo como alvo
+    public void SetForcedTarget(Transform target)
+    {
+        forcedTarget = target;
+        if (forcedTarget != null)
+        {
+            currentTarget = forcedTarget;
+        }
+
+        // Garantir que o coroutine de AIM esteja ativo para respeitar forcedTarget
+        if (aimCoroutine == null)
+        {
+            aimCoroutine = StartCoroutine(UpdateAimTarget());
+        }
+    }
+
+    public void ClearForcedTarget()
+    {
+        forcedTarget = null;
+
+        // Se o auto-aim estiver desligado, parar o coroutine e limpar alvo atual
+        if (!autoAimEnabled)
+        {
+            currentTarget = null;
+            if (aimCoroutine != null)
+            {
+                StopCoroutine(aimCoroutine);
+                aimCoroutine = null;
+            }
+
+            if (targetLine != null)
+                targetLine.enabled = false;
+        }
+        // Se auto-aim estiver ligado, o coroutine continuará atualizando currentTarget
+    }
+
     void Start()
     {
         currentAmmo = maxAmmo;
@@ -65,7 +104,7 @@ public class PlayerShooting : MonoBehaviour
             CreateTargetLine();
         }
 
-        if (autoAimEnabled)
+        if (autoAimEnabled || forcedTarget != null)
         {
             aimCoroutine = StartCoroutine(UpdateAimTarget());
         }
@@ -88,7 +127,7 @@ public class PlayerShooting : MonoBehaviour
         // Actualizar visualización del objetivo
         if (targetLine != null)
         {
-            if (currentTarget != null && autoAimEnabled)
+            if (currentTarget != null && (autoAimEnabled || forcedTarget != null))
             {
                 targetLine.enabled = true;
                 targetLine.SetPosition(0, weaponPoint.position);
@@ -158,7 +197,8 @@ public class PlayerShooting : MonoBehaviour
 
     void HandleShooting()
     {
-        if (autoAimEnabled)
+        // prioridade para forcedTarget: permite que unidades atirem mesmo com auto-aim desligado
+        if (autoAimEnabled || forcedTarget != null)
         {
             // Disparo automático cuando hay objetivo
             if (currentTarget != null && Time.time >= nextFireTime && currentAmmo > 0 && !isBurstFiring)
@@ -169,7 +209,7 @@ public class PlayerShooting : MonoBehaviour
                 }
                 else
                 {
-                    ShootAtTarget(currentTarget.position); // som ativo
+                    ShootAtTarget(currentTarget.position); // som activo
                     nextFireTime = Time.time + fireRate;
                 }
             }
@@ -287,6 +327,22 @@ public class PlayerShooting : MonoBehaviour
     {
         while (true)
         {
+            // forced target takes precedence
+            if (forcedTarget != null)
+            {
+                if (forcedTarget.gameObject == null)
+                {
+                    forcedTarget = null;
+                    currentTarget = null;
+                }
+                else
+                {
+                    currentTarget = forcedTarget;
+                    yield return new WaitForSeconds(aimUpdateRate);
+                    continue;
+                }
+            }
+
             FindNearestEnemy();
             yield return new WaitForSeconds(aimUpdateRate);
         }
