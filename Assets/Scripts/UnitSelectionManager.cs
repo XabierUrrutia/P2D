@@ -75,6 +75,9 @@ public class UnitSelectionManager : MonoBehaviour
                     {
                         PlaySelectionSoundFor(unidad);
                     }
+
+                    // Actualiza indicadores (seta) conforme nova selecção
+                    UpdateSelectionIndicators();
                 }
             }
             else
@@ -82,6 +85,7 @@ public class UnitSelectionManager : MonoBehaviour
                 if (!Input.GetKey(KeyCode.LeftShift))
                 {
                     DeseleccionarTodas();
+                    UpdateSelectionIndicators();
                 }
             }
         }
@@ -97,6 +101,7 @@ public class UnitSelectionManager : MonoBehaviour
             if (arrastrando && Vector3.Distance(inicioArrastre, finArrastre) > 10f)
             {
                 SeleccionarUnidadesEnCuadro();
+                UpdateSelectionIndicators();
             }
             arrastrando = false;
             OcultarCuadroSeleccion();
@@ -228,6 +233,9 @@ public class UnitSelectionManager : MonoBehaviour
         }
 
         Debug.Log($"Unidades seleccionadas: {unidadesSeleccionadas.Count}");
+
+        // Atualiza indicadores após seleção por arrasto
+        UpdateSelectionIndicators();
     }
 
     void SeleccionarUnidad(SimpleCharacterMovement unidad)
@@ -238,6 +246,9 @@ public class UnitSelectionManager : MonoBehaviour
             unidad.Seleccionar();
             Debug.Log($"Unidad seleccionada: {unidad.name}");
         }
+
+        // Atualiza indicadores sempre que adicionas uma unidade
+        UpdateSelectionIndicators();
     }
 
     void DeseleccionarUnidad(SimpleCharacterMovement unidad)
@@ -247,6 +258,9 @@ public class UnitSelectionManager : MonoBehaviour
             unidadesSeleccionadas.Remove(unidad);
             unidad.Deseleccionar();
         }
+
+        // Atualiza indicadores quando removes
+        UpdateSelectionIndicators();
     }
 
     void DeseleccionarTodas()
@@ -259,6 +273,9 @@ public class UnitSelectionManager : MonoBehaviour
             }
         }
         unidadesSeleccionadas.Clear();
+
+        // Atualiza indicadores após limpar seleção
+        UpdateSelectionIndicators();
     }
 
     void DibujarCuadroSeleccion()
@@ -298,5 +315,66 @@ public class UnitSelectionManager : MonoBehaviour
             SoundColector.Instance.PlayTankSelect();
         else
             SoundColector.Instance.PlayInfantrySelect();
+    }
+
+    // ----------------- ADIÇÃO: controlar indicador visual (seta) -----------------
+    // Mostra indicador apenas se EXACTAMENTE 1 unidade do jogador estiver selecionada.
+    void UpdateSelectionIndicators()
+    {
+        // Se exactamente uma selecionada e não for inimigo, mostrar indicador nessa unidade só
+        if (unidadesSeleccionadas.Count == 1 && unidadesSeleccionadas[0] != null && !unidadesSeleccionadas[0].CompareTag("Enemy"))
+        {
+            SimpleCharacterMovement sole = unidadesSeleccionadas[0];
+
+            // Assegura que o indicador está referenciado no componente da unidade
+            EnsureIndicatorAssigned(sole);
+
+            // Desactivar indicador em todas as unidades e activar só na escolhida
+            foreach (var u in FindObjectsOfType<SimpleCharacterMovement>())
+            {
+                if (u == null) continue;
+                if (u.indicadorSeleccion != null)
+                    u.indicadorSeleccion.SetActive(u == sole);
+            }
+        }
+        else
+        {
+            // Esconder todos os indicadores
+            foreach (var u in FindObjectsOfType<SimpleCharacterMovement>())
+            {
+                if (u == null) continue;
+                if (u.indicadorSeleccion != null)
+                    u.indicadorSeleccion.SetActive(false);
+            }
+        }
+    }
+
+    // Tenta localizar e associar um indicador (child com FloatingArrow ou com nomes comuns) à unidade,
+    // caso o campo public 'indicadorSeleccion' esteja vazio no prefab/instância.
+    void EnsureIndicatorAssigned(SimpleCharacterMovement unidad)
+    {
+        if (unidad == null) return;
+        if (unidad.indicadorSeleccion != null) return;
+
+        // procura componente FloatingArrow em filhos
+        var floating = unidad.GetComponentInChildren<FloatingArrow>(true);
+        if (floating != null)
+        {
+            unidad.indicadorSeleccion = floating.gameObject;
+            unidad.indicadorSeleccion.SetActive(false);
+            unidad.indicadorSeleccion.transform.SetParent(unidad.transform, true);
+            unidad.indicadorSeleccion.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+            return;
+        }
+
+        // procura por nomes comuns
+        Transform t = unidad.transform.Find("SelectionArrow") ?? unidad.transform.Find("indicadorSeleccion") ?? unidad.transform.Find("Arrow");
+        if (t != null)
+        {
+            unidad.indicadorSeleccion = t.gameObject;
+            unidad.indicadorSeleccion.SetActive(false);
+            unidad.indicadorSeleccion.transform.SetParent(unidad.transform, true);
+            unidad.indicadorSeleccion.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+        }
     }
 }

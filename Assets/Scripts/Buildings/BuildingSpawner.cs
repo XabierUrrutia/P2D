@@ -1,146 +1,154 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class BuildingSpawner : MonoBehaviour
 {
-    [Header("Prefabs de Edificios (Asigna los 3 tipos)")]
-    public GameObject buildingType1;
-    public GameObject buildingType2;
-    public GameObject buildingType3;
+    [Header("Prefabs de Edificios (pequeno, medio, grande)")]
+    public GameObject buildingType1; // pequeno
+    public GameObject buildingType2; // medio
+    public GameObject buildingType3; // grande
 
-    [Header("Configuración del Spawn")]
-    public float minDistanceBetweenBuildings = 2f;
+    [Header("Player Base (referência para distância)")]
+    public Transform playerBase;
+
+    [Header("Sites fixos de spawn (atribuir 3 Transforms no Inspector)")]
+    public Transform spawnSiteA;
+    public Transform spawnSiteB;
+    public Transform spawnSiteC;
+
+    [Header("Pontos de spawn de inimigos correspondentes (opcional)")]
+    public Transform enemySpawnA;
+    public Transform enemySpawnB;
+    public Transform enemySpawnC;
+
+    [Header("Configuração (opcionais)")]
+    public Tilemap groundTilemap;
+    public float minDistanceBetweenBuildings = 2f; // ainda verificado apenas como segurança
     public int maxSpawnAttempts = 50;
-
-    [Header("Área de Spawn")]
-    public Vector2 spawnAreaMin = new Vector2(-30, -30);
-    public Vector2 spawnAreaMax = new Vector2(30, 30);
-
-    [Header("Tilemap Reference")]
-    public UnityEngine.Tilemaps.Tilemap groundTilemap;
 
     private List<Vector3> spawnedPositions = new List<Vector3>();
 
     void Start()
     {
-        Debug.Log("[Spawner] Iniciando generación de 3 edificios...");
-        SpawnBuildings();
+        Debug.Log("[Spawner] Iniciando geração condicional de 3 edifícios em sites fixos...");
+        SpawnBuildingsAtSites();
     }
 
-    void SpawnBuildings()
+    void SpawnBuildingsAtSites()
     {
-        // Lista de los prefabs que debemos spawnear (uno de cada tipo)
-        List<GameObject> buildingsToSpawn = new List<GameObject>();
+        // valida sites
+        List<Transform> sites = new List<Transform>();
+        if (spawnSiteA != null) sites.Add(spawnSiteA);
+        if (spawnSiteB != null) sites.Add(spawnSiteB);
+        if (spawnSiteC != null) sites.Add(spawnSiteC);
 
-        if (buildingType1 != null) buildingsToSpawn.Add(buildingType1);
-        if (buildingType2 != null) buildingsToSpawn.Add(buildingType2);
-        if (buildingType3 != null) buildingsToSpawn.Add(buildingType3);
-
-        if (buildingsToSpawn.Count == 0)
+        if (sites.Count != 3)
         {
-            Debug.LogError("[Spawner] ERROR: No hay prefabs de edificios asignados!");
+            Debug.LogError("[Spawner] É preciso atribuir exatamente 3 spawn sites (spawnSiteA/B/C) no Inspector.");
             return;
         }
 
-        Debug.Log($"[Spawner] Se generarán {buildingsToSpawn.Count} edificios");
-
-        int buildingsSpawned = 0;
-
-        foreach (GameObject buildingPrefab in buildingsToSpawn)
+        if (playerBase == null)
         {
-            bool spawned = false;
-            int attempts = 0;
+            Debug.LogError("[Spawner] PlayerBase não atribuído (playerBase). Não é possível ordenar por proximidade.");
+            return;
+        }
 
-            while (!spawned && attempts < maxSpawnAttempts)
+        // ordena os sites por distância à playerBase (ascendente: mais próximo -> mais longe)
+        sites.Sort((t1, t2) =>
+        {
+            float d1 = Vector2.SqrMagnitude((Vector2)(t1.position - playerBase.position));
+            float d2 = Vector2.SqrMagnitude((Vector2)(t2.position - playerBase.position));
+            return d1.CompareTo(d2);
+        });
+
+        // mapeia prefabs em ordem: pequeno (mais próximo), médio (meio), grande (mais longe)
+        GameObject[] prefabs = new GameObject[3] { buildingType1, buildingType2, buildingType3 };
+
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject prefab = prefabs[i];
+            Transform site = sites[i];
+
+            if (prefab == null)
             {
-                Vector3 spawnPosition = GetRandomSpawnPosition();
+                Debug.LogWarning($"[Spawner] prefab para índice {i} não definido. Pulando site {site.name}.");
+                continue;
+            }
 
-                if (IsValidSpawnPosition(spawnPosition))
+            Vector3 spawnPos = site.position;
+
+            // Se temos tilemap, alinhar ao centro da célula do tile
+            if (groundTilemap != null)
+            {
+                Vector3Int cellPos = groundTilemap.WorldToCell(spawnPos);
+                if (groundTilemap.HasTile(cellPos))
                 {
-                    GameObject newBuilding = Instantiate(buildingPrefab, spawnPosition, Quaternion.identity);
-                    newBuilding.name = buildingPrefab.name + "_" + (buildingsSpawned + 1);
-
-                    spawnedPositions.Add(spawnPosition);
-                    buildingsSpawned++;
-                    spawned = true;
-
-                    Debug.Log($"[Spawner] ✅ {newBuilding.name} generado en: {spawnPosition}");
+                    spawnPos = groundTilemap.GetCellCenterWorld(cellPos);
                 }
-
-                attempts++;
+                else
+                {
+                    Debug.LogWarning($"[Spawner] Site '{site.name}' não tem tile no Tilemap na posição {cellPos}. Usando posição world sem snap.");
+                }
             }
 
-            if (!spawned)
+            // checa distância mínima com possíveis outros spawned positions (segurança)
+            bool valid = true;
+            foreach (var p in spawnedPositions)
             {
-                Debug.LogError($"[Spawner] ❌ No se pudo generar {buildingPrefab.name} después de {maxSpawnAttempts} intentos");
+                if (Vector3.Distance(spawnPos, p) < minDistanceBetweenBuildings)
+                {
+                    valid = false;
+                    break;
+                }
             }
+
+            if (!valid)
+            {
+                Debug.LogWarning($"[Spawner] Site '{site.name}' violaria distância mínima entre edifícios. Pulando spawn aqui.");
+                continue;
+            }
+
+            GameObject newBuilding = Instantiate(prefab, spawnPos, Quaternion.identity);
+            newBuilding.name = prefab.name + $"_Site{i + 1}";
+            spawnedPositions.Add(spawnPos);
+
+            // cria/associa ponto de spawn de inimigo como filho do edifício para referência
+            Transform enemySite = null;
+            if (i == 0) enemySite = enemySpawnA;
+            else if (i == 1) enemySite = enemySpawnB;
+            else if (i == 2) enemySite = enemySpawnC;
+
+            Vector3 enemyPos;
+            if (enemySite != null)
+            {
+                enemyPos = enemySite.position;
+            }
+            else
+            {
+                // fallback: gera um ponto deslocado ligeiramente do edifício
+                enemyPos = spawnPos + (Vector3.up * 1f);
+            }
+
+            GameObject esp = new GameObject("EnemySpawnPoint");
+            esp.transform.position = enemyPos;
+            esp.transform.SetParent(newBuilding.transform, true);
+
+            Debug.Log($"[Spawner] ✅ {newBuilding.name} gerado em {spawnPos} com EnemySpawnPoint em {enemyPos}");
         }
 
-        Debug.Log($"[Spawner] Generación completada. Edificios creados: {buildingsSpawned}/{buildingsToSpawn.Count}");
-    }
-
-    Vector3 GetRandomSpawnPosition()
-    {
-        float x = Random.Range(spawnAreaMin.x, spawnAreaMax.x);
-        float y = Random.Range(spawnAreaMin.y, spawnAreaMax.y);
-        Vector3 spawnPos = new Vector3(x, y, 0);
-
-        if (groundTilemap != null)
-        {
-            Vector3Int cellPosition = groundTilemap.WorldToCell(spawnPos);
-            if (groundTilemap.HasTile(cellPosition))
-            {
-                spawnPos = groundTilemap.GetCellCenterWorld(cellPosition);
-            }
-        }
-
-        return spawnPos;
-    }
-
-    bool IsValidSpawnPosition(Vector3 position)
-    {
-        // Verificar distancia con otros edificios
-        foreach (Vector3 existingPos in spawnedPositions)
-        {
-            if (Vector3.Distance(position, existingPos) < minDistanceBetweenBuildings)
-            {
-                return false;
-            }
-        }
-
-        // Si tenemos tilemap, verificar que hay tile
-        if (groundTilemap != null)
-        {
-            Vector3Int cellPosition = groundTilemap.WorldToCell(position);
-            if (!groundTilemap.HasTile(cellPosition))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        Debug.Log($"[Spawner] Geração completa. Sites utilizados: {spawnedPositions.Count}/3");
     }
 
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
-        Vector3 center = new Vector3(
-            (spawnAreaMin.x + spawnAreaMax.x) / 2,
-            (spawnAreaMin.y + spawnAreaMax.y) / 2,
-            0
-        );
-        Vector3 size = new Vector3(
-            spawnAreaMax.x - spawnAreaMin.x,
-            spawnAreaMax.y - spawnAreaMin.y,
-            0.1f
-        );
-        Gizmos.DrawWireCube(center, size);
+        if (spawnSiteA != null) Gizmos.DrawWireSphere(spawnSiteA.position, 0.4f);
+        if (spawnSiteB != null) Gizmos.DrawWireSphere(spawnSiteB.position, 0.4f);
+        if (spawnSiteC != null) Gizmos.DrawWireSphere(spawnSiteC.position, 0.4f);
 
-        // Dibujar las posiciones ya generadas
         Gizmos.color = Color.red;
-        foreach (Vector3 pos in spawnedPositions)
-        {
-            Gizmos.DrawWireSphere(pos, 0.5f);
-        }
+        foreach (Vector3 pos in spawnedPositions) Gizmos.DrawWireSphere(pos, 0.5f);
     }
 }

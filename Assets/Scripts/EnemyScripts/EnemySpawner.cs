@@ -1,9 +1,22 @@
 using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// Spawner de inimigos com opção para só ativar quando o jogador se aproximar.
+/// Agora suporta número de inimigos configurável por spawner (local) ou global.
+/// Mantive a lógica de waves / spawn all-at-once existente e adicionei checagem de proximidade.
+/// </summary>
 public class EnemySpawner : MonoBehaviour
 {
+    [Header("Prefab & quantidade")]
     public GameObject enemyPrefab;
+
+    [Tooltip("Se true usa o valor local (localEnemyCount). Se false usa enemyCount (global).")]
+    public bool useLocalEnemyCount = true;
+    [Tooltip("Número de inimigos a spawnar neste spawner (quando useLocalEnemyCount = true)")]
+    public int localEnemyCount = 5;
+
+    [Tooltip("Número de inimigos (global) usado se useLocalEnemyCount = false")]
     public int enemyCount = 10;
 
     [Header("Configuración de Spawn alrededor de la Base")]
@@ -21,10 +34,22 @@ public class EnemySpawner : MonoBehaviour
     public int enemiesPerWave = 3;
     public float timeBetweenWaves = 2f;
 
+    [Header("Activación por proximidad del jugador")]
+    [Tooltip("Se true, el spawner esperará a que un jugador esté cerca (playerActivationRadius) antes de empezar a spawnear.")]
+    public bool requirePlayerProximity = true;
+    [Tooltip("Radio alrededor del spawner en el que el jugador debe estar para activar el spawn.")]
+    public float playerActivationRadius = 20f;
+    [Tooltip("Intervalo (s) entre comprobaciones de proximidad mientras espera.")]
+    public float proximityCheckInterval = 1f;
+
+    // runtime
     private int enemiesSpawned = 0;
     private bool spawningActive = false;
     private Coroutine spawnCoroutine;
     private int currentWaveNumber = 0;
+
+    // total a spawnar neste ciclo (calculado em StartSpawning)
+    private int totalToSpawn = 0;
 
     void Start()
     {
@@ -38,35 +63,73 @@ public class EnemySpawner : MonoBehaviour
     {
         if (enemyPrefab == null)
         {
-            Debug.LogError("No hay prefab de enemigo asignado en el spawner: " + name);
+            Debug.LogError("EnemySpawner: enemyPrefab não atribuído em " + name);
             return;
         }
 
+        // calcula totalToSpawn com base na opção local/global
+        totalToSpawn = useLocalEnemyCount ? Mathf.Max(0, localEnemyCount) : Mathf.Max(0, enemyCount);
+
+        // Reiniciar estado
         spawningActive = true;
         enemiesSpawned = 0;
         currentWaveNumber++;
 
-        if (spawnInWaves)
+        if (totalToSpawn <= 0)
         {
-            if (spawnCoroutine != null)
-            {
-                StopCoroutine(spawnCoroutine);
-            }
-            spawnCoroutine = StartCoroutine(SpawnWaves());
+            Debug.LogWarning($"EnemySpawner '{name}': totalToSpawn é 0 — nada será spawnado.");
+            SpawningFinished();
+            return;
+        }
+
+        // Se se exige proximidade do jogador, espera até que haja um jogador perto
+        if (requirePlayerProximity)
+        {
+            if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
+            spawnCoroutine = StartCoroutine(WaitForPlayerThenSpawn());
         }
         else
         {
-            StartCoroutine(SpawnAllAtOnce());
+            // Inicia imediatamente
+            if (spawnCoroutine != null) StopCoroutine(spawnCoroutine);
+
+            if (spawnInWaves)
+                spawnCoroutine = StartCoroutine(SpawnWaves());
+            else
+                spawnCoroutine = StartCoroutine(SpawnAllAtOnce());
         }
+    }
+
+    IEnumerator WaitForPlayerThenSpawn()
+    {
+        Debug.Log($"Spawner '{name}': aguardando jogador a {playerActivationRadius} unidades para iniciar spawn...");
+        // espera até que algum jogador esteja dentro do raio
+        while (spawningActive && !IsAnyPlayerInRange(transform.position, playerActivationRadius))
+        {
+            yield return new WaitForSeconds(proximityCheckInterval);
+        }
+
+        if (!spawningActive)
+        {
+            spawnCoroutine = null;
+            yield break;
+        }
+
+        Debug.Log($"Spawner '{name}': jogador detectado — iniciando spawn (waves={spawnInWaves})");
+
+        if (spawnInWaves)
+            spawnCoroutine = StartCoroutine(SpawnWaves());
+        else
+            spawnCoroutine = StartCoroutine(SpawnAllAtOnce());
     }
 
     IEnumerator SpawnAllAtOnce()
     {
         int spawned = 0;
         int tries = 0;
-        int maxTries = enemyCount * 10;
+        int maxTries = totalToSpawn * 10;
 
-        while (spawned < enemyCount && tries < maxTries && spawningActive)
+        while (spawned < totalToSpawn && tries < maxTries && spawningActive)
         {
             Vector3 spawnPosition = GetSpawnPositionAroundBase();
 
@@ -80,16 +143,13 @@ public class EnemySpawner : MonoBehaviour
 
             tries++;
 
-            // Pequeño delay para no sobrecargar el frame
+            // pequeno delay para não sobrecarregar frame
             if (spawned % 5 == 0)
-            {
                 yield return null;
-            }
         }
 
-        Debug.Log($"Spawner {name}: Generados {spawned} enemigos (oleada {currentWaveNumber})");
+        Debug.Log($"Spawner '{name}': Gerados {spawned} inimigos (total esperado: {totalToSpawn})");
 
-        // Notificar que terminó
         SpawningFinished();
     }
 
@@ -97,11 +157,11 @@ public class EnemySpawner : MonoBehaviour
     {
         int waveNumber = 1;
 
-        while (enemiesSpawned < enemyCount && spawningActive)
+        while (enemiesSpawned < totalToSpawn && spawningActive)
         {
-            Debug.Log($"Spawner {name}: Iniciando ola {waveNumber} (enemigos restantes: {enemyCount - enemiesSpawned})");
+            Debug.Log($"Spawner '{name}': Iniciando ola {waveNumber} (restantes: {totalToSpawn - enemiesSpawned})");
 
-            int enemiesThisWave = Mathf.Min(enemiesPerWave, enemyCount - enemiesSpawned);
+            int enemiesThisWave = Mathf.Min(enemiesPerWave, totalToSpawn - enemiesSpawned);
             int spawnedThisWave = 0;
             int tries = 0;
             int maxTries = enemiesThisWave * 10;
@@ -121,20 +181,18 @@ public class EnemySpawner : MonoBehaviour
                 tries++;
             }
 
-            Debug.Log($"Spawner {name}: Ola {waveNumber} completada - {spawnedThisWave} enemigos. Total: {enemiesSpawned}/{enemyCount}");
+            Debug.Log($"Spawner '{name}': Ola {waveNumber} completada - {spawnedThisWave} inimigos. Total: {enemiesSpawned}/{totalToSpawn}");
 
             waveNumber++;
 
-            // Esperar entre oleadas solo si aún quedan enemigos por spawnear
-            if (enemiesSpawned < enemyCount && spawningActive)
+            if (enemiesSpawned < totalToSpawn && spawningActive)
             {
                 yield return new WaitForSeconds(timeBetweenWaves);
             }
         }
 
-        Debug.Log($"Spawner {name}: Todas las olas completadas. Total generados: {enemiesSpawned}");
+        Debug.Log($"Spawner '{name}': Todas as olas completadas. Total gerado: {enemiesSpawned}");
 
-        // Notificar que terminó
         SpawningFinished();
     }
 
@@ -143,7 +201,6 @@ public class EnemySpawner : MonoBehaviour
         spawningActive = false;
         spawnCoroutine = null;
 
-        // Notificar al WaveManager que este spawner terminó
         if (EnemyWaveManager.Instance != null)
         {
             EnemyWaveManager.Instance.NotifySpawnerFinished();
@@ -160,7 +217,7 @@ public class EnemySpawner : MonoBehaviour
             spawnCoroutine = null;
         }
 
-        Debug.Log($"Spawner {name}: Spawning detenido. Generados {enemiesSpawned}/{enemyCount} enemigos");
+        Debug.Log($"Spawner '{name}': Spawning parado. Gerados {enemiesSpawned}/{totalToSpawn}");
     }
 
     void RegisterEnemyWithSystems(GameObject enemy)
@@ -246,6 +303,22 @@ public class EnemySpawner : MonoBehaviour
         return true;
     }
 
+    // ---------- Helper: verifica se qualquer jogador está dentro do raio dado ------------
+    bool IsAnyPlayerInRange(Vector3 worldPos, float radius)
+    {
+        var players = GameObject.FindGameObjectsWithTag("Player");
+        if (players == null || players.Length == 0) return false;
+
+        float r2 = radius * radius;
+        foreach (var p in players)
+        {
+            if (p == null) continue;
+            Vector2 d = p.transform.position - worldPos;
+            if (d.sqrMagnitude <= r2) return true;
+        }
+        return false;
+    }
+
     public void SetWaveParameters(int count, int perWave, float betweenWaves)
     {
         enemyCount = count;
@@ -277,13 +350,13 @@ public class EnemySpawner : MonoBehaviour
 
     public int GetTotalEnemiesToSpawn()
     {
-        return enemyCount;
+        return totalToSpawn;
     }
 
     public float GetSpawnProgress()
     {
-        if (enemyCount == 0) return 1f;
-        return (float)enemiesSpawned / enemyCount;
+        if (totalToSpawn == 0) return 1f;
+        return (float)enemiesSpawned / totalToSpawn;
     }
 
     void OnDestroy()
@@ -312,5 +385,9 @@ public class EnemySpawner : MonoBehaviour
             Vector3 size = new Vector3(spawnRadius * 2, spawnRadius * 2, 0.1f);
             Gizmos.DrawWireCube(transform.position, size);
         }
+
+        // desenha raio de ativação do jogador
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, playerActivationRadius);
     }
 }
