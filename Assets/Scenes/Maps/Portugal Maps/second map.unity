@@ -173897,7 +173897,7 @@ MonoBehaviour:
   enemiesPerWave: 0
   timeBetweenWaves: 0
   requirePlayerProximity: 1
-  playerActivationRadius: 20
+  playerActivationRadius: 10000
   proximityCheckInterval: 1
 --- !u!1 &241823129
 GameObject:
@@ -177518,9 +177518,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41e050c10fc271940ad64d75ce31ddfa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buildingType1: {fileID: 3099775169405973820, guid: 3956d99825c7c7f4595a96fdaacf21f6, type: 3}
+  buildingType1: {fileID: 3099775169405973820, guid: 9c876a3bc5d2b974084496626d3f5b64, type: 3}
   buildingType2: {fileID: 3099775169405973820, guid: 87d6f9b993486fd478292b76e9fadc62, type: 3}
-  buildingType3: {fileID: 3099775169405973820, guid: 9c876a3bc5d2b974084496626d3f5b64, type: 3}
+  buildingType3: {fileID: 3099775169405973820, guid: 3956d99825c7c7f4595a96fdaacf21f6, type: 3}
   playerBase: {fileID: 1942439258}
   spawnSiteA: {fileID: 1203286560}
   spawnSiteB: {fileID: 2011276622}
@@ -177876,7 +177876,7 @@ MonoBehaviour:
   enemiesPerWave: 3
   timeBetweenWaves: 2
   requirePlayerProximity: 1
-  playerActivationRadius: 20
+  playerActivationRadius: 15
   proximityCheckInterval: 1
 --- !u!114 &452887290
 MonoBehaviour:
@@ -179250,7 +179250,6 @@ MonoBehaviour:
   enableGridSnap: 1
   defaultGridSize: {x: 1, y: 1}
   requireResources: 1
-  playerResources: 100
   fogOfWar: {fileID: 0}
   animatorUnderConstructionBool: UnderConstruction
   constructionPulseScale: 0.06
@@ -624306,7 +624305,7 @@ MonoBehaviour:
   enemiesPerWave: 0
   timeBetweenWaves: 0
   requirePlayerProximity: 1
-  playerActivationRadius: 20
+  playerActivationRadius: 50
   proximityCheckInterval: 1
 --- !u!1 &1543466277
 GameObject:
@@ -642040,7 +642039,7 @@ MonoBehaviour:
   enemiesPerWave: 0
   timeBetweenWaves: 0
   requirePlayerProximity: 1
-  playerActivationRadius: 20
+  playerActivationRadius: 7
   proximityCheckInterval: 1
 --- !u!1 &1903782910
 GameObject:

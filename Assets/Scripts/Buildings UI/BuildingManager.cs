@@ -42,7 +42,7 @@ public class BuildingManager : MonoBehaviour
 
     [Header("Recursos")]
     public bool requireResources = true;
-    public int playerResources = 100;
+    // OBS: O saldo agora é gerido pelo MoneyManager central. Não usar playerResources local.
 
     [Header("Fog of War")]
     [Tooltip("Referencia ao FogOfWar (se vazio tenta encontrar na cena)")]
@@ -226,16 +226,22 @@ public class BuildingManager : MonoBehaviour
         previewOriginalColors.Clear();
     }
 
+    // Substitui o sistema local por consumo via MoneyManager
     public bool TrySpendResources(int amount)
     {
         if (amount <= 0) return true;
-        if (playerResources >= amount)
+        if (!requireResources) return true;
+
+        if (MoneyManager.Instance != null)
         {
-            playerResources -= amount;
-            Debug.Log($"[BuildingManager] Gastou {amount}. Recursos restantes: {playerResources}");
+            // MoneyManager.SpendMoney retorna true se conseguiu gastar
+            return MoneyManager.Instance.SpendMoney(amount);
+        }
+        else
+        {
+            Debug.LogWarning("[BuildingManager] MoneyManager não encontrado. Permitindo construção sem custo (modo fallback).");
             return true;
         }
-        return false;
     }
 
     IEnumerator ConstructBuildingRoutine(GameObject placed, float buildTime)
