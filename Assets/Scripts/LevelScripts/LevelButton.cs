@@ -13,10 +13,17 @@ public class LevelButton : MonoBehaviour
 
     private Button btn;
 
+    void Awake()
+    {
+        // Garantir que btn esteja inicializado antes de qualquer OnEnable/Refresh
+        btn = GetComponent<Button>();
+    }
+
     void Start()
     {
-        btn = GetComponent<Button>();
-        btn.onClick.AddListener(OnClick);
+        if (btn != null)
+            btn.onClick.AddListener(OnClick);
+
         Refresh();
     }
 
@@ -36,7 +43,8 @@ public class LevelButton : MonoBehaviour
         if (lockedIcon != null) lockedIcon.SetActive(!unlocked);
         if (completedIcon != null) completedIcon.SetActive(completed);
 
-        btn.interactable = unlocked;
+        // Protege contra NullReference caso algo não tenha sido inicializado
+        if (btn != null) btn.interactable = unlocked;
     }
 
     void OnClick()

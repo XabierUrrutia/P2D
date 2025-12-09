@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class MainMenu : MonoBehaviour
+public class Interface_Buttons : MonoBehaviour
 {
     private static Stack<int> sceneHistory = new Stack<int>(); // Pilha para armazenar as cenas visitadas
 
