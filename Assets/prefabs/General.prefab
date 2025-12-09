@@ -939,7 +939,7 @@ GameObject:
   - component: {fileID: -4340466006893484424}
   - component: {fileID: 5626338546837467521}
   m_Layer: 10
-  m_Name: Soldado
+  m_Name: General
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1049,18 +1049,18 @@ MonoBehaviour:
   capaWaypointPuente:
     serializedVersion: 2
     m_Bits: 8
-  frenteDerecha_L: {fileID: -1746700564, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  frenteDerecha_R: {fileID: -297889531, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  frenteDerecha_Idle: {fileID: -297889531, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  frenteIzquierda_L: {fileID: -2144533824, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  frenteIzquierda_R: {fileID: 877749972, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  frenteIzquierda_Idle: {fileID: 877749972, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  atrasDerecha_L: {fileID: -1511759965, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  atrasDerecha_R: {fileID: -771271798, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  atrasDerecha_Idle: {fileID: -771271798, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  atrasIzquierda_L: {fileID: 1453655723, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  atrasIzquierda_R: {fileID: 1471641444, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  atrasIzquierda_Idle: {fileID: 1471641444, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  frenteDerecha_L: {fileID: -1128656789, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteDerecha_R: {fileID: -204712283, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteDerecha_Idle: {fileID: -1128656789, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_L: {fileID: 1391082748, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_R: {fileID: -996765286, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  frenteIzquierda_Idle: {fileID: 1391082748, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_L: {fileID: 1781082014, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_R: {fileID: 45207061, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasDerecha_Idle: {fileID: 1781082014, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_L: {fileID: 476376009, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_R: {fileID: -1675413397, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
+  atrasIzquierda_Idle: {fileID: 476376009, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
   prefabMarcadorClick: {fileID: 3122627236748015639, guid: c917403c9642cfb489362c271e9600d3, type: 3}
   indicadorSeleccion: {fileID: 0}
 --- !u!212 &1337135939285130247

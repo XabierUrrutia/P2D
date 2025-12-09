@@ -171997,6 +171997,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 3682313185742942023, guid: 02a98bd66955df04a8c0118df4bd4ce9, type: 3}
+  useLocalEnemyCount: 1
+  localEnemyCount: 5
   enemyCount: 3
   spawnRadius: 3
   minDistanceFromBase: 1
@@ -172013,6 +172015,9 @@ MonoBehaviour:
   spawnInWaves: 0
   enemiesPerWave: 3
   timeBetweenWaves: 2
+  requirePlayerProximity: 1
+  playerActivationRadius: 20
+  proximityCheckInterval: 1
 --- !u!1 &506276105
 GameObject:
   m_ObjectHideFlags: 0
@@ -172300,6 +172305,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentMoney: 0
   moneyText: {fileID: 0}
+  incomeTickInterval: 1
 --- !u!1 &550409161
 GameObject:
   m_ObjectHideFlags: 0
@@ -633708,7 +633714,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -40}
+  m_AnchoredPosition: {x: 0, y: -79}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1927530592

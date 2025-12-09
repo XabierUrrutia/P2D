@@ -14,6 +14,8 @@ TagManager:
   - VisitedFog
   - PlayerVision
   - Water
+  - BuildingUI
+  - SoldierUI
   layers:
   - Default
   - TransparentFX
