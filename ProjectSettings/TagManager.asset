@@ -16,6 +16,9 @@ TagManager:
   - Water
   - BuildingUI
   - SoldierUI
+  - UnitMenu
+  - BuildMenu
+  - Hangar
   layers:
   - Default
   - TransparentFX

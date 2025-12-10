@@ -212,7 +212,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf9033b1cde14f4bb9a562a28418d31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  soldierUITag: SoldierUI
+  panelSoldadosUI: {fileID: 0}
+  requiredBuildingName: Hangar
+  requiredBuildingTag: Hangar
 --- !u!61 &4891453762006624973
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -242,10 +244,10 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.5, y: 2}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -256,5 +258,5 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 142.43, y: 136.86}
+  m_Size: {x: 2.5, y: 1.93}
   m_EdgeRadius: 0
