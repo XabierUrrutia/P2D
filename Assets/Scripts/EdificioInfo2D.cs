@@ -135,7 +135,7 @@ public class EdificioInfo2D : MonoBehaviour
         {
             if (texto.name.Contains("Desc") || texto.gameObject.name.Contains("Desc"))
             {
-                texto.text = "Bloqueado: completa o nível anterior.";
+                texto.text = "Bloqued. Complete the previus level first.";
             }
         }
 
