@@ -3093,7 +3093,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 516848666}
         m_TargetAssemblyTypeName: PauseMenu, Assembly-CSharp
-        m_MethodName: PauseGame
+        m_MethodName: ResumeGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4315,8 +4315,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+      - m_Target: {fileID: 516848670}
+        m_TargetAssemblyTypeName: Interface_Buttons, Assembly-CSharp
         m_MethodName: GoToMainMenu
         m_Mode: 1
         m_Arguments:
@@ -199676,8 +199676,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+      - m_Target: {fileID: 516848670}
+        m_TargetAssemblyTypeName: Interface_Buttons, Assembly-CSharp
         m_MethodName: GoToSettingsMenu
         m_Mode: 1
         m_Arguments:
@@ -645269,7 +645269,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 1972030384}
   - {fileID: 1163831855}
-  - {fileID: 2039169002}
   - {fileID: 131437933}
   - {fileID: 319920584}
   - {fileID: 805355344}
@@ -645277,3 +645276,4 @@ SceneRoots:
   - {fileID: 1939011465}
   - {fileID: 1111123635}
   - {fileID: 1142904649}
+  - {fileID: 2039169002}

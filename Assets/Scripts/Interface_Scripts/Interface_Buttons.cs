@@ -40,6 +40,12 @@ public class Interface_Buttons : MonoBehaviour
             PlayerPositionManager.SavePosition(player.transform.position);
         }
 
+        // Cancelar qualquer verificação pendente de GameOver no GameManager (evita falsos positivos durante transição)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetGame();
+        }
+
         SceneManager.LoadScene(sceneIndex);
     }
 

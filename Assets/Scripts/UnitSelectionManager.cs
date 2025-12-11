@@ -126,21 +126,13 @@ public class UnitSelectionManager : MonoBehaviour
                 }
             }
 
-            // 🔊 Som de movimento com cooldown
+            // 🔊 Som de movimento com cooldown (sem verificar tag "Tank")
             if (SoundColector.Instance != null &&
                 Time.time - ultimoSomMovimientoTime >= intervaloMinSomMovimiento)
             {
-                SimpleCharacterMovement primeraUnidad = unidadesSeleccionadas[0];
-
-                if (primeraUnidad != null)
-                {
-                    if (primeraUnidad.CompareTag("Tank"))
-                        SoundColector.Instance.PlayTankMove();
-                    else
-                        SoundColector.Instance.PlayInfantryMove();
-
-                    ultimoSomMovimientoTime = Time.time;
-                }
+                // toca um som genérico de movimento (infantry) para evitar dependência de tags
+                SoundColector.Instance.PlayInfantryMove();
+                ultimoSomMovimientoTime = Time.time;
             }
         }
     }
@@ -311,10 +303,8 @@ public class UnitSelectionManager : MonoBehaviour
         if (SoundColector.Instance == null || unidad == null)
             return;
 
-        if (unidad.CompareTag("Tank"))
-            SoundColector.Instance.PlayTankSelect();
-        else
-            SoundColector.Instance.PlayInfantrySelect();
+        // removed tag check, always play infantry selection sound
+        SoundColector.Instance.PlayInfantrySelect();
     }
 
     // ----------------- ADIÇÃO: controlar indicador visual (seta) -----------------

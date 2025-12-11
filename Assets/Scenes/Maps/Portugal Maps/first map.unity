@@ -614987,7 +614987,8 @@ Transform:
   m_LocalPosition: {x: -34.883354, y: 18.551924, z: 0.0061256792}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1797186332}
   m_Father: {fileID: 914097609}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &196158742
@@ -618067,7 +618068,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1797186332}
   - {fileID: 1862431855}
   - {fileID: 1187880875}
   - {fileID: 557582531}
@@ -618312,8 +618312,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+      - m_Target: {fileID: 680161943}
+        m_TargetAssemblyTypeName: Interface_Buttons, Assembly-CSharp
         m_MethodName: GoToSettingsMenu
         m_Mode: 1
         m_Arguments:
@@ -619949,7 +619949,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1247196409}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -1369, y: -146, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -621422,8 +621422,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+      - m_Target: {fileID: 680161943}
+        m_TargetAssemblyTypeName: Interface_Buttons, Assembly-CSharp
         m_MethodName: GoToMainMenu
         m_Mode: 1
         m_Arguments:
@@ -623227,7 +623227,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 680161939}
         m_TargetAssemblyTypeName: PauseMenu, Assembly-CSharp
-        m_MethodName: PauseGame
+        m_MethodName: ResumeGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -639320,11 +639320,11 @@ Transform:
   m_GameObject: {fileID: 1797186329}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.51, y: 7.21, z: 0.0061256792}
+  m_LocalPosition: {x: 36.393364, y: -11.341917, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 914097609}
+  m_Father: {fileID: 196158741}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1810337915
 GameObject:
@@ -645334,14 +645334,14 @@ AudioListener:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 914097609}
-  - {fileID: 1499520355}
-  - {fileID: 653149243}
-  - {fileID: 1930995095}
   - {fileID: 2138177591}
   - {fileID: 1247196410}
+  - {fileID: 914097609}
+  - {fileID: 653149243}
+  - {fileID: 1930995095}
   - {fileID: 1258537988}
   - {fileID: 1365145505}
   - {fileID: 592792878}
   - {fileID: 305557392}
   - {fileID: 1216351748}
+  - {fileID: 1499520355}
