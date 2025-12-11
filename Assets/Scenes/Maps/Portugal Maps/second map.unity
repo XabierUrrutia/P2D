@@ -444,7 +444,7 @@ GameObject:
   - component: {fileID: 85646254}
   - component: {fileID: 85646253}
   m_Layer: 0
-  m_Name: Level 3 Text
+  m_Name: Level 2 Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -489,7 +489,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: level 3
+  m_text: level 2
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
   m_sharedMaterial: {fileID: 2140032, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
@@ -645267,11 +645267,11 @@ CanvasRenderer:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1972030384}
   - {fileID: 1163831855}
   - {fileID: 2039169002}
   - {fileID: 131437933}
   - {fileID: 319920584}
-  - {fileID: 1972030384}
   - {fileID: 805355344}
   - {fileID: 1932104231}
   - {fileID: 1939011465}
