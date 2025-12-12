@@ -168620,7 +168620,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89905fb1212da024cb7f2fb5d1c308c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 6345127346883322234, guid: 462e604a0087131468f7332b8b031e98, type: 3}
+  playerPrefab: {fileID: 6345127346883322234, guid: 38800d9a2a911294da557e3552a292ab, type: 3}
   cantidadSoldados: 1
   radioSpawn: 1.5
   cameraScript: {fileID: 0}
@@ -168634,7 +168634,7 @@ Transform:
   m_GameObject: {fileID: 278943129}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -56.93, y: 1.92, z: 0}
+  m_LocalPosition: {x: -59.63, y: 1.92, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -171983,7 +171983,7 @@ Transform:
   m_GameObject: {fileID: 452887287}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -43, y: 5.1, z: -5.2778435}
+  m_LocalPosition: {x: -47.46, y: 1.79, z: -5.2778435}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -172001,11 +172001,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 984dae0b1ec0760459c15117eaa4c1cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 3682313185742942023, guid: 02a98bd66955df04a8c0118df4bd4ce9, type: 3}
+  enemyPrefab: {fileID: 3682313185742942023, guid: 0b3d82038f131d045a8472c3356460af, type: 3}
   useLocalEnemyCount: 1
-  localEnemyCount: 5
+  localEnemyCount: 1
   enemyCount: 1
-  spawnRadius: 3
+  spawnRadius: 1
   minDistanceFromBase: 1
   spawnInCircle: 1
   groundLayer:
@@ -172018,7 +172018,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   spawnInWaves: 0
-  enemiesPerWave: 3
+  enemiesPerWave: 1
   timeBetweenWaves: 2
   requirePlayerProximity: 1
   playerActivationRadius: 20
@@ -172699,7 +172699,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &756568190
 RectTransform:
   m_ObjectHideFlags: 0
@@ -614878,7 +614878,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: CLOSE
+  m_text: next
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
   m_sharedMaterial: {fileID: 2140032, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
@@ -633762,7 +633762,7 @@ Transform:
   m_GameObject: {fileID: 1943999038}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -5.58, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

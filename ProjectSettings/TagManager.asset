@@ -19,6 +19,7 @@ TagManager:
   - UnitMenu
   - BuildMenu
   - Hangar
+  - TutorialEnemy
   layers:
   - Default
   - TransparentFX

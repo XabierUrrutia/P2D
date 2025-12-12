@@ -168187,7 +168187,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89905fb1212da024cb7f2fb5d1c308c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 6345127346883322234, guid: 462e604a0087131468f7332b8b031e98, type: 3}
+  playerPrefab: {fileID: 6345127346883322234, guid: 38800d9a2a911294da557e3552a292ab, type: 3}
   cantidadSoldados: 1
   radioSpawn: 1.5
   cameraScript: {fileID: 0}
@@ -171856,7 +171856,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &756568190
 RectTransform:
   m_ObjectHideFlags: 0

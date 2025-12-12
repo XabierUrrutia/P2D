@@ -6352,7 +6352,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d53152daa915a234faa5d3e164e888eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentMoney: 100
+  currentMoney: 7
   moneyText: {fileID: 1978776452}
   incomeTickInterval: 1
 --- !u!1 &616330543

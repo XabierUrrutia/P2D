@@ -481,6 +481,7 @@ MonoBehaviour:
   bulletSpeed: 8
   attackRange: 4
   bulletDamage: 20
+  player: {fileID: 0}
 --- !u!114 &8350767624913946287
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,6 +497,8 @@ MonoBehaviour:
   maxHealth: 50
   healthBarOffset: {x: 0, y: 1, z: 0}
   healthSlider: {fileID: 301565290342925170}
+  showHealthBarTime: 3
+  alwaysShowHealthBar: 0
 --- !u!114 &-8054638891187647903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -508,40 +511,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98ac4dc6e6beff04caca7f32d7e17a2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3
-  acceleration: 6
-  deceleration: 10
-  stopDistance: 0.05
-  patrolRadius: 10
-  waitTimeAtPoint: 2
-  detectionRange: 7
-  attackRange: 4
-  shootCooldown: 1.2
-  bulletPrefab: {fileID: 0}
-  firePoint: {fileID: 47086507285344403}
-  bulletSpeed: 8
-  bulletDamage: 1
-  groundLayer:
+  velocidad: 4
+  distanciaParada: 0.1
+  radioBusquedaMaximo: 50
+  maxPuentesEnRuta: 5
+  capaSuelo:
     serializedVersion: 2
-    m_Bits: 64
-  waterLayer:
+    m_Bits: 0
+  capaAgua:
     serializedVersion: 2
-    m_Bits: 16
-  bridgeLayer:
+    m_Bits: 0
+  capaWaypointPuente:
     serializedVersion: 2
-    m_Bits: 8
-  frontRight_L: {fileID: -2011035483, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frontRight_R: {fileID: 1719607675, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frontRight_Idle: {fileID: 1719607675, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frontLeft_L: {fileID: -1265277196, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frontLeft_R: {fileID: 1590358356, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  frontLeft_Idle: {fileID: 1590358356, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  backRight_L: {fileID: 1396168544, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  backRight_R: {fileID: 1427194497, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  backRight_Idle: {fileID: 1427194497, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  backLeft_L: {fileID: 291260847, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  backLeft_R: {fileID: -1335276787, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
-  backLeft_Idle: {fileID: -1335276787, guid: b55b519de2387ce4ba0013af5f724123, type: 3}
+    m_Bits: 0
+  frenteDerecha_L: {fileID: 1866252338, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  frenteDerecha_R: {fileID: -1802362695, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  frenteDerecha_Idle: {fileID: -1802362695, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  frenteIzquierda_L: {fileID: 1815438507, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  frenteIzquierda_R: {fileID: 890724067, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  frenteIzquierda_Idle: {fileID: 890724067, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  atrasDerecha_L: {fileID: -1047940371, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  atrasDerecha_R: {fileID: -2104756373, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  atrasDerecha_Idle: {fileID: -2104756373, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  atrasIzquierda_L: {fileID: 1487114841, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  atrasIzquierda_R: {fileID: 1700174197, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  atrasIzquierda_Idle: {fileID: 1700174197, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
 --- !u!114 &-7107088622069627834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -596,14 +590,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   alcanceDeteccao: 10
   distanciaParagemAtaque: 4
-  intervaloMovimento: 3
-  raioMovimento: 5
-  camadaChao:
-    serializedVersion: 2
-    m_Bits: 64
-  camadaAgua:
-    serializedVersion: 2
-    m_Bits: 16
+  intervaloChecagem: 0.3
+  usarPatrullaje: 1
+  intervaloPatrullaje: 8
+  duracionParada: 3
+  radioPuntosPatrullaje: 5
+  radioMovimientoParada: 2
+  baseJogador: {fileID: 0}
+  debugAtivo: 0
 --- !u!1 &3897657067945950570
 GameObject:
   m_ObjectHideFlags: 0

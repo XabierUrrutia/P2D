@@ -70,6 +70,14 @@ public class TutorialStep1Manager : MonoBehaviour
             return;
         }
 
+        // Cancela verificações pendentes de GameOver antes de mudar de cena
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetGame();
+            // garantir que o tempo está normalizado caso o tutorial tenha pausado o jogo
+            Time.timeScale = 1f;
+        }
+
         SceneManager.LoadScene(nextSceneName);
     }
 

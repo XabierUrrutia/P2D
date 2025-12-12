@@ -3,6 +3,10 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
+/// <summary>
+/// Gerencia o passo 2 do tutorial: subscreve mortes de inimigos e garante que os spawners
+/// da cena iniciem para que os inimigos apareçam durante o tutorial.
+/// </summary>
 public class TutorialStep2Manager : MonoBehaviour
 {
     [Header("UI")]
@@ -47,6 +51,30 @@ public class TutorialStep2Manager : MonoBehaviour
             if (listeners.Length == 0)
                 Debug.LogWarning("TutorialStep2Manager: nenhum EnemyDeathListener encontrado na cena.");
         }
+
+        // Garantir que os spawners da cena iniciem (evita dependência de proximidade / tagging no tutorial)
+        StartSpawnersInScene();
+    }
+
+    // Inicia spawners encontrados na cena — útil para cenas de tutorial onde queremos spawn imediato
+    void StartSpawnersInScene()
+    {
+        var spawners = FindObjectsOfType<EnemySpawner>();
+        if (spawners == null || spawners.Length == 0)
+        {
+            Debug.LogWarning("[TutorialStep2Manager] Nenhum EnemySpawner encontrado na cena.");
+            return;
+        }
+
+        foreach (var s in spawners)
+        {
+            if (s == null) continue;
+
+            // Forçar ativação do spawn mesmo que o spawner esteja configurado para esperar proximidade
+            // chama StartSpawning() que já respeita validações internas (prefab etc).
+            s.StartSpawning();
+            Debug.Log($"[TutorialStep2Manager] Forçando StartSpawning() em spawner '{s.name}'");
+        }
     }
 
     public void OnEnemyDeath()
@@ -63,7 +91,7 @@ public class TutorialStep2Manager : MonoBehaviour
         if (stepCompletePanel != null)
             stepCompletePanel.SetActive(true);
 
-        // 🔹 NOVO: esconder o painel do narrador, se ainda estiver ativo
+        // esconder painel do narrador, se ativo
         TutorialNarrator narrator = FindObjectOfType<TutorialNarrator>();
         if (narrator != null && narrator.panelToClose != null && narrator.panelToClose.activeSelf)
         {
@@ -85,6 +113,10 @@ public class TutorialStep2Manager : MonoBehaviour
             Debug.LogWarning("TutorialStep1Manager: nextSceneName não definido.");
             return;
         }
+
+        // Cancelar verificações pendentes de GameOver (se houver)
+        if (GameManager.Instance != null)
+            GameManager.Instance.ResetGame();
 
         SceneManager.LoadScene(nextSceneName);
     }
