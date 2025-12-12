@@ -22,7 +22,7 @@ EditorBuildSettings:
     guid: 702c24f553e2bdd4eb2584190c9dccc6
   - enabled: 1
     path: Assets/Scenes/Maps/Portugal Maps/third map.unity
-    guid: 475c0e9c57fa778419a7e0621c6fcf0e
+    guid: 40a8ab6066afe384f8a2766af2b8dfd4
   - enabled: 1
     path: Assets/Scenes/Maps/Portugal Maps/tutorial.unity
     guid: 92b874f13261656469616fa217fe2dd5

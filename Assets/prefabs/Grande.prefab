@@ -395,7 +395,7 @@ MonoBehaviour:
   moneyPerInterval: 25
   moneyInterval: 5
   conquestSlider: {fileID: 3051139635738822748}
-  sliderOffset: {x: 0, y: 2, z: 0}
+  sliderOffset: {x: 0, y: 0, z: 0}
   enableSpawning: 0
   enemyPrefab: {fileID: 3682313185742942023, guid: 02a98bd66955df04a8c0118df4bd4ce9, type: 3}
   spawnRadius: 3
