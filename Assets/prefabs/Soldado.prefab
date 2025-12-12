@@ -1149,6 +1149,19 @@ MonoBehaviour:
   showRangeInGame: 0
   rangeColor: {r: 1, g: 1, b: 0, a: 0.3}
   targetLineColor: {r: 1, g: 0, b: 0, a: 0}
+  idleSpriteRight: {fileID: 0}
+  aimingSpriteRight: {fileID: -1064518019, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  shootingSpriteRight: {fileID: -438767229, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  reloadingSpriteRight: {fileID: 54656081, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  idleSpriteLeft: {fileID: 0}
+  aimingSpriteLeft: {fileID: 267753439, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  shootingSpriteLeft: {fileID: -1897796383, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  reloadingSpriteLeft: {fileID: 557182795, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  soldierSpriteRenderer: {fileID: 0}
+  shootingSpriteDuration: 0.3
+  aimingSpriteDuration: 0.2
+  shootingDelay: 0.1
+  flipSpriteBasedOnDirection: 1
 --- !u!114 &9170590893412081567
 MonoBehaviour:
   m_ObjectHideFlags: 0
