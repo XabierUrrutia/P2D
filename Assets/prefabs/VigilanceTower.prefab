@@ -220,7 +220,7 @@ MonoBehaviour:
   bulletDamage: 10
   bulletSpeed: 12
   aimDurationToSwitchTarget: 0.25
-  turretPivot: {fileID: 0}
+  turretPivot: {fileID: 6846239869762172353}
   turretRotateSpeed: 10
   debugLogs: 0
 --- !u!1 &5557330132126578214
@@ -248,7 +248,7 @@ Transform:
   m_GameObject: {fileID: 5557330132126578214}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.277, y: 1.57, z: 0}
+  m_LocalPosition: {x: 0.11, y: 0.58, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

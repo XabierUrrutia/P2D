@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4891453762006624973}
   m_Layer: 4
   m_Name: Hangar
-  m_TagString: Untagged
+  m_TagString: Hangar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -189,9 +189,9 @@ TilemapRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: -1117488143
-  m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 1
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0.71500003, y: 0.43, z: 0}
   m_MaxChunkCount: 16

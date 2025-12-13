@@ -5,10 +5,10 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Handler de clique para a PLAYER BASE.
-/// - REQUER um Collider2D no GameObject da base para OnMouseDown funcionar.
-/// - Abre um painel de UI específico da PlayerBase.
+/// - REQUER um Collider2D no MESMO GameObject (Is Trigger DESMARCADO).
+/// - Ao clicar com o rato em cima da base, abre/fecha o painel da PlayerBase.
 /// - Permite gastar dinheiro para curar a vida (HP) da PlayerBase.
-/// - NÃO congela mais o jogo ao abrir o painel.
+/// - NÃO congela o jogo ao abrir o painel.
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 [DisallowMultipleComponent]
@@ -25,7 +25,7 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
     public Slider hpSlider;
 
     [Header("Cura / Custo")]
-    [Tooltip("HP curado por utilização do botão 'Heal' (fixo em 50 como pediste)")]
+    [Tooltip("HP curado por utilização do botão 'Heal'")]
     public int healAmount = 50;
 
     [Tooltip("Custo em dinheiro por utilização de cura")]
@@ -36,27 +36,27 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
 
     private PlayerBase playerBase;
     private Collider2D buildingCollider;
-    private bool clickWasOnThisBuilding;
 
     void Awake()
     {
         buildingCollider = GetComponent<Collider2D>();
         if (buildingCollider == null)
         {
-            Debug.LogError($"[PlayerBaseBuildingClickHandler1] '{gameObject.name}' NÃO TEM Collider2D. Adicione um Collider2D para clique funcionar.");
+            Debug.LogError($"[PlayerBaseBuildingClickHandler1] '{gameObject.name}' NÃO TEM Collider2D.");
             enabled = false;
             return;
         }
 
         if (buildingCollider.isTrigger)
         {
-            Debug.LogWarning($"[PlayerBaseBuildingClickHandler1] '{gameObject.name}' tem Collider2D como Trigger. DESMARQUE 'Is Trigger' para OnMouseDown funcionar corretamente!");
+            Debug.LogWarning($"[PlayerBaseBuildingClickHandler1] '{gameObject.name}' tem Collider2D como Trigger. " +
+                             "Para OnMouseDown funcionar melhor, DESMARCA 'Is Trigger'.");
         }
 
         playerBase = GetComponent<PlayerBase>();
         if (playerBase == null)
         {
-            Debug.LogError($"[PlayerBaseBuildingClickHandler1] '{gameObject.name}' não tem componente PlayerBase. Este handler é só para a base do jogador.");
+            Debug.LogError($"[PlayerBaseBuildingClickHandler1] '{gameObject.name}' não tem componente PlayerBase.");
             enabled = false;
             return;
         }
@@ -81,7 +81,8 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
         // Ligar botão de cura, se possível
         if (healButton == null && panelPlayerBaseUI != null)
         {
-            // se tiver mais de um botão, recomendamos arrastar manualmente no Inspector
+            // aqui é importante: certifica-te que este é o botão de HEAL do painel,
+            // senão arrasta manualmente no Inspector
             healButton = panelPlayerBaseUI.GetComponentInChildren<Button>(true);
         }
 
@@ -94,24 +95,25 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
         UpdateUI();
     }
 
+    /// <summary>
+    /// Chamado automaticamente pelo Unity quando clicas neste GameObject (no Collider2D dele).
+    /// Igual ao padrão usado em EdificioClick.
+    /// </summary>
     void OnMouseDown()
     {
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-            return;
+        Debug.Log($"[PlayerBaseBuildingClickHandler1] OnMouseDown em '{gameObject.name}'");
 
-        clickWasOnThisBuilding = true;
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            Debug.Log("[PlayerBaseBuildingClickHandler1] Clique ignorado: está sobre UI.");
+            return;
+        }
+
         TogglePanel();
-        clickWasOnThisBuilding = false;
     }
 
     public void TogglePanel()
     {
-        if (!clickWasOnThisBuilding)
-        {
-            Debug.LogWarning("[PlayerBaseBuildingClickHandler1] TogglePanel() chamado sem clique direto na base. Ignorado por segurança.");
-            return;
-        }
-
         if (panelPlayerBaseUI == null)
         {
             Debug.LogError("[PlayerBaseBuildingClickHandler1] panelPlayerBaseUI não atribuído.");
@@ -123,14 +125,12 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
         if (open)
         {
             panelPlayerBaseUI.SetActive(true);
-            // REMOVIDO: Time.timeScale = 0f;  // não vamos mais congelar o jogo
             UpdateUI();
             Debug.Log("[PlayerBaseBuildingClickHandler1] Painel da PlayerBase ABERTO.");
         }
         else
         {
             panelPlayerBaseUI.SetActive(false);
-            // REMOVIDO: Time.timeScale = 1f;
             Debug.Log("[PlayerBaseBuildingClickHandler1] Painel da PlayerBase FECHADO.");
         }
     }
@@ -140,7 +140,6 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
         if (playerBase == null)
             return;
 
-        // ver se há HP a curar
         if (playerBase.GetCurrentHealth() >= playerBase.GetMaxHealth())
         {
             Debug.Log("[PlayerBaseBuildingClickHandler1] Base já está com HP máximo. Cura ignorada.");
@@ -148,7 +147,6 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
             return;
         }
 
-        // verificar dinheiro suficiente
         if (MoneyManager.Instance == null)
         {
             Debug.LogError("[PlayerBaseBuildingClickHandler1] MoneyManager.Instance é null. Não é possível curar.");
@@ -162,9 +160,8 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
             return;
         }
 
-        // gastar dinheiro e curar (NÃO cria prefab nenhum, só altera HP)
         MoneyManager.Instance.SpendMoney(healCost);
-        playerBase.Heal(healAmount); // cura 50 HP como pediste
+        playerBase.Heal(healAmount);
 
         Debug.Log($"[PlayerBaseBuildingClickHandler1] Base curada em {healAmount} HP por {healCost} moedas.");
         UpdateUI();
@@ -207,9 +204,6 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
     void OnDisable()
     {
         if (panelPlayerBaseUI != null && panelPlayerBaseUI.activeSelf)
-        {
             panelPlayerBaseUI.SetActive(false);
-            // REMOVIDO: Time.timeScale = 1f;
-        }
     }
 }

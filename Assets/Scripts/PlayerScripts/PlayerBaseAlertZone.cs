@@ -2,11 +2,11 @@ using UnityEngine;
 using TMPro; // se quiser usar TextMeshPro no painel
 
 /// <summary>
-/// Área de alerta separada da PlayerBase:
-/// - Coloque este script num GameObject próprio (ex.: "BaseAlertZone").
-/// - Esse GameObject deve ter um Collider2D com IsTrigger = true (CircleCollider2D recomendado)
-///   e esse collider deve ser atribuído em detectionCollider.
-/// - Quando um inimigo (tag enemyTag) entra na área, o painel warningPanel é mostrado (a piscar).
+/// Zona de alerta da PlayerBase baseada em raio (usa Physics2D.OverlapCircle):
+/// - Pode ser colocada num GameObject próprio (ex.: "BaseAlertZone") filho da PlayerBase.
+/// - Não precisa de Collider2D: usa visionRadius para detetar inimigos na área.
+/// - Pode opcionalmente sincronizar visionRadius com um FogStaticVision no mesmo GameObject.
+/// - Quando um inimigo (tag enemyTag) entra na área, o warningPanel é mostrado (a piscar).
 /// </summary>
 [DisallowMultipleComponent]
 public class PlayerBaseAlertZone : MonoBehaviour
@@ -15,15 +15,24 @@ public class PlayerBaseAlertZone : MonoBehaviour
     [Tooltip("Tag usada para identificar inimigos na cena.")]
     public string enemyTag = "Enemy";
 
-    [Tooltip("Collider2D usado como área de detecção (deve estar com 'Is Trigger' ativado).")]
-    public Collider2D detectionCollider;
+    [Tooltip("Raio de detecção da zona de alerta (em unidades do mundo).")]
+    public float alertRadius = 10f;
 
-    [Header("UI de Aviso")]
-    [Tooltip("Painel de aviso a mostrar quando inimigos entram na zona (por exemplo, um painel com texto 'Inimigos perto da Base!').")]
+    [Tooltip("Se true, tenta copiar o radius de um FogStaticVision no mesmo GameObject.")]
+    public bool syncWithFogStaticVision = true;
+
+    [Header("UI de Aviso (pode ser encontrado por nome)")]
+    [Tooltip("Painel de aviso a mostrar quando inimigos entram na zona. Se vazio, será procurado por nome em warningPanelName.")]
     public GameObject warningPanel;
 
-    [Tooltip("Texto opcional dentro do painel para mostrar a mensagem (pode ficar vazio).")]
+    [Tooltip("Texto opcional dentro do painel para mostrar a mensagem. Se vazio, será procurado por nome em warningTextName.")]
     public TextMeshProUGUI warningText;
+
+    [Tooltip("Nome do GameObject do painel, usado se warningPanel não for atribuído no Inspector.")]
+    public string warningPanelName = "BaseWarningPanel";
+
+    [Tooltip("Nome do GameObject do texto (TextMeshProUGUI), usado se warningText não for atribuído.")]
+    public string warningTextName = "BaseWarningText";
 
     [Tooltip("Mensagem a mostrar quando inimigos são detectados.")]
     public string warningMessage = "Inimigos perto da Base!";
@@ -41,79 +50,122 @@ public class PlayerBaseAlertZone : MonoBehaviour
     [Tooltip("Evitar spam de som de alerta (segundos entre alertas).")]
     public float alertSoundCooldown = 3f;
 
+    [Header("Performance")]
+    [Tooltip("Intervalo entre verificações (segundos). Valores como 0.2–0.5 são razoáveis).")]
+    public float checkInterval = 0.3f;
+
+    private float lastCheckTime;
     private int enemiesInside;
     private float lastAlertSoundTime = -999f;
     private Coroutine blinkCoroutine;
 
     void Awake()
     {
-        // Se não foi atribuído no Inspector, tenta achar um Collider2D neste GameObject
-        if (detectionCollider == null)
-            detectionCollider = GetComponent<Collider2D>();
-
-        // Se ainda não encontrou, tenta em filhos
-        if (detectionCollider == null)
-            detectionCollider = GetComponentInChildren<Collider2D>();
-
-        if (detectionCollider == null)
+        // Se existir FogStaticVision, copiar visionRadius
+        if (syncWithFogStaticVision)
         {
-            Debug.LogError("[PlayerBaseAlertZone] Nenhum Collider2D atribuído/encontrado. " +
-                           "Crie um GameObject de zona com CircleCollider2D (IsTrigger = true) " +
-                           "e arraste para detectionCollider.");
-            enabled = false;
-            return;
+            var fogStatic = GetComponent<FogStaticVision>();
+            if (fogStatic != null)
+            {
+                alertRadius = fogStatic.visionRadius;
+                Debug.Log($"[PlayerBaseAlertZone] alertRadius sincronizado com FogStaticVision: {alertRadius}");
+            }
         }
 
-        if (!detectionCollider.isTrigger)
-        {
-            Debug.LogWarning("[PlayerBaseAlertZone] detectionCollider não está como Trigger. A definir 'isTrigger = true'.");
-            detectionCollider.isTrigger = true;
-        }
+        EnsureWarningUIReferences();
 
         if (warningPanel != null)
             warningPanel.SetActive(false);
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void EnsureWarningUIReferences()
     {
-        // Só reagir se o trigger for o collider configurado
-        if (other == null || other == detectionCollider)
-            return;
+        // Painel
+        if (warningPanel == null && !string.IsNullOrEmpty(warningPanelName))
+        {
+            var panelObj = GameObject.Find(warningPanelName);
+            if (panelObj != null)
+            {
+                warningPanel = panelObj;
+                Debug.Log($"[PlayerBaseAlertZone] warningPanel encontrado por nome: {warningPanelName}");
+            }
+            else
+            {
+                Debug.LogWarning($"[PlayerBaseAlertZone] Não foi encontrado nenhum GameObject com nome '{warningPanelName}' para warningPanel.");
+            }
+        }
 
-        Debug.Log($"[PlayerBaseAlertZone] OnTriggerEnter2D com '{other.name}', tag='{other.tag}'");
-
-        if (!other.CompareTag(enemyTag))
-            return;
-
-        enemiesInside++;
-        Debug.Log($"[PlayerBaseAlertZone] Enemy entrou na zona. enemiesInside={enemiesInside}");
-
-        if (enemiesInside == 1)
-            ShowWarning();
+        // Texto
+        if (warningText == null && !string.IsNullOrEmpty(warningTextName))
+        {
+            var textObj = GameObject.Find(warningTextName);
+            if (textObj != null)
+            {
+                warningText = textObj.GetComponent<TextMeshProUGUI>();
+                if (warningText != null)
+                {
+                    Debug.Log($"[PlayerBaseAlertZone] warningText encontrado por nome: {warningTextName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[PlayerBaseAlertZone] GameObject '{warningTextName}' encontrado, mas não tem TextMeshProUGUI.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[PlayerBaseAlertZone] Não foi encontrado nenhum GameObject com nome '{warningTextName}' para warningText.");
+            }
+        }
     }
 
-    void OnTriggerExit2D(Collider2D other)
+    void Update()
     {
-        if (other == null || other == detectionCollider)
+        if (Time.time < lastCheckTime + checkInterval)
             return;
 
-        Debug.Log($"[PlayerBaseAlertZone] OnTriggerExit2D com '{other.name}', tag='{other.tag}'");
+        lastCheckTime = Time.time;
+        CheckEnemiesInRadius();
+    }
 
-        if (!other.CompareTag(enemyTag))
-            return;
+    void CheckEnemiesInRadius()
+    {
+        // OverlapCircle ao redor deste GameObject (usa posição do alerta, normalmente filho da base)
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, alertRadius);
 
-        enemiesInside = Mathf.Max(0, enemiesInside - 1);
-        Debug.Log($"[PlayerBaseAlertZone] Enemy saiu da zona. enemiesInside={enemiesInside}");
+        int count = 0;
 
-        if (enemiesInside == 0)
+        foreach (var hit in hits)
+        {
+            if (hit == null)
+                continue;
+
+            if (hit.CompareTag(enemyTag))
+                count++;
+        }
+
+        if (count > 0 && enemiesInside == 0)
+        {
+            enemiesInside = count;
+            ShowWarning();
+        }
+        else if (count > 0 && enemiesInside > 0)
+        {
+            // ainda há inimigos, apenas atualiza contador
+            enemiesInside = count;
+        }
+        else if (count == 0 && enemiesInside > 0)
+        {
+            enemiesInside = 0;
             HideWarning();
+        }
     }
 
     void ShowWarning()
     {
+        EnsureWarningUIReferences();
+
         if (warningPanel != null)
         {
-            // garante ligado inicialmente
             warningPanel.SetActive(true);
 
             var canvas = warningPanel.GetComponentInParent<Canvas>(true);
@@ -123,7 +175,6 @@ public class PlayerBaseAlertZone : MonoBehaviour
             if (warningText != null)
                 warningText.text = warningMessage;
 
-            // iniciar piscar se configurado
             if (blinkWarning)
             {
                 if (blinkCoroutine != null)
@@ -133,7 +184,7 @@ public class PlayerBaseAlertZone : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[PlayerBaseAlertZone] warningPanel não está atribuído no Inspector.");
+            Debug.LogWarning("[PlayerBaseAlertZone] warningPanel não está atribuído nem encontrado por nome.");
         }
 
         if (playSoundOnFirstEnter &&
@@ -166,34 +217,19 @@ public class PlayerBaseAlertZone : MonoBehaviour
         if (warningPanel == null)
             yield break;
 
-        // pisca enquanto houver inimigos dentro
         while (enemiesInside > 0)
         {
-            // toggle
             warningPanel.SetActive(!warningPanel.activeSelf);
             yield return new WaitForSeconds(Mathf.Max(0.05f, blinkInterval));
         }
 
-        // ao sair do loop, garante que fica desligado
         warningPanel.SetActive(false);
         blinkCoroutine = null;
     }
 
     void OnDrawGizmosSelected()
     {
-        Collider2D col = detectionCollider != null ? detectionCollider : GetComponent<Collider2D>();
-        if (col == null) return;
-
         Gizmos.color = Color.red;
-        var circle = col as CircleCollider2D;
-        if (circle != null)
-        {
-            Vector3 center = circle.transform.TransformPoint(circle.offset);
-            Gizmos.DrawWireSphere(center, circle.radius);
-        }
-        else
-        {
-            Gizmos.DrawWireCube(col.bounds.center, col.bounds.size);
-        }
+        Gizmos.DrawWireSphere(transform.position, alertRadius);
     }
 }
