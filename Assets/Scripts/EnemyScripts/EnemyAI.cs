@@ -15,18 +15,25 @@ public class EnemyAI : MonoBehaviour
     public bool usarPatrullaje = true;
     public float intervaloPatrullaje = 8f;
     public float duracionParada = 3f;
-    public float radioPuntosPatrullaje = 5f;
+    public float radioPontosPatrullaje = 10f;
     public float radioMovimientoParada = 2f;
 
     [Header("Referencias")]
     public Transform baseJogador;
 
+    [Header("Alvos")]
+    [Tooltip("Priorizar atacar PlayerBase quando estiver ao alcance")]
+    public bool priorizarBaseDoJogador = true;
+
     private EnemyController movimento;
     private EnemyShooting atirador;
     private Transform jogadorAlvo;
-    private List<Transform> jogadoresDisponiveis = new List<Transform>();
 
-    // Control de tiempo
+    // ESTA LINHA TEM DE EXISTIR:
+    private System.Collections.Generic.List<Transform> jogadoresDisponiveis =
+        new System.Collections.Generic.List<Transform>();
+
+    // Control de tempo
     private float proximaChecagemTime = 0f;
     private float ultimoRecalculoPerseguicao = 0f;
     private float ultimaBuscaJogadoresTime = 0f;
@@ -175,7 +182,7 @@ public class EnemyAI : MonoBehaviour
             ultimaBuscaJogadoresTime = Time.time;
         }
         else
-        {
+        {  
             RemoverJogadoresInativos();
         }
 
@@ -193,7 +200,7 @@ public class EnemyAI : MonoBehaviour
         {
             float distanciaAoJogador = Vector3.Distance(transform.position, jogadorProximo.position);
 
-            // DEBUG: Mostrar estado actual
+            // DEBUG: Mostrar estado atual
             if (debugAtivo && Time.frameCount % 60 == 0)
             {
                 Debug.Log($"{gameObject.name} - Distância ao jogador mais próximo: {distanciaAoJogador}, " +
@@ -334,7 +341,7 @@ public class EnemyAI : MonoBehaviour
     void GenerarNuevoPuntoPatrullaje()
     {
         // Generar punto aleatorio alrededor de la posición base
-        Vector2 puntoAleatorio = Random.insideUnitCircle * radioPuntosPatrullaje;
+        Vector2 puntoAleatorio = Random.insideUnitCircle * radioPontosPatrullaje;
         puntoPatrullajeActual = posicionBaseOriginal + new Vector3(puntoAleatorio.x, puntoAleatorio.y, 0);
 
         movimento.SetTarget(puntoPatrullajeActual);
@@ -379,9 +386,22 @@ public class EnemyAI : MonoBehaviour
 
     void PerseguirJogador(Transform jogador, float distanciaAoJogador)
     {
+        // Se existir PlayerBase próxima, podes dar prioridade a ela
+        if (priorizarBaseDoJogador && baseJogador != null)
+        {
+            float distBase = Vector2.Distance(transform.position, baseJogador.position);
+
+            // Se a base estiver mais perto que o jogador ou dentro da distância de ataque, focar base
+            if (distBase <= distanciaAoJogador || distBase <= distanciaParagemAtaque)
+            {
+                IrParaBase();
+                return;
+            }
+        }
+
         if (distanciaAoJogador > distanciaParagemAtaque)
         {
-            // Perseguir al jugador - recalculando ruta periódicamente
+            // Perseguir o jogador - recalcular rota periodicamente
             if (Time.time - ultimoRecalculoPerseguicao >= INTERVALO_RECALCULO_PERSEGUICAO)
             {
                 if (debugAtivo) Debug.Log($"{gameObject.name}: Perseguindo jogador para {jogador.position}");
@@ -391,7 +411,7 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            // Parar para disparar al jugador
+            // Parar para disparar ao jogador
             if (debugAtivo) Debug.Log($"{gameObject.name}: Parando para atirar no jogador");
             movimento.StopMoving();
         }
@@ -401,10 +421,25 @@ public class EnemyAI : MonoBehaviour
     {
         if (baseJogador != null)
         {
-            movimento.SetTarget(baseJogador.position);
-            if (debugAtivo && Time.frameCount % 120 == 0)
+            float dist = Vector2.Distance(transform.position, baseJogador.position);
+
+            if (dist > distanciaParagemAtaque)
             {
-                Debug.Log($"{gameObject.name}: Indo para a base em {baseJogador.position}");
+                // Aproximar-se da base
+                movimento.SetTarget(baseJogador.position);
+                if (debugAtivo && Time.frameCount % 120 == 0)
+                {
+                    Debug.Log($"{gameObject.name}: Indo para a base em {baseJogador.position}");
+                }
+            }
+            else
+            {
+                // Dentro da distância de ataque à base: parar para atirar
+                movimento.StopMoving();
+                if (debugAtivo && Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"{gameObject.name}: Parando para atirar na BASE do jogador");
+                }
             }
         }
     }
@@ -457,9 +492,15 @@ public class EnemyAI : MonoBehaviour
         ModoVenganza();
     }
 
+    // ADIÇÃO: helpers para tratar PlayerBase como alvo válido
+    public bool EstaAlvejandoBase()
+    {
+        return jogadorAlvo != null && jogadorAlvo.GetComponent<PlayerBase>() != null;
+    }
+
     void OnDestroy()
     {
-        // Desregistrar con EnemyWaveManager
+        // Desregistrar com EnemyWaveManager
         if (EnemyWaveManager.Instance != null)
         {
             EnemyWaveManager.Instance.UnregisterEnemy(gameObject);
@@ -498,7 +539,7 @@ public class EnemyAI : MonoBehaviour
         {
             // Área de patrullaje
             Gizmos.color = new Color(1, 0.5f, 0, 0.3f);
-            Gizmos.DrawWireSphere(posicionBaseOriginal, radioPuntosPatrullaje);
+            Gizmos.DrawWireSphere(posicionBaseOriginal, radioPontosPatrullaje);
 
             // Punto actual de patrullaje
             if (Application.isPlaying && estaPatrullando)

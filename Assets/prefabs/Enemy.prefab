@@ -610,15 +610,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9a337fe44cbb754d974296a7aa115fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  alcanceDeteccao: 4
+  alcanceDeteccao: 6
   distanciaParagemAtaque: 4
   intervaloChecagem: 0.3
   usarPatrullaje: 1
   intervaloPatrullaje: 8
   duracionParada: 3
-  radioPuntosPatrullaje: 5
+  radioPontosPatrullaje: 10
   radioMovimientoParada: 2
   baseJogador: {fileID: 0}
+  priorizarBaseDoJogador: 1
   debugAtivo: 0
 --- !u!212 &3861743930884156928
 SpriteRenderer:
@@ -660,7 +661,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 1
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

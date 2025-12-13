@@ -61,6 +61,10 @@ public class Bullet : MonoBehaviour
             if (player != null)
                 player.TakeDamage(damage);
 
+            PlayerBase baseComp = hit.GetComponent<PlayerBase>();
+            if (baseComp != null)
+                baseComp.TakeDamage(damage);
+
             Destroy(gameObject);
             return;
         }
