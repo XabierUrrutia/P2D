@@ -4366,8 +4366,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d53152daa915a234faa5d3e164e888eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  startMoney: 10
   currentMoney: 10
-  moneyText: {fileID: 2132546190}
   incomeTickInterval: 1
 --- !u!1 &559004732
 GameObject:
@@ -645561,9 +645561,10 @@ GameObject:
   - component: {fileID: 2132546192}
   - component: {fileID: 2132546191}
   - component: {fileID: 2132546190}
+  - component: {fileID: 2132546193}
   m_Layer: 0
-  m_Name: Money Text
-  m_TagString: Untagged
+  m_Name: MoneyText
+  m_TagString: MoneyText
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -645588,7 +645589,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 000
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
   m_sharedMaterial: {fileID: 2140032, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
@@ -645684,6 +645685,20 @@ RectTransform:
   m_AnchoredPosition: {x: -196.35999, y: -4.829834}
   m_SizeDelta: {x: 150.593, y: 40.3378}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2132546193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132546189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3475704a702bcd94aac95211c0bcc982, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moneyText: {fileID: 2132546190}
+  updateEveryFrame: 1
 --- !u!1 &2139974467
 GameObject:
   m_ObjectHideFlags: 0

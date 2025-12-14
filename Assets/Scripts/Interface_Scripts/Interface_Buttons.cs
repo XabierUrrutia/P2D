@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class Interface_Buttons : MonoBehaviour
 {
@@ -109,6 +110,9 @@ public class Interface_Buttons : MonoBehaviour
     }
     public void GoToLevel1()
     {
+        if (MoneyManager.Instance != null)
+            MoneyManager.Instance.ResetMoney(); // reseta antes de entrar no nível
+
         LoadSceneAndSave(4);
     }
     public void GoToLevel2()

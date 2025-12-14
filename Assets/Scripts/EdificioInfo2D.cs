@@ -117,11 +117,14 @@ public class EdificioInfo2D : MonoBehaviour
             if (!unlocked)
             {
                 Debug.Log($"[EdificioInfo2D] Level '{nombreEscenaDestino}' bloqued. Complete the previus level to play.");
-                // Opcional: mostrar mensagem no tooltip temporariamente
                 ShowLockedTooltip();
                 return;
             }
         }
+
+        // 🔹 Resetar dinheiro sempre que se entra num nível por este edifício
+        if (MoneyManager.Instance != null)
+            MoneyManager.Instance.ResetMoney();
 
         SceneManager.LoadScene(nombreEscenaDestino);
     }

@@ -21,6 +21,7 @@ TagManager:
   - Hangar
   - TutorialEnemy
   - panelPlayerBaseUI
+  - MoneyText
   layers:
   - Default
   - TransparentFX

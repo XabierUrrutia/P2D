@@ -1,26 +1,22 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 
 public class MoneyManager : MonoBehaviour
 {
     public static MoneyManager Instance { get; private set; }
 
+    [Header("Config")]
+    public int startMoney = 10;
+
     [Header("Dinero del Jugador")]
     public int currentMoney = 0;
 
-    // Propiedad pública para acceder al dinero desde otros scripts
     public int CurrentMoney { get { return currentMoney; } }
 
-    [Header("UI Referencia")]
-    public TextMeshProUGUI moneyText;
-
     [Header("Rendimiento de edificios")]
-    [Tooltip("Intervalo (s) em que as receitas dos edificios são agregadas e aplicadas ao jogador")]
     public float incomeTickInterval = 1f;
 
-    // fontes de rendimento (edifícios)
     private readonly List<BuildingOwnership> incomeSources = new List<BuildingOwnership>();
     private Coroutine incomeCoroutine;
 
@@ -30,7 +26,6 @@ public class MoneyManager : MonoBehaviour
         {
             Instance = this;
 
-            // Garantir que este GameObject é root antes de torná-lo persistente
             if (transform.parent != null)
                 transform.SetParent(null);
 
@@ -39,21 +34,30 @@ public class MoneyManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
         }
+
+        currentMoney = startMoney;
     }
 
     void Start()
     {
-        UpdateMoneyUI();
         if (incomeCoroutine == null)
             incomeCoroutine = StartCoroutine(IncomeTickRoutine());
+    }
+
+    private void NotifyHUD()
+    {
+        var hud = FindObjectOfType<MoneyTextHUD>();
+        if (hud != null)
+            hud.Refresh();
     }
 
     public void AddMoney(int amount)
     {
         if (amount == 0) return;
         currentMoney += amount;
-        UpdateMoneyUI();
+        NotifyHUD();
     }
 
     public bool SpendMoney(int amount)
@@ -62,21 +66,17 @@ public class MoneyManager : MonoBehaviour
         if (currentMoney >= amount)
         {
             currentMoney -= amount;
-            UpdateMoneyUI();
+            NotifyHUD();
             return true;
         }
         return false;
     }
 
-    void UpdateMoneyUI()
+    public void ResetMoney()
     {
-        if (moneyText != null)
-        {
-            moneyText.text = $"{currentMoney}";
-        }
+        currentMoney = startMoney;
     }
 
-    // Registrar / Cancelar fontes de rendimento (chamado por BuildingOwnership)
     public void RegisterIncomeSource(BuildingOwnership source)
     {
         if (source == null) return;
@@ -98,7 +98,6 @@ public class MoneyManager : MonoBehaviour
             if (incomeSources.Count > 0)
             {
                 int total = 0;
-                // soma rendimentos ativos
                 for (int i = incomeSources.Count - 1; i >= 0; i--)
                 {
                     var s = incomeSources[i];
@@ -120,6 +119,7 @@ public class MoneyManager : MonoBehaviour
 
     void OnDestroy()
     {
-        if (incomeCoroutine != null) StopCoroutine(incomeCoroutine);
+        if (incomeCoroutine != null)
+            StopCoroutine(incomeCoroutine);
     }
 }
