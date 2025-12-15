@@ -114,7 +114,6 @@ public class TutorialStep2Manager : MonoBehaviour
             return;
         }
 
-        // Cancelar verificações pendentes de GameOver (se houver)
         if (GameManager.Instance != null)
             GameManager.Instance.ResetGame();
 
