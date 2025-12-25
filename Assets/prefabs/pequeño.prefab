@@ -300,6 +300,7 @@ GameObject:
   - component: {fileID: 6546632977699959007}
   - component: {fileID: 8739841149379838008}
   - component: {fileID: 25694466177839554}
+  - component: {fileID: 3731240517231490382}
   m_Layer: 15
   m_Name: "peque\xF1o"
   m_TagString: Untagged
@@ -389,21 +390,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   factoryType: 0
   conquestTime: 10
-  conquestRange: 2
+  conquestRange: 5
   growthSpeed: 2
   decaySpeed: 0.5
   moneyPerInterval: 25
   moneyInterval: 5
   conquestSlider: {fileID: 3051139635738822748}
   sliderOffset: {x: 0, y: 0, z: 0}
+  visionRadius: 5
   enableSpawning: 0
   enemyPrefab: {fileID: 3682313185742942023, guid: 02a98bd66955df04a8c0118df4bd4ce9, type: 3}
   spawnRadius: 3
   minSpawnDistance: 1.5
   spawnIntervalNormal: 10
   spawnIntervalDefensive: 5
-  maxConcurrentEnemiesNormal: 2
-  maxConcurrentEnemiesDefensive: 3
+  maxConcurrentEnemiesNormal: 10
+  maxConcurrentEnemiesDefensive: 15
   totalToSpawn: 0
   groundLayer:
     serializedVersion: 2
@@ -417,6 +419,51 @@ MonoBehaviour:
   isConquered: 0
   isGeneratingMoney: 0
   isActiveSpawner: 0
+--- !u!61 &3731240517231490382
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3099775169405973820}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 2.3899999, y: 2.01}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 2.3899999, y: 2.01}
+  m_EdgeRadius: 0
 --- !u!1 &3473215059947106078
 GameObject:
   m_ObjectHideFlags: 0

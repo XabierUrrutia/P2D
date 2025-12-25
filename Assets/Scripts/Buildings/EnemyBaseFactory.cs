@@ -27,7 +27,10 @@ public class EnemyBaseFactory : MonoBehaviour
 
     [Header("UI Elements")]
     public Slider conquestSlider;
-    public Vector3 sliderOffset = new Vector3(0, 2f, 0);
+    public Vector3 sliderOffset = new Vector3(0, 0, 0);
+
+    [Header("Configuración de Fog of War")]
+    public float visionRadius = 5f;  // Radio de visión cuando está conquistada
 
     [Header("Spawn Configuration")]
     public bool enableSpawning = false;  // Por defecto falso - lo controla el manager
@@ -62,6 +65,10 @@ public class EnemyBaseFactory : MonoBehaviour
     private Coroutine moneyGenerationCoroutine;
     private int spawnedCount = 0;
 
+    // Fog of War
+    private FogStaticVision fogStaticVision;
+    private bool fogVisionInitialized = false;
+
     // Colores para estados
     private Color neutralColor = Color.gray;
     private Color conqueringColor = Color.yellow;
@@ -77,6 +84,9 @@ public class EnemyBaseFactory : MonoBehaviour
         {
             spriteRenderer.color = neutralColor;
         }
+
+        // Inicializar componente de visión de niebla (desactivado inicialmente)
+        InitializeFogVision();
 
         // Registrar con el FactorySpawnManager
         if (FactorySpawnManager.Instance != null)
@@ -118,6 +128,26 @@ public class EnemyBaseFactory : MonoBehaviour
         }
     }
 
+    private void InitializeFogVision()
+    {
+        // Buscar o crear el componente FogStaticVision
+        fogStaticVision = GetComponent<FogStaticVision>();
+        if (fogStaticVision == null)
+        {
+            fogStaticVision = gameObject.AddComponent<FogStaticVision>();
+        }
+
+        // Configurar parámetros
+        fogStaticVision.visionRadius = visionRadius;
+        fogStaticVision.alwaysActive = true;
+
+        // Desactivar inicialmente (solo se activará cuando sea conquistada)
+        fogStaticVision.enabled = false;
+
+        fogVisionInitialized = true;
+        Debug.Log($"[{name}] Componente FogStaticVision inicializado (inicialmente desactivado)");
+    }
+
     void SetValuesByType()
     {
         switch (factoryType)
@@ -130,6 +160,7 @@ public class EnemyBaseFactory : MonoBehaviour
                 maxConcurrentEnemiesDefensive = 3;
                 spawnIntervalNormal = 12f;
                 spawnIntervalDefensive = 6f;
+                visionRadius = 5f;  // Radio menor para fábrica pequeña
                 break;
             case FactoryType.Mediana:
                 conquestTime = 15f;
@@ -139,6 +170,7 @@ public class EnemyBaseFactory : MonoBehaviour
                 maxConcurrentEnemiesDefensive = 5;
                 spawnIntervalNormal = 8f;
                 spawnIntervalDefensive = 4f;
+                visionRadius = 7.5f;  // Radio mediano para fábrica mediana
                 break;
             case FactoryType.Grande:
                 conquestTime = 20f;
@@ -148,7 +180,14 @@ public class EnemyBaseFactory : MonoBehaviour
                 maxConcurrentEnemiesDefensive = 8;
                 spawnIntervalNormal = 6f;
                 spawnIntervalDefensive = 2f;
+                visionRadius = 10f;  // Radio mayor para fábrica grande
                 break;
+        }
+
+        // Actualizar el radio de visión en el componente FogStaticVision si ya existe
+        if (fogStaticVision != null)
+        {
+            fogStaticVision.visionRadius = visionRadius;
         }
     }
 
@@ -271,6 +310,9 @@ public class EnemyBaseFactory : MonoBehaviour
 
         Debug.Log($"[{name}] ¡FÁBRICA CONQUISTADA!");
 
+        // Activar visión en la niebla
+        ActivateFogVision();
+
         // Detener spawns
         StopSpawning();
 
@@ -282,6 +324,49 @@ public class EnemyBaseFactory : MonoBehaviour
 
         // Notificar al manager que esta fábrica fue conquistada
         // (El manager detectará esto en su chequeo periódico)
+    }
+
+    private void ActivateFogVision()
+    {
+        if (!fogVisionInitialized)
+        {
+            InitializeFogVision();
+        }
+
+        if (fogStaticVision != null)
+        {
+            fogStaticVision.enabled = true;
+
+            // Forzar reinicialización para asegurar que se registre en el sistema de niebla
+            if (fogStaticVision.isInitialized)
+            {
+                // Si ya estaba inicializado, reactivar
+                FogOfWar fog = FindObjectOfType<FogOfWar>();
+                if (fog != null)
+                {
+                    fog.UnregisterStaticVision(fogStaticVision);
+                    fog.RegisterStaticVision(fogStaticVision);
+                    fog.RequestUpdate();
+                }
+            }
+            else
+            {
+                // El componente se inicializará automáticamente en su Start()
+                // Podemos forzar la inicialización si es necesario
+                var method = fogStaticVision.GetType().GetMethod("InitializeFogSystem",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (method != null)
+                {
+                    method.Invoke(fogStaticVision, null);
+                }
+            }
+
+            Debug.Log($"[{name}] Visión de niebla ACTIVADA con radio: {visionRadius}");
+        }
+        else
+        {
+            Debug.LogWarning($"[{name}] No se encontró componente FogStaticVision");
+        }
     }
 
     private void StartMoneyGeneration()
@@ -510,6 +595,13 @@ public class EnemyBaseFactory : MonoBehaviour
         Gizmos.color = Color.white;
         Gizmos.DrawWireSphere(transform.position + sliderOffset, 0.2f);
 
+        // Radio de visión de niebla (solo si está conquistada o en diseño)
+        if (isConquered || Application.isEditor && !Application.isPlaying)
+        {
+            Gizmos.color = new Color(0, 1, 0, 0.3f);
+            Gizmos.DrawWireSphere(transform.position, visionRadius);
+        }
+
         // Indicador visual si es el spawner activo
         if (isActiveSpawner)
         {
@@ -524,5 +616,48 @@ public class EnemyBaseFactory : MonoBehaviour
         {
             Destroy(sliderCanvas.gameObject);
         }
+
+        // Desregistrar del sistema de niebla si está activo
+        if (fogStaticVision != null && fogStaticVision.isInitialized)
+        {
+            FogOfWar fog = FindObjectOfType<FogOfWar>();
+            if (fog != null)
+            {
+                fog.UnregisterStaticVision(fogStaticVision);
+            }
+        }
+    }
+
+    // Método para reiniciar la fábrica (si implementas recaptura)
+    public void ResetFactory()
+    {
+        isConquered = false;
+        conquestProgress = 0f;
+        spriteRenderer.color = neutralColor;
+
+        // Desactivar visión de niebla
+        if (fogStaticVision != null && fogStaticVision.enabled)
+        {
+            fogStaticVision.enabled = false;
+            FogOfWar fog = FindObjectOfType<FogOfWar>();
+            if (fog != null)
+            {
+                fog.UnregisterStaticVision(fogStaticVision);
+                fog.RequestUpdate();
+            }
+        }
+
+        // Detener generación de dinero
+        isGeneratingMoney = false;
+        if (moneyGenerationCoroutine != null)
+        {
+            StopCoroutine(moneyGenerationCoroutine);
+            moneyGenerationCoroutine = null;
+        }
+
+        // Limpiar lista de conquistadores
+        conqueringPlayers.Clear();
+
+        Debug.Log($"[{name}] Fábrica reiniciada (neutra)");
     }
 }

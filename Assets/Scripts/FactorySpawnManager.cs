@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections;
 
 public class FactorySpawnManager : MonoBehaviour
 {
@@ -112,7 +113,7 @@ public class FactorySpawnManager : MonoBehaviour
         Debug.Log($"FactorySpawnManager: Activada fábrica más cercana: {currentActiveFactory.name}");
     }
 
-    System.Collections.IEnumerator CheckFactoriesStatus()
+    IEnumerator CheckFactoriesStatus()
     {
         while (true)
         {
@@ -245,6 +246,88 @@ public class FactorySpawnManager : MonoBehaviour
             currentActiveFactory.TryStartSpawning();
 
             Debug.Log($"FactorySpawnManager: Fábrica forzada a activar: {factory.name}");
+        }
+    }
+
+    // AÑADIDO: Método para notificar cuando una fábrica es conquistada
+    public void OnFactoryConquered(EnemyBaseFactory factory)
+    {
+        if (!enableProgressiveSpawning) return;
+
+        Debug.Log($"FactorySpawnManager: Notificado de conquista de {factory.name}");
+
+        // Añadir a la lista de conquistadas si no está
+        if (!conqueredFactories.Contains(factory))
+        {
+            conqueredFactories.Add(factory);
+        }
+
+        // Si la fábrica conquistada es la actual activa, activar la siguiente
+        if (currentActiveFactory == factory)
+        {
+            Debug.Log($"FactorySpawnManager: Fábrica activa {factory.name} conquistada. Buscando siguiente...");
+
+            // Encontrar siguiente fábrica no conquistada
+            EnemyBaseFactory nextFactory = FindNextFactoryToActivate();
+
+            if (nextFactory != null)
+            {
+                // Activar siguiente fábrica
+                currentActiveFactory = nextFactory;
+                currentActiveFactory.enableSpawning = true;
+                currentActiveFactory.TryStartSpawning();
+                Debug.Log($"FactorySpawnManager: Nueva fábrica activa: {currentActiveFactory.name}");
+            }
+            else
+            {
+                // Todas las fábricas conquistadas
+                Debug.Log("FactorySpawnManager: ¡Todas las fábricas conquistadas!");
+
+                // Activar base enemiga grande si existe
+                ActivateEnemyBaseGrande();
+
+                // Detener el chequeo
+                if (checkCoroutine != null)
+                {
+                    StopCoroutine(checkCoroutine);
+                    checkCoroutine = null;
+                }
+            }
+        }
+    }
+
+    // AÑADIDO: Método para notificar cuando una fábrica es perdida
+    public void OnFactoryLost(EnemyBaseFactory factory)
+    {
+        if (!enableProgressiveSpawning) return;
+
+        Debug.Log($"FactorySpawnManager: Notificado de pérdida de {factory.name}");
+
+        // Remover de la lista de conquistadas
+        if (conqueredFactories.Contains(factory))
+        {
+            conqueredFactories.Remove(factory);
+        }
+
+        // Si no hay fábrica activa actualmente, activar la más cercana no conquistada
+        if (currentActiveFactory == null || currentActiveFactory.isConquered)
+        {
+            EnemyBaseFactory nextFactory = FindNextFactoryToActivate();
+            if (nextFactory != null)
+            {
+                // Desactivar la actual si existe
+                if (currentActiveFactory != null && !currentActiveFactory.isConquered)
+                {
+                    currentActiveFactory.StopSpawning();
+                    currentActiveFactory.enableSpawning = false;
+                }
+
+                // Activar la nueva
+                currentActiveFactory = nextFactory;
+                currentActiveFactory.enableSpawning = true;
+                currentActiveFactory.TryStartSpawning();
+                Debug.Log($"FactorySpawnManager: Reactivada fábrica {currentActiveFactory.name}");
+            }
         }
     }
 
