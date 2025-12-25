@@ -7,7 +7,7 @@ public class FogStaticVision : MonoBehaviour
     public bool alwaysActive = true;
 
     private FogOfWar fogOfWar;
-    private bool isInitialized = false;
+    public bool isInitialized = false;
 
     void Start()
     {

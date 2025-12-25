@@ -27,10 +27,10 @@ public class EnemyBaseFactory : MonoBehaviour
 
     [Header("UI Elements")]
     public Slider conquestSlider;
-    public Vector3 sliderOffset = new Vector3(0, 0, 0);
+    public Vector3 sliderOffset = new Vector3(0, 2f, 0);
 
     [Header("Configuración de Fog of War")]
-    public float visionRadius = 5f;  // Radio de visión cuando está conquistada
+    public float visionRadius = 15f;  // Radio de visión cuando está conquistada
 
     [Header("Spawn Configuration")]
     public bool enableSpawning = false;  // Por defecto falso - lo controla el manager
