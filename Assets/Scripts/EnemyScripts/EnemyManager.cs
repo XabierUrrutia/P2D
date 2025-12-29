@@ -35,7 +35,6 @@ public class EnemyManager : MonoBehaviour
     {
         // Registrar todos los enemigos existentes en la escena
         RegistrarEnemigosExistentes();
-
     }
 
     void BuscarYAsignarBase()
@@ -45,7 +44,6 @@ public class EnemyManager : MonoBehaviour
         {
             return;
         }
-
 
         GameObject baseObj = GameObject.FindGameObjectWithTag("PlayerBase");
 
@@ -86,9 +84,9 @@ public class EnemyManager : MonoBehaviour
 
         foreach (GameObject jogadorObj in jogadoresEncontrados)
         {
-            // Verificar que el jugador esté activo y tenga salud
-            PlayerHealth health = jogadorObj.GetComponent<PlayerHealth>();
-            if (health != null && health.enabled && jogadorObj.activeInHierarchy)
+            // CAMBIO: Buscar IHealth en lugar de PlayerHealth específico
+            IHealth health = jogadorObj.GetComponent<IHealth>();
+            if (health != null && !health.IsDead && jogadorObj.activeInHierarchy)
             {
                 todosJogadores.Add(jogadorObj.transform);
             }
@@ -100,6 +98,7 @@ public class EnemyManager : MonoBehaviour
             player = todosJogadores[0];
         }
 
+        Debug.Log($"Jugadores encontrados (IHealth): {todosJogadores.Count}");
     }
 
     void RegistrarEnemigosExistentes()
@@ -131,18 +130,27 @@ public class EnemyManager : MonoBehaviour
     {
         if (!todosJogadores.Contains(novoJogador))
         {
-            todosJogadores.Add(novoJogador);
-
-            // Notificar a todos los enemigos sobre el nuevo jugador
-            foreach (EnemyAI enemy in todosEnemigos)
+            // CAMBIO: Verificar IHealth antes de registrar
+            IHealth health = novoJogador.GetComponent<IHealth>();
+            if (health != null && !health.IsDead)
             {
-                if (enemy != null)
-                {
-                    enemy.AdicionarJogador(novoJogador);
-                }
-            }
+                todosJogadores.Add(novoJogador);
 
-            Debug.Log($"Nuevo jugador registrado: {novoJogador.name}. Total: {todosJogadores.Count}");
+                // Notificar a todos los enemigos sobre el nuevo jugador
+                foreach (EnemyAI enemy in todosEnemigos)
+                {
+                    if (enemy != null)
+                    {
+                        enemy.AdicionarJogador(novoJogador);
+                    }
+                }
+
+                Debug.Log($"Nuevo jugador registrado: {novoJogador.name}. Total: {todosJogadores.Count}");
+            }
+            else
+            {
+                Debug.LogWarning($"Intento de registrar {novoJogador.name} sin IHealth o está muerto");
+            }
         }
     }
 
@@ -242,6 +250,10 @@ public class EnemyManager : MonoBehaviour
         {
             if (jogador == null || !jogador.gameObject.activeInHierarchy) continue;
 
+            // CAMBIO: Verificar IHealth
+            IHealth health = jogador.GetComponent<IHealth>();
+            if (health == null || health.IsDead) continue;
+
             float distancia = Vector3.Distance(posicao, jogador.position);
             if (distancia < menorDistancia)
             {
@@ -253,16 +265,49 @@ public class EnemyManager : MonoBehaviour
         return jogadorMaisProximo;
     }
 
+    // Método para buscar IHealth en un GameObject
+    public IHealth GetIHealthFromObject(GameObject obj)
+    {
+        if (obj == null) return null;
+
+        IHealth health = obj.GetComponent<IHealth>();
+        if (health != null) return health;
+
+        // Buscar en hijos
+        health = obj.GetComponentInChildren<IHealth>();
+        return health;
+    }
+
     // Método público para reasignar la base si es necesario
     public void ReasignarBase(Transform nuevaBase)
     {
         playerBase = nuevaBase;
-        
+        Debug.Log($"Base reasignada a: {nuevaBase.name}");
     }
 
     // Método para forzar actualización de jugadores (útil en testing)
     public void ForcarAtualizacaoJogadores()
     {
         BuscarYRegistrarTodosJogadores();
+    }
+
+    // Método para obtener todos los IHealth activos
+    public List<IHealth> GetTodosIHealth()
+    {
+        List<IHealth> healths = new List<IHealth>();
+
+        foreach (Transform jogador in todosJogadores)
+        {
+            if (jogador != null)
+            {
+                IHealth health = jogador.GetComponent<IHealth>();
+                if (health != null && !health.IsDead)
+                {
+                    healths.Add(health);
+                }
+            }
+        }
+
+        return healths;
     }
 }

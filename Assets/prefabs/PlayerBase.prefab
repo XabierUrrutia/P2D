@@ -660,7 +660,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyTag: Enemy
-  alertRadius: 8
+  alertRadius: 7
   syncWithFogStaticVision: 1
   warningPanel: {fileID: 0}
   warningText: {fileID: 0}

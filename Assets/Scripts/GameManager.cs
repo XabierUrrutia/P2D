@@ -1,3 +1,4 @@
+// GameManager.cs
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
@@ -6,7 +7,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    private List<PlayerHealth> allPlayers = new List<PlayerHealth>();
+    private List<IHealth> allUnits = new List<IHealth>();
     private bool gameOver = false;
 
     void Awake()
@@ -27,57 +28,97 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void RegisterPlayer(PlayerHealth player)
+    // Método para registrar cualquier unidad que implemente IHealth
+    public void RegisterUnit(IHealth unit)
     {
-        if (!allPlayers.Contains(player))
+        if (!allUnits.Contains(unit))
         {
-            allPlayers.Add(player);
+            allUnits.Add(unit);
+            Debug.Log($"Unidad registrada: {unit.transform.name}. Total: {allUnits.Count}");
         }
     }
 
-    public void UnregisterPlayer(PlayerHealth player)
+    // Método para desregistrar una unidad
+    public void UnregisterUnit(IHealth unit)
     {
-        if (allPlayers.Contains(player))
+        if (allUnits.Contains(unit))
         {
-            allPlayers.Remove(player);
+            allUnits.Remove(unit);
+            Debug.Log($"Unidad desregistrada: {unit.transform.name}. Total: {allUnits.Count}");
 
-            // Verificar si todos los jugadores han muerto
+            // Verificar si todas las unidades han muerto
             CheckGameOver();
         }
     }
 
-    public void AddNewPlayer(PlayerHealth newPlayer)
+    // Método para añadir nuevas unidades (alias para RegisterUnit)
+    public void AddNewUnit(IHealth newUnit)
     {
-        RegisterPlayer(newPlayer);
+        RegisterUnit(newUnit);
     }
 
     private void CheckGameOver()
     {
-        if (allPlayers.Count == 0 && !gameOver)
+        // Filtrar unidades muertas o nulas
+        allUnits.RemoveAll(unit => unit == null || unit.IsDead);
+
+        if (allUnits.Count == 0 && !gameOver)
         {
             gameOver = true;
+            Debug.Log("¡Todas las unidades han muerto! Fin del juego.");
             Invoke("LoadGameOverScene", 1f);
         }
     }
 
-    public int GetActivePlayersCount()
+    // Obtener cantidad de unidades activas
+    public int GetActiveUnitsCount()
     {
-        return allPlayers.Count;
+        // Filtrar solo unidades vivas
+        int aliveCount = 0;
+        foreach (var unit in allUnits)
+        {
+            if (unit != null && !unit.IsDead)
+                aliveCount++;
+        }
+        return aliveCount;
     }
 
+    // Verificar si el juego ha terminado
     public bool IsGameOver()
     {
         return gameOver;
     }
 
+    // Cargar escena de Game Over
     private void LoadGameOverScene()
     {
         SceneManager.LoadScene("Game Over");
     }
 
+    // Resetear el juego
     public void ResetGame()
     {
-        allPlayers.Clear();
+        allUnits.Clear();
         gameOver = false;
+    }
+
+    // Método para obtener todas las unidades (útil para AI, etc.)
+    public List<IHealth> GetAllUnits()
+    {
+        return new List<IHealth>(allUnits);
+    }
+
+    // Método para obtener unidades por tipo (opcional)
+    public List<T> GetUnitsByType<T>() where T : class, IHealth
+    {
+        List<T> result = new List<T>();
+        foreach (var unit in allUnits)
+        {
+            if (unit is T typedUnit)
+            {
+                result.Add(typedUnit);
+            }
+        }
+        return result;
     }
 }
