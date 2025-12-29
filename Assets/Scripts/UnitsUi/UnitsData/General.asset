@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buildingName: General
   buildingSprite: {fileID: -1128656789, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
-  buildingPrefab: {fileID: 6345127346883322234, guid: 2f0222a4d3aeca54a977cb4c7e129f50, type: 3}
-  cost: 5
+  buildingPrefab: {fileID: 6345127346883322234, guid: 3938e80781d58084bab8eb79d62c66a3, type: 3}
+  cost: 20
   buildTime: 0
   gridSize: {x: 1, y: 1}

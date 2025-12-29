@@ -1,9 +1,10 @@
+// PlayerHealth.cs
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
-public class PlayerHealth : MonoBehaviour
+public class PlayerHealth : MonoBehaviour, IHealth
 {
+    [Header("Health Settings")]
     public int maxHealth = 4;
     private int currentHealth;
 
@@ -23,6 +24,10 @@ public class PlayerHealth : MonoBehaviour
     private bool isDead = false;
     private bool isRegistered = false;
 
+    // Implementación de propiedades de IHealth
+    public bool IsDead => isDead;
+    public Transform Transform => transform;
+
     void Start()
     {
         currentHealth = maxHealth;
@@ -30,7 +35,7 @@ public class PlayerHealth : MonoBehaviour
         // Registrar este jugador en el GameManager
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.RegisterPlayer(this);
+            GameManager.Instance.RegisterUnit(this);
             isRegistered = true;
         }
 
@@ -66,6 +71,7 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    // Implementación de IHealth.TakeDamage
     public void TakeDamage(int damage)
     {
         if (isDead || GameManager.Instance.IsGameOver()) return;
@@ -105,7 +111,7 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    // MÉTODOS PARA CURAR
+    // Implementación de IHealth.Heal
     public void Heal(int amount)
     {
         if (isDead || GameManager.Instance.IsGameOver()) return;
@@ -117,19 +123,47 @@ public class PlayerHealth : MonoBehaviour
         Debug.Log($"Curado: +{amount}. Vida actual: {currentHealth}/{maxHealth}");
     }
 
+    // Implementación de IHealth.GetCurrentHealth
     public int GetCurrentHealth()
     {
         return currentHealth;
     }
 
+    // Implementación de IHealth.GetMaxHealth
     public int GetMaxHealth()
     {
         return maxHealth;
     }
 
+    // Implementación de IHealth.IsFullHealth
     public bool IsFullHealth()
     {
         return currentHealth >= maxHealth;
+    }
+
+    // Implementación de métodos de escudo (opcional - lanzan excepción si se llaman)
+    public int GetCurrentShield()
+    {
+        // Los soldados normales no tienen escudo
+        return 0;
+    }
+
+    public int GetMaxShield()
+    {
+        // Los soldados normales no tienen escudo
+        return 0;
+    }
+
+    public bool IsFullShield()
+    {
+        // Los soldados normales no tienen escudo
+        return true;
+    }
+
+    public void RepairShield(int amount)
+    {
+        // Los soldados normales no tienen escudo
+        Debug.LogWarning("RepairShield llamado en un soldado sin escudo");
     }
 
     void UpdateHealthBar()
@@ -140,37 +174,33 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    void Die()
+    // Implementación de IHealth.Die
+    public void Die()
     {
         if (isDead || GameManager.Instance.IsGameOver()) return;
 
         isDead = true;
-        Debug.Log("Personaje muerto!");
+        Debug.Log("Soldado muerto!");
 
-        // 🔊 SOM DE MORTE
+        // 🔊 SONIDO DE MUERTE
         if (SoundColector.Instance != null)
         {
-            // Se tiveres tag "Tank" → som de morte de tanque
+            // Si tiene tag "Tank" → sonido de muerte de tanque
             if (CompareTag("Tank"))
             {
                 SoundColector.Instance.PlayTankDeath();
             }
-            // (Opcional) se tiveres tag "Building", podes fazer:
-            // else if (CompareTag("Building"))
-            // {
-            //     SoundColector.Instance.PlayBuildingDestroyed();
-            // }
             else
             {
-                // Qualquer outro -> infanteria
+                // Cualquier otro -> infantería
                 SoundColector.Instance.PlayInfantryDeath();
             }
         }
 
-        // Notificar al GameManager que este jugador ha muerto
+        // Notificar al GameManager que esta unidad ha muerto
         if (isRegistered && GameManager.Instance != null)
         {
-            GameManager.Instance.UnregisterPlayer(this);
+            GameManager.Instance.UnregisterUnit(this);
         }
 
         // Notificar al EnemyManager que este jugador ha muerto
@@ -202,9 +232,6 @@ public class PlayerHealth : MonoBehaviour
     void DeactivatePlayer()
     {
         gameObject.SetActive(false);
-
-        // Opcional: destruir el objeto completamente
-        // Destroy(gameObject);
     }
 
     void OnDestroy()
@@ -212,11 +239,11 @@ public class PlayerHealth : MonoBehaviour
         // Asegurarse de desregistrar si el objeto es destruido
         if (isRegistered && GameManager.Instance != null)
         {
-            GameManager.Instance.UnregisterPlayer(this);
+            GameManager.Instance.UnregisterUnit(this);
         }
     }
 
-    // Método público para forzar mostrar/ocultar la barra si es necesario
+    // Implementación de IHealth.SetHealthBarVisible
     public void SetHealthBarVisible(bool visible)
     {
         if (visible)
@@ -229,7 +256,7 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    // Método para revivir al jugador (si necesitas esta funcionalidad)
+    // Método para revivir al jugador
     public void Revive()
     {
         if (isDead)
@@ -240,7 +267,7 @@ public class PlayerHealth : MonoBehaviour
 
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.RegisterPlayer(this);
+                GameManager.Instance.RegisterUnit(this);
                 isRegistered = true;
             }
 

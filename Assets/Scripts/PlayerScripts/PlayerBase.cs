@@ -7,9 +7,10 @@ using UnityEngine.SceneManagement;
 /// - Regista a base no EnemyManager para que inimigos possam considerá-la como alvo.
 /// - Aceita dano por balas inimigas (Bullet.OnTriggerEnter2D já aplica dano a objetos com tag "Player").
 /// - Ao morrer carrega imediatamente a cena "Game Over".
+/// - IMPLEMENTA IHealth para compatibilidade com el sistema de salud unificado.
 /// </summary>
 [DisallowMultipleComponent]
-public class PlayerBase : MonoBehaviour
+public class PlayerBase : MonoBehaviour, IHealth
 {
     [Header("HP")]
     [Tooltip("Vida máxima da base")]
@@ -26,15 +27,19 @@ public class PlayerBase : MonoBehaviour
     public float damageFeedbackSeconds = 0.2f;
 
     [Header("Cores do Slider")]
-    [Tooltip("Cor quando em bom estado (acima de 50 HP)")]
+    [Tooltip("Cor cuando em bom estado (acima de 50 HP)")]
     public Color healthyColor = Color.green;
-    [Tooltip("Cor quando em aviso (<= 50 HP)")]
+    [Tooltip("Cor cuando em aviso (<= 50 HP)")]
     public Color warningColor = Color.yellow;
-    [Tooltip("Cor quando crítico (<= 30% da vida máxima)")]
+    [Tooltip("Cor cuando crítico (<= 30% da vida máxima)")]
     public Color criticalColor = Color.red;
 
     private int currentHealth;
     private bool isDestroyed = false;
+
+    // IMPLEMENTACIÓN DE IHealth
+    public bool IsDead => isDestroyed;
+    public Transform Transform => transform;
 
     void Awake()
     {
@@ -72,6 +77,15 @@ public class PlayerBase : MonoBehaviour
             EnemyManager.Instance.RegistrarNovoJogador(this.transform);
             Debug.Log($"[PlayerBase] Registrada no EnemyManager: {name}");
         }
+
+        // Registrar en GameManager como unidad IHealth
+        if (GameManager.Instance != null)
+        {
+            // Como PlayerBase implementa IHealth, se registrará automáticamente
+            // al llamar al método RegisterUnit
+            IHealth healthInterface = this as IHealth;
+            GameManager.Instance.RegisterUnit(healthInterface);
+        }
     }
 
     /// <summary>
@@ -102,6 +116,12 @@ public class PlayerBase : MonoBehaviour
         }
     }
 
+    // IMPLEMENTACIÓN DE IHealth.Die
+    public void Die()
+    {
+        OnDestroyed();
+    }
+
     System.Collections.IEnumerator DamageFeedbackCoroutine()
     {
         // Placeholder para feedback (piscar sprite, etc.)
@@ -118,9 +138,19 @@ public class PlayerBase : MonoBehaviour
 
         Debug.Log($"[PlayerBase] {name} FOI DESTRUID. Carregando Game Over...");
 
-        // Opcional: evitar que GameManager interprete a destruição como "transição"
+        // Notificar al GameManager que la base ha muerto
         if (GameManager.Instance != null)
+        {
+            IHealth healthInterface = this as IHealth;
+            GameManager.Instance.UnregisterUnit(healthInterface);
             GameManager.Instance.ResetGame();
+        }
+
+        // Ao destruir, avisar EnemyManager para remover como alvo (fallback)
+        if (EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.RemoverJogador(this.transform);
+        }
 
         // Carregar cena de Game Over (nome deve corresponder ao build settings)
         SceneManager.LoadScene("Game Over");
@@ -133,13 +163,28 @@ public class PlayerBase : MonoBehaviour
         {
             EnemyManager.Instance.RemoverJogador(this.transform);
         }
+
+        // Desregistrar del GameManager
+        if (GameManager.Instance != null)
+        {
+            IHealth healthInterface = this as IHealth;
+            GameManager.Instance.UnregisterUnit(healthInterface);
+        }
     }
 
-    // API utilitária
+    // IMPLEMENTACIÓN DE IHealth.GetCurrentHealth
     public int GetCurrentHealth() => currentHealth;
+
+    // IMPLEMENTACIÓN DE IHealth.GetMaxHealth
     public int GetMaxHealth() => maxHealth;
 
-    // Permite curar a base via código, se necessário
+    // IMPLEMENTACIÓN DE IHealth.IsFullHealth
+    public bool IsFullHealth() => currentHealth >= maxHealth;
+
+    // IMPLEMENTACIÓN DE IHealth.Heal
+    /// <summary>
+    /// Permite curar a base via código, se necessário
+    /// </summary>
     public void Heal(int amount)
     {
         if (isDestroyed || amount <= 0) return;
@@ -149,6 +194,24 @@ public class PlayerBase : MonoBehaviour
             healthBar.value = currentHealth;
             UpdateHealthBarColor();
         }
+    }
+
+    // IMPLEMENTACIÓN DE IHealth.SetHealthBarVisible
+    public void SetHealthBarVisible(bool visible)
+    {
+        if (healthBar != null)
+        {
+            healthBar.gameObject.SetActive(visible);
+        }
+    }
+
+    // IMPLEMENTACIÓN DE IHealth - Métodos de escudo (la base no tiene escudo)
+    public int GetCurrentShield() => 0;
+    public int GetMaxShield() => 0;
+    public bool IsFullShield() => true;
+    public void RepairShield(int amount)
+    {
+        Debug.Log($"[PlayerBase] Intentando reparar escudo en base (no tiene escudo)");
     }
 
     // Atualiza a cor do fill do slider conforme thresholds:

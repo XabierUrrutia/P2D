@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
 
 [RequireComponent(typeof(EnemyController))]
 [RequireComponent(typeof(EnemyShooting))]
@@ -29,9 +28,7 @@ public class EnemyAI : MonoBehaviour
     private EnemyShooting atirador;
     private Transform jogadorAlvo;
 
-    // ESTA LINHA TEM DE EXISTIR:
-    private System.Collections.Generic.List<Transform> jogadoresDisponiveis =
-        new System.Collections.Generic.List<Transform>();
+    private List<Transform> jogadoresDisponiveis = new List<Transform>();
 
     // Control de tempo
     private float proximaChecagemTime = 0f;
@@ -120,15 +117,16 @@ public class EnemyAI : MonoBehaviour
 
         foreach (GameObject jogadorObj in todosJogadores)
         {
-            PlayerHealth health = jogadorObj.GetComponent<PlayerHealth>();
-            if (health != null && health.enabled && jogadorObj.activeInHierarchy)
+            // CAMBIO: Buscar IHealth en lugar de PlayerHealth específico
+            IHealth health = jogadorObj.GetComponent<IHealth>();
+            if (health != null && !health.IsDead && jogadorObj.activeInHierarchy)
             {
                 jogadoresDisponiveis.Add(jogadorObj.transform);
-                if (debugAtivo) Debug.Log($"{gameObject.name}: Jugador encontrado: {jogadorObj.name}");
+                if (debugAtivo) Debug.Log($"{gameObject.name}: Unidad encontrada (IHealth): {jogadorObj.name}");
             }
         }
 
-        if (debugAtivo) Debug.Log($"{gameObject.name}: Total de jugadores encontrados: {jogadoresDisponiveis.Count}");
+        if (debugAtivo) Debug.Log($"{gameObject.name}: Total de unidades encontradas: {jogadoresDisponiveis.Count}");
     }
 
     Transform EncontrarJogadorMaisProximo()
@@ -141,6 +139,10 @@ public class EnemyAI : MonoBehaviour
         foreach (Transform jogador in jogadoresDisponiveis)
         {
             if (jogador == null || !jogador.gameObject.activeInHierarchy) continue;
+
+            // CAMBIO: Verificar si tiene IHealth y si está vivo
+            IHealth health = jogador.GetComponent<IHealth>();
+            if (health == null || health.IsDead) continue;
 
             float distancia = Vector3.Distance(transform.position, jogador.position);
             if (distancia < menorDistancia)
@@ -157,9 +159,16 @@ public class EnemyAI : MonoBehaviour
     {
         for (int i = jogadoresDisponiveis.Count - 1; i >= 0; i--)
         {
-            if (jogadoresDisponiveis[i] == null ||
-                !jogadoresDisponiveis[i].gameObject.activeInHierarchy ||
-                jogadoresDisponiveis[i].GetComponent<PlayerHealth>() == null)
+            Transform jogador = jogadoresDisponiveis[i];
+            if (jogador == null || !jogador.gameObject.activeInHierarchy)
+            {
+                jogadoresDisponiveis.RemoveAt(i);
+                continue;
+            }
+
+            // CAMBIO: Verificar IHealth
+            IHealth health = jogador.GetComponent<IHealth>();
+            if (health == null || health.IsDead)
             {
                 jogadoresDisponiveis.RemoveAt(i);
             }
@@ -182,7 +191,7 @@ public class EnemyAI : MonoBehaviour
             ultimaBuscaJogadoresTime = Time.time;
         }
         else
-        {  
+        {
             RemoverJogadoresInativos();
         }
 
@@ -218,19 +227,19 @@ public class EnemyAI : MonoBehaviour
                 estaPatrullando = false;
                 enParada = false;
                 enMovimientoParada = false;
-                if (debugAtivo) Debug.Log($"{gameObject.name}: Começando a perseguir o jogador: {jogadorAlvo.name}");
+                if (debugAtivo) Debug.Log($"{gameObject.name}: Começando a perseguir a unidade: {jogadorAlvo.name}");
             }
             else if (!jogadorDetectado && EstaPersiguiendoJogador() && distanciaAoJogador > alcanceDeteccao * 1.5f)
             {
                 // Dejar de perseguir (con histeresis para evitar cambios bruscos)
                 jogadorAlvo = null;
-                if (debugAtivo) Debug.Log($"{gameObject.name}: Parando de perseguir o jogador");
+                if (debugAtivo) Debug.Log($"{gameObject.name}: Parando de perseguir a unidade");
             }
             else if (EstaPersiguiendoJogador() && jogadorAlvo != jogadorProximo && jogadorDetectado)
             {
                 // Cambiar a un jugador más cercano si es necesario
                 jogadorAlvo = jogadorProximo;
-                if (debugAtivo) Debug.Log($"{gameObject.name}: Mudando para jogador mais próximo: {jogadorAlvo.name}");
+                if (debugAtivo) Debug.Log($"{gameObject.name}: Mudando para unidade mais próxima: {jogadorAlvo.name}");
             }
 
             // Ejecutar comportamiento según el estado
@@ -448,8 +457,13 @@ public class EnemyAI : MonoBehaviour
     {
         if (!jogadoresDisponiveis.Contains(novoJogador))
         {
-            jogadoresDisponiveis.Add(novoJogador);
-            if (debugAtivo) Debug.Log($"{gameObject.name}: Novo jogador adicionado: {novoJogador.name}");
+            // CAMBIO: Verificar IHealth antes de añadir
+            IHealth health = novoJogador.GetComponent<IHealth>();
+            if (health != null && !health.IsDead)
+            {
+                jogadoresDisponiveis.Add(novoJogador);
+                if (debugAtivo) Debug.Log($"{gameObject.name}: Nueva unidad adicionada: {novoJogador.name}");
+            }
         }
     }
 
@@ -462,7 +476,7 @@ public class EnemyAI : MonoBehaviour
             {
                 jogadorAlvo = null;
             }
-            if (debugAtivo) Debug.Log($"{gameObject.name}: Jogador removido: {jogadorMorto.name}");
+            if (debugAtivo) Debug.Log($"{gameObject.name}: Unidad removida: {jogadorMorto.name}");
         }
     }
 
