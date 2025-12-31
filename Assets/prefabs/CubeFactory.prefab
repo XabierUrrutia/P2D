@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 7331840942805772460}
   - component: {fileID: 7397011688693234355}
   - component: {fileID: 985762989120680998}
+  - component: {fileID: 5399125916257665607}
   m_Layer: 0
   m_Name: CubeFactory
-  m_TagString: Untagged
+  m_TagString: Hangar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -191,3 +192,18 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
+--- !u!114 &5399125916257665607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3259702835758711629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bf9033b1cde14f4bb9a562a28418d31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panelSoldadosUI: {fileID: 0}
+  requiredBuildingName: Hangar
+  requiredBuildingTag: Hangar

@@ -516,7 +516,7 @@ Light:
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 14.53
+  m_Range: 21.26
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -577,7 +577,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c43e413a32b88c4ca6f211faeea612c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 50
+  maxHealth: 500
   healthBar: {fileID: 3854363895949830367}
   runtimeTagToApply: Player
   damageFeedbackSeconds: 0.2
@@ -660,7 +660,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyTag: Enemy
-  alertRadius: 7
+  alertRadius: 8.5
   syncWithFogStaticVision: 1
   warningPanel: {fileID: 0}
   warningText: {fileID: 0}
