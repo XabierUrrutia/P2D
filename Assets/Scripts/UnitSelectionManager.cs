@@ -237,6 +237,18 @@ public class UnitSelectionManager : MonoBehaviour
             unidadesSeleccionadas.Add(unidad);
             unidad.Seleccionar();
             Debug.Log($"Unidad seleccionada: {unidad.name}");
+
+            UnitVeterancy veterania = unidad.GetComponent<UnitVeterancy>();
+
+            if (UnitHUDManager.Instance != null)
+            {
+                // Le decimos al HUD que muestre a ESTA unidad
+                UnitHUDManager.Instance.SeleccionarUnidad(veterania);
+            }
+            else
+            {
+                Debug.LogWarning("No se encuentra UnitHUDManager en la escena.");
+            }
         }
 
         // Atualiza indicadores sempre que adicionas uma unidade
@@ -251,6 +263,11 @@ public class UnitSelectionManager : MonoBehaviour
             unidad.Deseleccionar();
         }
 
+        if (UnitHUDManager.Instance != null)
+        {
+            // Pasamos null para que se oculte el panel
+            UnitHUDManager.Instance.SeleccionarUnidad(null);
+        }
         // Atualiza indicadores quando removes
         UpdateSelectionIndicators();
     }

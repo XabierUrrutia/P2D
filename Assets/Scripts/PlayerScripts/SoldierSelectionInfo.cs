@@ -61,6 +61,14 @@ public class SoldierSelectionInfo : MonoBehaviour
             currentAmmo,
             maxAmmo,
             transform.position);
+
+        var veterania = GetComponent<UnitVeterancy>();
+
+        if (UnitHUDManager.Instance != null)
+        {
+            // Le decimos al HUD global: "Muestra los datos de ESTE soldado"
+            UnitHUDManager.Instance.SeleccionarUnidad(veterania);
+        }
     }
 
     void SelectUnit(SelectableUnit unit)

@@ -3,20 +3,22 @@
 [DisallowMultipleComponent]
 public class SelectableUnit : MonoBehaviour
 {
-    [Tooltip("Se true, esta unidade pertence ao jogador e pode mostrar a seta de seleção.")]
     public bool isPlayerUnit = true;
-
-    [Tooltip("Prefab da seta (ex.: FloatingArrow). Opcional: se vazio, procura um filho já presente (apenas para unidades do jogador).")]
     public GameObject arrowPrefab;
-
-    [Tooltip("Offset local da seta (unidade acima da unidade)")]
     public Vector3 arrowLocalOffset = new Vector3(0f, 0f, 0f);
 
     private GameObject arrowInstance;
     private SoldierTooltipTarget tooltipTarget;
+    private UnitVeterancy myVeterancy;
 
     void Awake()
     {
+        myVeterancy = GetComponent<UnitVeterancy>();
+
+        // --- DIAGNÓSTICO INICIAL ---
+        if (myVeterancy == null) Debug.LogError($"[ERROR] Al soldado '{name}' le falta el script 'UnitVeterancy'. El HUD no funcionará.");
+        // ---------------------------
+
         if (isPlayerUnit)
         {
             var existing = GetComponentInChildren<FloatingArrow>(true);
@@ -35,27 +37,46 @@ public class SelectableUnit : MonoBehaviour
                 arrowInstance.SetActive(false);
             }
         }
-
         tooltipTarget = GetComponent<SoldierTooltipTarget>();
     }
 
     public void ShowSelection(bool show)
     {
-        if (isPlayerUnit && arrowInstance != null)
-            arrowInstance.SetActive(show);
+        Debug.Log($"[SelectableUnit] ShowSelection llamado con valor: {show} en {name}");
 
-        if (tooltipTarget != null)
-            tooltipTarget.ShowInfo(show);
+        if (isPlayerUnit && arrowInstance != null) arrowInstance.SetActive(show);
+        if (tooltipTarget != null) tooltipTarget.ShowInfo(show);
+
+        if (show)
+        {
+            if (UnitHUDManager.Instance != null)
+            {
+                Debug.Log("[SelectableUnit] Enviando datos al HUD Manager...");
+                UnitHUDManager.Instance.SeleccionarUnidad(myVeterancy);
+            }
+            else
+            {
+                Debug.LogError("[ERROR] No se encuentra 'UnitHUDManager'. ¿Está creado en la escena?");
+            }
+        }
     }
+
+    // --- IMPORTANTE: ¿QUIÉN LLAMA A SHOWSELECTION? ---
+    // Si no tienes otro script (como un SelectionManager) que llame a ShowSelection,
+    // necesitas detectar el clic aquí mismo. Descomenta esto si no tienes sistema de selección:
+    /*
+    void OnMouseDown()
+    {
+        ShowSelection(true);
+    }
+    */
 
     void OnDestroy()
     {
         if (arrowInstance != null)
         {
-            if (Application.isPlaying)
-                Destroy(arrowInstance);
-            else
-                DestroyImmediate(arrowInstance);
+            if (Application.isPlaying) Destroy(arrowInstance);
+            else DestroyImmediate(arrowInstance);
         }
     }
 }
