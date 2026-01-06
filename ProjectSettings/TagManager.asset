@@ -22,6 +22,10 @@ TagManager:
   - TutorialEnemy
   - panelPlayerBaseUI
   - MoneyText
+  - Obstacle
+  - Wall
+  - Terrain
+  - General
   layers:
   - Default
   - TransparentFX
