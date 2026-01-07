@@ -58,7 +58,7 @@ public class PlayerShooting : MonoBehaviour
     // Dirección actual (1 = derecha, -1 = izquierda)
     private int currentDirection = 1;
 
-    private int currentAmmo;
+    public int currentAmmo;
     private float nextFireTime;
     private Transform currentTarget;
     private Camera mainCam;
