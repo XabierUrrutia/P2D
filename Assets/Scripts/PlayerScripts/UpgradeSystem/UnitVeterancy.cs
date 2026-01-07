@@ -6,6 +6,9 @@ public class UnitVeterancy : MonoBehaviour
     // EVENTO: Avisa al mundo (y al HUD) que mis stats cambiaron
     public event Action OnStatsChanged;
 
+    [Header("Identidad de la Unidad")]
+    public Sprite retratoCara;
+
     [Header("Estado")]
     public int nivel = 1;
     public int xpActual = 0;

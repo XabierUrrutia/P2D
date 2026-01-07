@@ -8,8 +8,11 @@ public class UnitHUDManager : MonoBehaviour
 
     [Header("Referencias")]
     public GameObject panelCompleto;
+    public Image imagenRetratoUI;
+    public Sprite spritePorDefecto;
     public Slider xpSlider;
     public Slider hpSlider;
+    public Slider shieldSlider;
     public TextMeshProUGUI nivelTexto;
     public TextMeshProUGUI hpTexto;
 
@@ -24,70 +27,61 @@ public class UnitHUDManager : MonoBehaviour
 
     void Start()
     {
-        // Comprobación de seguridad al iniciar
-        if (xpSlider == null) Debug.LogError("ERROR CRÍTICO: ¡Falta asignar el XP Slider en el Inspector de UnitHUDManager!");
-        if (hpSlider == null) Debug.LogError("ERROR CRÍTICO: ¡Falta asignar el HP Slider en el Inspector de UnitHUDManager!");
+        // Corrección de rangos 0-1
+        if (xpSlider != null) { xpSlider.minValue = 0; xpSlider.maxValue = 1; }
+        if (hpSlider != null) { hpSlider.minValue = 0; hpSlider.maxValue = 1; }
+        if (shieldSlider != null) { shieldSlider.minValue = 0; shieldSlider.maxValue = 1; }
 
         SeleccionarUnidad(null);
     }
 
     void Update()
     {
-        // Actualizar vida constantemente
-        if (saludSeleccionada != null && hpSlider != null)
+        // Esto hace que las barras del HUD se muevan en tiempo real
+        if (saludSeleccionada != null)
         {
-            ActualizarBarraVida();
+            ActualizarStatsCombate();
         }
     }
 
     public void SeleccionarUnidad(UnitVeterancy unidad)
     {
-        // 1. Limpieza anterior
-        if (veteraniaSeleccionada != null)
-        {
-            veteraniaSeleccionada.OnStatsChanged -= ActualizarBarraXP;
-        }
+        // 1. Desconectar anterior
+        if (veteraniaSeleccionada != null) veteraniaSeleccionada.OnStatsChanged -= ActualizarBarraXP;
 
         veteraniaSeleccionada = unidad;
 
-        // 2. Nueva conexión
         if (veteraniaSeleccionada != null)
         {
-            Debug.Log($"[HUD] Conectado con unidad: {unidad.name}"); // <--- ¡MIRA SI SALE ESTO!
-
-            // Conectar eventos y componentes
+            // 2. Conectar nuevo
             veteraniaSeleccionada.OnStatsChanged += ActualizarBarraXP;
             saludSeleccionada = veteraniaSeleccionada.GetComponent<IHealth>();
 
-            if (saludSeleccionada == null) Debug.LogWarning($"[HUD] La unidad {unidad.name} tiene Veteranía pero NO tiene script de vida (IHealth).");
+            // 3. Gestionar la FOTO
+            if (imagenRetratoUI != null)
+            {
+                if (unidad.retratoCara != null) imagenRetratoUI.sprite = unidad.retratoCara;
+                else if (spritePorDefecto != null) imagenRetratoUI.sprite = spritePorDefecto;
+                imagenRetratoUI.color = Color.white;
+            }
 
-            // Mostrar Panel
+            // 4. Activar Panel y Barras básicas
             if (panelCompleto != null) panelCompleto.SetActive(true);
+            if (xpSlider != null) xpSlider.gameObject.SetActive(true);
+            if (hpSlider != null) hpSlider.gameObject.SetActive(true);
 
-            // Forzar actualización inicial
+            // 5. GESTIÓN INTELIGENTE DEL ESCUDO
+            CheckEscudo();
+
+            // 6. Actualizar valores iniciales
             ActualizarBarraXP();
-            ActualizarBarraVida();
+            ActualizarStatsCombate();
         }
         else
         {
-            // Ocultar si es null
-            Debug.Log("[HUD] Deseleccionado (Ocultando panel)");
-            saludSeleccionada = null;
             if (panelCompleto != null) panelCompleto.SetActive(false);
+            saludSeleccionada = null;
         }
-    }
-
-    void ActualizarBarraXP()
-    {
-        if (veteraniaSeleccionada == null || xpSlider == null) return;
-
-        float maxXP = (float)veteraniaSeleccionada.xpParaSiguienteNivel;
-        if (maxXP <= 0) maxXP = 1;
-
-        float valor = (float)veteraniaSeleccionada.xpActual / maxXP;
-        xpSlider.value = valor;
-
-        // Debug.Log($"[HUD] XP Actualizada: {valor * 100}%");
     }
 
     void ActualizarBarraVida()
@@ -100,5 +94,55 @@ public class UnitHUDManager : MonoBehaviour
         hpSlider.value = vida / max;
 
         if (hpTexto != null) hpTexto.text = $"{vida}/{max}";
+    }
+
+    void CheckEscudo()
+    {
+        if (shieldSlider == null) return;
+
+        // Preguntamos si la unidad tiene escudo máximo mayor que 0
+        if (saludSeleccionada != null && saludSeleccionada.GetMaxShield() > 0)
+        {
+            shieldSlider.gameObject.SetActive(true); // Activar barra azul
+        }
+        else
+        {
+            shieldSlider.gameObject.SetActive(false); // Ocultar barra azul (es un soldado normal)
+        }
+    }
+
+    void ActualizarStatsCombate()
+    {
+        if (saludSeleccionada == null) return;
+
+        // --- VIDA (Barra Roja) ---
+        if (hpSlider != null)
+        {
+            float vida = (float)saludSeleccionada.GetCurrentHealth();
+            float maxVida = (float)saludSeleccionada.GetMaxHealth();
+            // Si maxVida es 0, ponemos 0 para evitar error de división
+            hpSlider.value = (maxVida > 0) ? vida / maxVida : 0;
+
+            if (hpTexto != null) hpTexto.text = $"{vida}/{maxVida}";
+        }
+
+        // --- ESCUDO (Barra Azul) ---
+        if (shieldSlider != null && shieldSlider.gameObject.activeSelf)
+        {
+            // ¡ESTO ES LO IMPORTANTE! El (float) obliga a usar decimales
+            float escudo = (float)saludSeleccionada.GetCurrentShield();
+            float maxEscudo = (float)saludSeleccionada.GetMaxShield();
+
+            // Si tiene 25 de 50, el resultado será 0.5 (mitad de barra)
+            shieldSlider.value = (maxEscudo > 0) ? escudo / maxEscudo : 0;
+        }
+    }
+
+    void ActualizarBarraXP()
+    {
+        if (veteraniaSeleccionada == null || xpSlider == null) return;
+        float actual = veteraniaSeleccionada.xpActual;
+        float necesario = veteraniaSeleccionada.xpParaSiguienteNivel;
+        xpSlider.value = (necesario > 0) ? actual / necesario : 0;
     }
 }

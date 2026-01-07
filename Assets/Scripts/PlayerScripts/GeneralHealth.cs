@@ -4,12 +4,12 @@ using UnityEngine.UI;
 public class GeneralHealth : MonoBehaviour, IHealth
 {
     [Header("Health Settings")]
-    public int maxHealth = 4;
+    public int maxHealth = 100;
     private int currentHealth;
 
     [Header("Shield Settings (For Generals)")]
     public bool hasShield = true; // IMPORTANTE: Activar solo para generales
-    public int maxShield = 2;
+    public int maxShield = 50;
     private int currentShield;
     public float shieldRegenRate = 1f; // Escudos por segundo
     public float shieldRegenDelay = 3f; // Segundos después del daño para regenerar
@@ -125,7 +125,7 @@ public class GeneralHealth : MonoBehaviour, IHealth
         if (Camera.main != null && shieldBar != null)
         {
             // Posicionar la barra de escudo un poco más arriba que la de salud
-            shieldBar.transform.position = Camera.main.WorldToScreenPoint(transform.position + healthBarOffset + new Vector3(0, 0.2f, 0));
+            shieldBar.transform.position = Camera.main.WorldToScreenPoint(transform.position + healthBarOffset + new Vector3(0, 0, 0));
         }
     }
 
@@ -197,16 +197,30 @@ public class GeneralHealth : MonoBehaviour, IHealth
     // MÉTODOS PARA MOSTRAR/OCULTAR LAS BARRAS
     void ShowHealthBars()
     {
-        if (healthBar != null && !healthBarVisible)
+        // Solo activamos cosas si tenemos la barra de vida asignada
+        if (healthBar != null)
         {
-            healthBar.gameObject.SetActive(true);
+            // Activamos la barra de vida siempre al recibir daño
+            if (!healthBarVisible)
+            {
+                healthBar.gameObject.SetActive(true);
+                healthBarVisible = true;
+            }
 
-            if (hasShield && shieldBar != null)
+            // CONTROL DEL ESCUDO:
+            // Solo activamos la barra de escudo SI tiene escudo Y es mayor que 0
+            if (hasShield && shieldBar != null && currentShield > 0)
+            {
                 shieldBar.gameObject.SetActive(true);
-
-            healthBarVisible = true;
+            }
+            else if (shieldBar != null)
+            {
+                // Si el daño rompió el escudo, nos aseguramos de que esté apagada
+                shieldBar.gameObject.SetActive(false);
+            }
         }
 
+        // Reiniciamos el contador para que se oculten después de un tiempo
         healthBarTimer = showHealthBarTime;
     }
 
@@ -320,9 +334,27 @@ public class GeneralHealth : MonoBehaviour, IHealth
 
     void UpdateShieldBar()
     {
-        if (shieldBar != null && hasShield)
+        // Seguridad: Si no hay barra asignada o no tiene escudo, no hacemos nada
+        if (shieldBar == null || !hasShield) return;
+
+        // 1. Calcular el valor exacto (usando float para que funcione con 50 de escudo)
+        float porcentaje = (float)currentShield / maxShield;
+        shieldBar.value = porcentaje;
+
+        // 2. LÓGICA DE APARICIÓN / DESAPARICIÓN
+        if (currentShield <= 0)
         {
-            shieldBar.value = (float)currentShield / maxShield;
+            // ¡ESCUDO ROTO! -> Ocultar la barra azul inmediatamente
+            shieldBar.gameObject.SetActive(false);
+        }
+        else
+        {
+            // Si el escudo se ha regenerado (> 0) y las barras deberían verse (combate)
+            // entonces volvemos a mostrar la barra azul.
+            if (healthBarVisible)
+            {
+                shieldBar.gameObject.SetActive(true);
+            }
         }
     }
 

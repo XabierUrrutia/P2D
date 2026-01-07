@@ -1068,18 +1068,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46bf1eb43b8f348429e63e8282b31896, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  retratoCara: {fileID: 21300000, guid: 02cf8883b6861d245bf6f3065e230fed, type: 3}
   nivel: 1
   xpActual: 0
   xpParaSiguienteNivel: 100
   maxNivel: 3
   bonusSalud: 10
   "bonusDa\xF1o": 4
-  bonusVelocidad: 0.25
-  xpSlider: {fileID: 0}
-  fillImage: {fileID: 0}
-  rangoVisual1: {fileID: 0}
-  rangoVisual2: {fileID: 0}
-  particulasSubida: {fileID: 0}
 --- !u!1 &6694624596917303429
 GameObject:
   m_ObjectHideFlags: 0
