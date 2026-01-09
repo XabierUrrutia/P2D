@@ -50,9 +50,14 @@ public class PlayerShooting : MonoBehaviour
 
     [Header("Animation Timing")]
     public SpriteRenderer soldierSpriteRenderer;
-    public float shootingSpriteDuration = 0.3f; 
+    public float shootingSpriteDuration = 0.3f;
     public float aimingSpriteDuration = 0.2f;
-    public float shootingDelay = 0.1f; 
+    public float shootingDelay = 0.1f;
+
+    // --- CAMBIO: Variable para controlar el tiempo de recarga ---
+    public float reloadTime = 2.0f;
+    // -----------------------------------------------------------
+
     public bool flipSpriteBasedOnDirection = true;
 
     // Dirección actual (1 = derecha, -1 = izquierda)
@@ -77,9 +82,7 @@ public class PlayerShooting : MonoBehaviour
     private bool isReloading = false;
     private bool isShowingShootingSprite = false;
 
-    // --- NUEVO: Referencia a la Veteranía ---
     private UnitVeterancy myVeterancy;
-    // ---------------------------------------
 
     public void SetForcedTarget(Transform target)
     {
@@ -122,9 +125,7 @@ public class PlayerShooting : MonoBehaviour
         currentAmmo = maxAmmo;
         mainCam = Camera.main;
 
-        // --- NUEVO: Obtener componente de veteranía ---
         myVeterancy = GetComponent<UnitVeterancy>();
-        // ---------------------------------------------
 
         if (weaponPoint == null)
         {
@@ -349,18 +350,43 @@ public class PlayerShooting : MonoBehaviour
     IEnumerator ShowReloadingSprite()
     {
         isReloading = true;
-        if (spriteChangeCoroutine != null)
-            StopCoroutine(spriteChangeCoroutine);
 
-        soldierSpriteRenderer.sprite = GetSpriteForCurrentState();
-        yield return new WaitForSeconds(1.5f);
+        // Detenemos animaciones de apuntado si las hubiera
+        if (spriteChangeCoroutine != null) StopCoroutine(spriteChangeCoroutine);
+
+        float timer = 0f;
+
+        while (timer < reloadTime)
+        {
+            // 1. Permitimos que el soldado se gire mientras recarga
+            if (autoAimEnabled || forcedTarget != null)
+            {
+                if (currentTarget != null) UpdateDirectionToTarget();
+            }
+            else
+            {
+                UpdateDirectionToMouse();
+            }
+
+            // 2. FORZAMOS el sprite de recarga según la dirección actual
+            // Esto asegura que si te giras, el sprite cambia al lado correcto
+            // y evita que se ponga el Idle por error.
+            if (currentDirection > 0)
+                soldierSpriteRenderer.sprite = reloadingSpriteRight;
+            else
+                soldierSpriteRenderer.sprite = reloadingSpriteLeft;
+
+            // 3. Contamos el tiempo
+            timer += Time.deltaTime;
+            yield return null; // Esperamos al siguiente frame
+        }
+
         isReloading = false;
 
+        // Al terminar, decidimos qué sprite poner (Apuntar o Idle)
         if (isAiming)
         {
-            soldierSpriteRenderer.sprite = GetSpriteForCurrentState();
-            if (spriteChangeCoroutine != null)
-                StopCoroutine(spriteChangeCoroutine);
+            if (spriteChangeCoroutine != null) StopCoroutine(spriteChangeCoroutine);
             spriteChangeCoroutine = StartCoroutine(ShowAimingSprite());
         }
         else
@@ -418,7 +444,17 @@ public class PlayerShooting : MonoBehaviour
 
     void HandleShooting()
     {
+        // Si ya está recargando, no hace nada (sale de la función)
         if (isReloading || isShowingShootingSprite) return;
+
+        // --- CAMBIO: RECARGA AUTOMÁTICA ---
+        // Si no tenemos balas, iniciamos la recarga inmediatamente y salimos
+        if (currentAmmo <= 0)
+        {
+            StartCoroutine(Reload());
+            return;
+        }
+        // ----------------------------------
 
         if (autoAimEnabled || forcedTarget != null)
         {
@@ -460,7 +496,8 @@ public class PlayerShooting : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && !isReloading)
+        // Recarga Manual con R
+        if (Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < maxAmmo)
         {
             StartCoroutine(Reload());
         }
@@ -468,9 +505,13 @@ public class PlayerShooting : MonoBehaviour
 
     IEnumerator Reload()
     {
+        // Esta corrutina llama a ShowReloadingSprite, que es quien contiene la espera
         yield return StartCoroutine(ShowReloadingSprite());
+
+        // Cuando termine la espera de ShowReloadingSprite, rellenamos balas
         currentAmmo = maxAmmo;
         UpdateUI();
+        Debug.Log("¡Recarga completada!");
     }
 
     void PerformShoot(Vector3 targetPosition, bool playSound = true)
@@ -501,16 +542,13 @@ public class PlayerShooting : MonoBehaviour
             b.damage = bulletDamage;
             b.speed = bulletSpeed;
 
-            // --- NUEVO: ASIGNAR DUEÑO (VETERANÍA) ---
             if (myVeterancy != null)
             {
                 b.ownerVeterancy = myVeterancy;
             }
-            // ----------------------------------------
         }
         else
         {
-            // Fallback para físicas simples si el prefab no tiene script Bullet
             Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
@@ -592,7 +630,7 @@ public class PlayerShooting : MonoBehaviour
                 // Raycast para verificar visión
                 // NOTA: Asegúrate de tener la LAYER 'Obstacle' creada o esto podría fallar si el nombre no existe
                 int layerMask = enemyLayerMask | (1 << LayerMask.NameToLayer("Obstacle"));
-                
+
                 RaycastHit2D hit = Physics2D.Raycast(
                     transform.position,
                     enemyCollider.transform.position - transform.position,

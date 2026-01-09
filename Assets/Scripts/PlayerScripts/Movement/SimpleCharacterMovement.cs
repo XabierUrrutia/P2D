@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class SimpleCharacterMovement : MonoBehaviour
+[RequireComponent(typeof(SelectableUnit))] // Obliga a tener el componente visual
+public class SimpleCharacterMovement : MonoBehaviour, ISelectableUnit
 {
     [Header("Movimiento Básico")]
     public float velocidad = 4f;
@@ -17,19 +18,16 @@ public class SimpleCharacterMovement : MonoBehaviour
     public LayerMask capaAgua;
     public LayerMask capaWaypointPuente;
 
-    [Header("Sprites - 8 direcciones (2 frames + idle)")]
+    [Header("Sprites - 8 direcciones")]
     public Sprite frenteDerecha_L;
     public Sprite frenteDerecha_R;
     public Sprite frenteDerecha_Idle;
-
     public Sprite frenteIzquierda_L;
     public Sprite frenteIzquierda_R;
     public Sprite frenteIzquierda_Idle;
-
     public Sprite atrasDerecha_L;
     public Sprite atrasDerecha_R;
     public Sprite atrasDerecha_Idle;
-
     public Sprite atrasIzquierda_L;
     public Sprite atrasIzquierda_R;
     public Sprite atrasIzquierda_Idle;
@@ -37,8 +35,11 @@ public class SimpleCharacterMovement : MonoBehaviour
     [Header("Marcador de Click")]
     public GameObject prefabMarcadorClick;
 
-    [Header("Selección")]
-    public GameObject indicadorSeleccion;
+    // YA NO USAMOS ESTO MANUALMENTE (Lo gestiona SelectableUnit)
+    // public GameObject indicadorSeleccion; 
+
+    // Referencia al componente unificador
+    private SelectableUnit selectableUnitComponent;
 
     // Variables internas
     private Vector3 objetivo;
@@ -53,7 +54,7 @@ public class SimpleCharacterMovement : MonoBehaviour
     private bool alternarAnim = false;
     private Vector2 ultimaDireccion = new Vector2(1, -1);
 
-    // Selección - IMPORTANTE: Inicialmente NO seleccionado
+    // Estado Selección
     private bool estaSeleccionado = false;
 
     void Start()
@@ -62,22 +63,43 @@ public class SimpleCharacterMovement : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         objetivo = transform.position;
 
-        ActualizarSprite(ultimaDireccion, false, true);
+        // Obtenemos el componente que controla la flecha y el HUD
+        selectableUnitComponent = GetComponent<SelectableUnit>();
 
-        // Ocultar indicador de selección al inicio
-        if (indicadorSeleccion != null)
-            indicadorSeleccion.SetActive(false);
+        ActualizarSprite(ultimaDireccion, false, true);
     }
 
     void Update()
     {
-        // ELIMINADO: Ya no procesa input directamente
         Mover();
         ActualizarCooldown();
         ActualizarAnimacion();
     }
 
-    // Método público para mover la unidad desde el SelectionManager
+    // --- INTERFAZ ISelectableUnit (La clave para que funcione el Manager) ---
+
+    public void Seleccionar()
+    {
+        estaSeleccionado = true;
+        // Delegamos lo visual al componente SelectableUnit
+        if (selectableUnitComponent != null)
+            selectableUnitComponent.ShowSelection(true);
+
+        Debug.Log($"{name} seleccionado");
+    }
+
+    public void Deseleccionar()
+    {
+        estaSeleccionado = false;
+        // Delegamos lo visual al componente SelectableUnit
+        if (selectableUnitComponent != null)
+            selectableUnitComponent.ShowSelection(false);
+
+        Debug.Log($"{name} deseleccionado");
+    }
+
+    // --- MOVIMIENTO ---
+
     public void MoverADestino(Vector3 destino)
     {
         if (puedeClickar && estaSeleccionado)
@@ -90,7 +112,6 @@ public class SimpleCharacterMovement : MonoBehaviour
                 ConfigurarCooldown();
                 CalcularRutaInteligente(transform.position, posicionRaton);
 
-                // Crear marcador en el destino específico de esta unidad
                 if (prefabMarcadorClick != null)
                 {
                     GameObject marcador = Instantiate(prefabMarcadorClick, posicionRaton, Quaternion.identity);
@@ -100,26 +121,7 @@ public class SimpleCharacterMovement : MonoBehaviour
         }
     }
 
-    // Métodos para manejar selección
-    public void Seleccionar()
-    {
-        estaSeleccionado = true;
-        if (indicadorSeleccion != null)
-            indicadorSeleccion.SetActive(true);
-
-        Debug.Log($"{name} seleccionado");
-    }
-
-    public void Deseleccionar()
-    {
-        estaSeleccionado = false;
-        if (indicadorSeleccion != null)
-            indicadorSeleccion.SetActive(false);
-
-        Debug.Log($"{name} deseleccionado");
-    }
-
-    // El resto del código se mantiene igual...
+    // (El resto de tu lógica de movimiento se mantiene igual)
     void CalcularRutaInteligente(Vector3 inicio, Vector3 destino)
     {
         puntosCamino.Clear();

@@ -9,15 +9,21 @@ public class SelectableUnit : MonoBehaviour
 
     private GameObject arrowInstance;
     private SoldierTooltipTarget tooltipTarget;
+
+    // Ahora esta variable puede estar vacía sin dar error
     private UnitVeterancy myVeterancy;
 
     void Awake()
     {
         myVeterancy = GetComponent<UnitVeterancy>();
 
-        // --- DIAGNÓSTICO INICIAL ---
-        if (myVeterancy == null) Debug.LogError($"[ERROR] Al soldado '{name}' le falta el script 'UnitVeterancy'. El HUD no funcionará.");
-        // ---------------------------
+        // --- CAMBIO: Ya no lanzamos error si falta la veterancia ---
+        if (myVeterancy == null)
+        {
+            // Opcional: Solo un aviso suave o nada.
+            // Debug.Log($"La unidad '{name}' no tiene sistema de Veterancia (Es normal para Tanques/Vehículos).");
+        }
+        // -----------------------------------------------------------
 
         if (isPlayerUnit)
         {
@@ -42,34 +48,30 @@ public class SelectableUnit : MonoBehaviour
 
     public void ShowSelection(bool show)
     {
-        Debug.Log($"[SelectableUnit] ShowSelection llamado con valor: {show} en {name}");
-
+        // 1. Mostrar/Ocultar flecha
         if (isPlayerUnit && arrowInstance != null) arrowInstance.SetActive(show);
+
+        // 2. Mostrar Tooltip si existe
         if (tooltipTarget != null) tooltipTarget.ShowInfo(show);
 
+        // 3. COMUNICACIÓN CON EL HUD (Protegida)
         if (show)
         {
             if (UnitHUDManager.Instance != null)
             {
-                Debug.Log("[SelectableUnit] Enviando datos al HUD Manager...");
-                UnitHUDManager.Instance.SeleccionarUnidad(myVeterancy);
-            }
-            else
-            {
-                Debug.LogError("[ERROR] No se encuentra 'UnitHUDManager'. ¿Está creado en la escena?");
+                // CAMBIO: Solo llamamos al HUD si tenemos datos de veterancia que mostrar
+                if (myVeterancy != null)
+                {
+                    UnitHUDManager.Instance.SeleccionarUnidad(myVeterancy);
+                }
+                else
+                {
+                    // Si es un tanque sin veterancia, decidimos si limpiar el HUD o no hacer nada
+                    // De momento no hacemos nada para que no pete.
+                }
             }
         }
     }
-
-    // --- IMPORTANTE: ¿QUIÉN LLAMA A SHOWSELECTION? ---
-    // Si no tienes otro script (como un SelectionManager) que llame a ShowSelection,
-    // necesitas detectar el clic aquí mismo. Descomenta esto si no tienes sistema de selección:
-    /*
-    void OnMouseDown()
-    {
-        ShowSelection(true);
-    }
-    */
 
     void OnDestroy()
     {

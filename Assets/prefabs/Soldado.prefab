@@ -260,7 +260,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &3262332466590746095
 RectTransform:
   m_ObjectHideFlags: 0
@@ -270,7 +270,7 @@ RectTransform:
   m_GameObject: {fileID: 2671585206566550457}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.8504692, y: 0.8504692, z: 0.8504692}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1365523135289775695}
@@ -280,8 +280,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 119}
-  m_SizeDelta: {x: -1593.5468, y: -904.5768}
+  m_AnchoredPosition: {x: -59.975708, y: 145.66486}
+  m_SizeDelta: {x: -1734.588, y: -841.8705}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4356189115833955695
 CanvasRenderer:
@@ -445,7 +445,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -3.3196, y: -53}
+  m_AnchoredPosition: {x: 55.4, y: -55.8}
   m_SizeDelta: {x: 259.7526, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3936640082001803916
@@ -895,7 +895,6 @@ MonoBehaviour:
   atrasIzquierda_R: {fileID: 1471641444, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   atrasIzquierda_Idle: {fileID: 1471641444, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   prefabMarcadorClick: {fileID: 3122627236748015639, guid: c917403c9642cfb489362c271e9600d3, type: 3}
-  indicadorSeleccion: {fileID: 0}
 --- !u!212 &1337135939285130247
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -990,11 +989,13 @@ MonoBehaviour:
   aimingSpriteLeft: {fileID: 267753439, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   shootingSpriteLeft: {fileID: -1897796383, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   reloadingSpriteLeft: {fileID: 557182795, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  soldierSpriteRenderer: {fileID: 0}
+  soldierSpriteRenderer: {fileID: 1337135939285130247}
   shootingSpriteDuration: 0.3
   aimingSpriteDuration: 0.2
   shootingDelay: 0.1
+  reloadTime: 2
   flipSpriteBasedOnDirection: 1
+  currentAmmo: 0
 --- !u!114 &9170590893412081567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1055,7 +1056,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPlayerUnit: 1
   arrowPrefab: {fileID: 4213472074308672191, guid: 5999944d52fa9254aab796a5ad316501, type: 3}
-  arrowLocalOffset: {x: 0, y: 0, z: 0}
+  arrowLocalOffset: {x: 0, y: 0.5, z: 0}
 --- !u!114 &9020389207722166144
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1068,6 +1069,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46bf1eb43b8f348429e63e8282b31896, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  costeBase: 5
+  costePorNivel: 2
+  divisorDeCoste: 4
   retratoCara: {fileID: 21300000, guid: 02cf8883b6861d245bf6f3065e230fed, type: 3}
   nivel: 1
   xpActual: 0
@@ -1382,7 +1386,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -3.3196, y: 6}
+  m_AnchoredPosition: {x: 55.399998, y: 6}
   m_SizeDelta: {x: 259.7526, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1571162735662625251
