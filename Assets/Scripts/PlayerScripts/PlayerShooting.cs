@@ -50,15 +50,20 @@ public class PlayerShooting : MonoBehaviour
 
     [Header("Animation Timing")]
     public SpriteRenderer soldierSpriteRenderer;
-    public float shootingSpriteDuration = 0.3f; // Aumentado
+    public float shootingSpriteDuration = 0.3f;
     public float aimingSpriteDuration = 0.2f;
-    public float shootingDelay = 0.1f; // Retraso entre mostrar sprite y disparar
+    public float shootingDelay = 0.1f;
+
+    // --- CAMBIO: Variable para controlar el tiempo de recarga ---
+    public float reloadTime = 2.0f;
+    // -----------------------------------------------------------
+
     public bool flipSpriteBasedOnDirection = true;
 
     // Dirección actual (1 = derecha, -1 = izquierda)
     private int currentDirection = 1;
 
-    private int currentAmmo;
+    public int currentAmmo;
     private float nextFireTime;
     private Transform currentTarget;
     private Camera mainCam;
@@ -77,7 +82,8 @@ public class PlayerShooting : MonoBehaviour
     private bool isReloading = false;
     private bool isShowingShootingSprite = false;
 
-    // PUBLIC API: permite que manager force um inimigo como alvo
+    private UnitVeterancy myVeterancy;
+
     public void SetForcedTarget(Transform target)
     {
         forcedTarget = target;
@@ -119,6 +125,8 @@ public class PlayerShooting : MonoBehaviour
         currentAmmo = maxAmmo;
         mainCam = Camera.main;
 
+        myVeterancy = GetComponent<UnitVeterancy>();
+
         if (weaponPoint == null)
         {
             CreateWeaponPoint();
@@ -133,7 +141,7 @@ public class PlayerShooting : MonoBehaviour
             }
         }
 
-        // Establecer sprite inicial (derecha por defecto)
+        // Establecer sprite inicial
         if (soldierSpriteRenderer != null && idleSpriteRight != null)
         {
             soldierSpriteRenderer.sprite = idleSpriteRight;
@@ -216,14 +224,8 @@ public class PlayerShooting : MonoBehaviour
         }
         else
         {
-            if (direction.x < 0)
-            {
-                currentDirection = -1;
-            }
-            else
-            {
-                currentDirection = 1;
-            }
+            if (direction.x < 0) currentDirection = -1;
+            else currentDirection = 1;
         }
     }
 
@@ -250,14 +252,8 @@ public class PlayerShooting : MonoBehaviour
         }
         else
         {
-            if (direction.x < 0)
-            {
-                currentDirection = -1;
-            }
-            else
-            {
-                currentDirection = 1;
-            }
+            if (direction.x < 0) currentDirection = -1;
+            else currentDirection = 1;
         }
     }
 
@@ -316,7 +312,6 @@ public class PlayerShooting : MonoBehaviour
     {
         soldierSpriteRenderer.sprite = GetSpriteForCurrentState();
 
-        // Mantener el sprite de apuntar mientras se esté apuntando
         while (isAiming && !isShowingShootingSprite && !isReloading)
         {
             soldierSpriteRenderer.sprite = GetSpriteForCurrentState();
@@ -327,22 +322,14 @@ public class PlayerShooting : MonoBehaviour
     IEnumerator ShootingAnimation(Vector3 targetPosition, bool playSound = true)
     {
         isShowingShootingSprite = true;
-
-        // Mostrar sprite de disparo
         soldierSpriteRenderer.sprite = GetShootingSprite();
-
-        // Esperar un poco antes de disparar (para que se vea la animación)
         yield return new WaitForSeconds(shootingDelay);
 
-        // Realizar el disparo
         PerformShoot(targetPosition, playSound);
 
-        // Mantener el sprite de disparo un tiempo
         yield return new WaitForSeconds(shootingSpriteDuration - shootingDelay);
-
         isShowingShootingSprite = false;
 
-        // Volver al sprite correspondiente
         if (isReloading)
         {
             soldierSpriteRenderer.sprite = GetSpriteForCurrentState();
@@ -364,22 +351,42 @@ public class PlayerShooting : MonoBehaviour
     {
         isReloading = true;
 
-        if (spriteChangeCoroutine != null)
-            StopCoroutine(spriteChangeCoroutine);
+        // Detenemos animaciones de apuntado si las hubiera
+        if (spriteChangeCoroutine != null) StopCoroutine(spriteChangeCoroutine);
 
-        soldierSpriteRenderer.sprite = GetSpriteForCurrentState();
+        float timer = 0f;
 
-        // Simular tiempo de recarga
-        yield return new WaitForSeconds(1.5f);
+        while (timer < reloadTime)
+        {
+            // 1. Permitimos que el soldado se gire mientras recarga
+            if (autoAimEnabled || forcedTarget != null)
+            {
+                if (currentTarget != null) UpdateDirectionToTarget();
+            }
+            else
+            {
+                UpdateDirectionToMouse();
+            }
+
+            // 2. FORZAMOS el sprite de recarga según la dirección actual
+            // Esto asegura que si te giras, el sprite cambia al lado correcto
+            // y evita que se ponga el Idle por error.
+            if (currentDirection > 0)
+                soldierSpriteRenderer.sprite = reloadingSpriteRight;
+            else
+                soldierSpriteRenderer.sprite = reloadingSpriteLeft;
+
+            // 3. Contamos el tiempo
+            timer += Time.deltaTime;
+            yield return null; // Esperamos al siguiente frame
+        }
 
         isReloading = false;
 
-        // Después de recargar, volver al sprite correspondiente
+        // Al terminar, decidimos qué sprite poner (Apuntar o Idle)
         if (isAiming)
         {
-            soldierSpriteRenderer.sprite = GetSpriteForCurrentState();
-            if (spriteChangeCoroutine != null)
-                StopCoroutine(spriteChangeCoroutine);
+            if (spriteChangeCoroutine != null) StopCoroutine(spriteChangeCoroutine);
             spriteChangeCoroutine = StartCoroutine(ShowAimingSprite());
         }
         else
@@ -425,13 +432,11 @@ public class PlayerShooting : MonoBehaviour
     void DrawCircle(LineRenderer lineRenderer, float radius, int segments)
     {
         lineRenderer.positionCount = segments + 1;
-
         float angle = 0f;
         for (int i = 0; i < segments + 1; i++)
         {
             float x = Mathf.Sin(Mathf.Deg2Rad * angle) * radius;
             float y = Mathf.Cos(Mathf.Deg2Rad * angle) * radius;
-
             lineRenderer.SetPosition(i, new Vector3(x, y, 0));
             angle += 360f / segments;
         }
@@ -439,23 +444,30 @@ public class PlayerShooting : MonoBehaviour
 
     void HandleShooting()
     {
+        // Si ya está recargando, no hace nada (sale de la función)
         if (isReloading || isShowingShootingSprite) return;
+
+        // --- CAMBIO: RECARGA AUTOMÁTICA ---
+        // Si no tenemos balas, iniciamos la recarga inmediatamente y salimos
+        if (currentAmmo <= 0)
+        {
+            StartCoroutine(Reload());
+            return;
+        }
+        // ----------------------------------
 
         if (autoAimEnabled || forcedTarget != null)
         {
             if (currentTarget != null && Time.time >= nextFireTime && currentAmmo > 0 && !isBurstFiring)
             {
                 UpdateDirectionToTarget();
-
                 if (burstMode)
                 {
                     StartCoroutine(BurstFire(currentTarget.position));
                 }
                 else
                 {
-                    if (shootingCoroutine != null)
-                        StopCoroutine(shootingCoroutine);
-
+                    if (shootingCoroutine != null) StopCoroutine(shootingCoroutine);
                     shootingCoroutine = StartCoroutine(ShootingAnimation(currentTarget.position));
                     nextFireTime = Time.time + fireRate;
                 }
@@ -467,13 +479,9 @@ public class PlayerShooting : MonoBehaviour
             {
                 Vector3 mouseWorld = mainCam.ScreenToWorldPoint(Input.mousePosition);
                 mouseWorld.z = 0;
-
                 UpdateDirectionToMouse();
 
-                if (!isAiming)
-                {
-                    StartAiming();
-                }
+                if (!isAiming) StartAiming();
 
                 if (burstMode)
                 {
@@ -481,16 +489,15 @@ public class PlayerShooting : MonoBehaviour
                 }
                 else
                 {
-                    if (shootingCoroutine != null)
-                        StopCoroutine(shootingCoroutine);
-
+                    if (shootingCoroutine != null) StopCoroutine(shootingCoroutine);
                     shootingCoroutine = StartCoroutine(ShootingAnimation(mouseWorld));
                     nextFireTime = Time.time + fireRate;
                 }
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && !isReloading)
+        // Recarga Manual con R
+        if (Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < maxAmmo)
         {
             StartCoroutine(Reload());
         }
@@ -498,9 +505,13 @@ public class PlayerShooting : MonoBehaviour
 
     IEnumerator Reload()
     {
+        // Esta corrutina llama a ShowReloadingSprite, que es quien contiene la espera
         yield return StartCoroutine(ShowReloadingSprite());
+
+        // Cuando termine la espera de ShowReloadingSprite, rellenamos balas
         currentAmmo = maxAmmo;
         UpdateUI();
+        Debug.Log("¡Recarga completada!");
     }
 
     void PerformShoot(Vector3 targetPosition, bool playSound = true)
@@ -530,6 +541,11 @@ public class PlayerShooting : MonoBehaviour
             b.isEnemyBullet = false;
             b.damage = bulletDamage;
             b.speed = bulletSpeed;
+
+            if (myVeterancy != null)
+            {
+                b.ownerVeterancy = myVeterancy;
+            }
         }
         else
         {
@@ -555,14 +571,11 @@ public class PlayerShooting : MonoBehaviour
     IEnumerator BurstFire(Vector3 targetPosition)
     {
         isBurstFiring = true;
-
         int shotsFired = 0;
         while (shotsFired < burstCount && currentAmmo > 0)
         {
             bool playSound = (shotsFired == 0);
-
-            if (shootingCoroutine != null)
-                StopCoroutine(shootingCoroutine);
+            if (shootingCoroutine != null) StopCoroutine(shootingCoroutine);
 
             shootingCoroutine = StartCoroutine(ShootingAnimation(targetPosition, playSound));
             shotsFired++;
@@ -572,7 +585,6 @@ public class PlayerShooting : MonoBehaviour
                 yield return new WaitForSeconds(burstDelay + shootingSpriteDuration);
             }
         }
-
         isBurstFiring = false;
         nextFireTime = Time.time + fireRate;
     }
@@ -608,7 +620,6 @@ public class PlayerShooting : MonoBehaviour
     void FindNearestEnemy()
     {
         Collider2D[] enemiesInRange = Physics2D.OverlapCircleAll(transform.position, detectionRange, enemyLayerMask);
-
         Transform nearestEnemy = null;
         float nearestDistance = Mathf.Infinity;
 
@@ -616,11 +627,15 @@ public class PlayerShooting : MonoBehaviour
         {
             if (enemyCollider.CompareTag("Enemy"))
             {
+                // Raycast para verificar visión
+                // NOTA: Asegúrate de tener la LAYER 'Obstacle' creada o esto podría fallar si el nombre no existe
+                int layerMask = enemyLayerMask | (1 << LayerMask.NameToLayer("Obstacle"));
+
                 RaycastHit2D hit = Physics2D.Raycast(
                     transform.position,
                     enemyCollider.transform.position - transform.position,
                     detectionRange,
-                    enemyLayerMask | (1 << LayerMask.NameToLayer("Obstacle"))
+                    layerMask
                 );
 
                 if (hit.collider != null && hit.collider.CompareTag("Enemy"))
@@ -651,18 +666,15 @@ public class PlayerShooting : MonoBehaviour
     void ToggleAutoAim()
     {
         autoAimEnabled = !autoAimEnabled;
-
         if (autoAimEnabled)
         {
-            if (aimCoroutine != null)
-                StopCoroutine(aimCoroutine);
+            if (aimCoroutine != null) StopCoroutine(aimCoroutine);
             aimCoroutine = StartCoroutine(UpdateAimTarget());
             Debug.Log("Auto-aim ACTIVADO");
         }
         else
         {
-            if (aimCoroutine != null)
-                StopCoroutine(aimCoroutine);
+            if (aimCoroutine != null) StopCoroutine(aimCoroutine);
             currentTarget = null;
             if (targetLine != null) targetLine.enabled = false;
             StopAiming();
@@ -672,10 +684,8 @@ public class PlayerShooting : MonoBehaviour
 
     void UpdateUI()
     {
-        if (ammoText != null)
-            ammoText.text = $"{currentAmmo}/{maxAmmo}";
-        if (weaponNameText != null)
-            weaponNameText.text = weaponName;
+        if (ammoText != null) ammoText.text = $"{currentAmmo}/{maxAmmo}";
+        if (weaponNameText != null) weaponNameText.text = weaponName;
     }
 
     void OnDrawGizmosSelected()
@@ -698,11 +708,8 @@ public class PlayerShooting : MonoBehaviour
 
     void OnDestroy()
     {
-        if (aimCoroutine != null)
-            StopCoroutine(aimCoroutine);
-        if (spriteChangeCoroutine != null)
-            StopCoroutine(spriteChangeCoroutine);
-        if (shootingCoroutine != null)
-            StopCoroutine(shootingCoroutine);
+        if (aimCoroutine != null) StopCoroutine(aimCoroutine);
+        if (spriteChangeCoroutine != null) StopCoroutine(spriteChangeCoroutine);
+        if (shootingCoroutine != null) StopCoroutine(shootingCoroutine);
     }
 }

@@ -6,8 +6,15 @@ public class Bullet : MonoBehaviour
     public int damage = 1;
     public Rigidbody2D rb;
 
-    // Nova flag para identificar origem da bala
+    // Flag para identificar origen da bala
     public bool isEnemyBullet = false;
+
+    // --- NUEVO: VETERANÍA ---
+    // Referencia al soldado que disparó esta bala
+    [HideInInspector] public UnitVeterancy ownerVeterancy;
+    // Cuánta XP da por golpear (puedes ajustar esto)
+    public int xpPorGolpe = 10;
+    // ------------------------
 
     private Vector2 direction;
 
@@ -27,8 +34,8 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D hit)
     {
-        // DEBUG: Ver información de la colisión
-        Debug.Log($"[Bullet] Colisión con: {hit.name}, Tag: {hit.tag}, Layer: {LayerMask.LayerToName(hit.gameObject.layer)}");
+        // DEBUG: Ver información de la colisión (Útil si sigue fallando algo)
+        // Debug.Log($"[Bullet] Colisión con: {hit.name}, Tag: {hit.tag}");
 
         // 1. BALA DEL JUGADOR - Golpea enemigos
         if (hit.CompareTag("Enemy") && !isEnemyBullet)
@@ -43,26 +50,37 @@ public class Bullet : MonoBehaviour
             if (classicEnemy == null && hit.transform.parent != null)
                 classicEnemy = hit.transform.parent.GetComponent<EnemyHealth>();
 
+            bool huboImpacto = false;
+
             if (tutorialEnemy != null)
             {
-                Debug.Log($"[Bullet] Atingiu inimigo '{hit.name}' (TutorialEnemyHealth) e causou {damage} de dano");
+                // Debug.Log($"[Bullet] Atingiu inimigo '{hit.name}' (TutorialEnemyHealth)");
                 tutorialEnemy.TakeDamage(damage);
+                huboImpacto = true;
             }
             else if (classicEnemy != null)
             {
-                Debug.Log($"[Bullet] Atingiu inimigo '{hit.name}' (EnemyHealth) e causou {damage} de dano");
+                // Debug.Log($"[Bullet] Atingiu inimigo '{hit.name}' (EnemyHealth)");
                 classicEnemy.TakeDamage(damage);
+                huboImpacto = true;
             }
             else
             {
-                Debug.LogWarning($"[Bullet] '{hit.name}' não tem script de vida reconhecido!");
+                Debug.LogWarning($"[Bullet] '{hit.name}' no tiene script de vida reconocido!");
             }
+
+            // --- NUEVO: DAR EXPERIENCIA AL TIRADOR ---
+            if (huboImpacto && ownerVeterancy != null)
+            {
+                ownerVeterancy.GanarXP(xpPorGolpe);
+            }
+            // ----------------------------------------
 
             Destroy(gameObject);
             return;
         }
 
-        // 2. BALA ENEMIGA - Golpea jugadores, generales y base (todos con IHealth)
+        // 2. BALA ENEMIGA - Golpea jugadores, generales y base
         if ((hit.CompareTag("Player") || hit.CompareTag("General") || hit.CompareTag("PlayerBase")) && isEnemyBullet)
         {
             // ESTRATEGIA 1: Buscar IHealth directamente
@@ -78,31 +96,19 @@ public class Bullet : MonoBehaviour
             if (health == null)
             {
                 PlayerHealth playerHealth = hit.GetComponent<PlayerHealth>();
-                if (playerHealth != null)
-                {
-                    health = playerHealth as IHealth;
-                    Debug.Log($"[Bullet] Encontrado PlayerHealth en {hit.name}");
-                }
+                if (playerHealth != null) health = playerHealth as IHealth;
             }
 
             if (health == null)
             {
                 GeneralHealth generalHealth = hit.GetComponent<GeneralHealth>();
-                if (generalHealth != null)
-                {
-                    health = generalHealth as IHealth;
-                    Debug.Log($"[Bullet] Encontrado GeneralHealth en {hit.name}");
-                }
+                if (generalHealth != null) health = generalHealth as IHealth;
             }
 
             if (health == null)
             {
                 PlayerBase playerBase = hit.GetComponent<PlayerBase>();
-                if (playerBase != null)
-                {
-                    health = playerBase as IHealth;
-                    Debug.Log($"[Bullet] Encontrado PlayerBase (IHealth) en {hit.name}");
-                }
+                if (playerBase != null) health = playerBase as IHealth;
             }
 
             // Aplicar daño si encontramos IHealth
@@ -111,13 +117,7 @@ public class Bullet : MonoBehaviour
                 if (!health.IsDead)
                 {
                     health.TakeDamage(damage);
-                    Debug.Log($"[Bullet] Atingiu {hit.name} (IHealth) causou {damage} de dano. Vida: {health.GetCurrentHealth()}/{health.GetMaxHealth()}");
                 }
-                else
-                {
-                    Debug.Log($"[Bullet] {hit.name} já está morto, ignorando");
-                }
-
                 Destroy(gameObject);
                 return;
             }
@@ -128,31 +128,46 @@ public class Bullet : MonoBehaviour
                 if (baseComp != null)
                 {
                     baseComp.TakeDamage(damage);
-                    Debug.Log($"[Bullet] Atingiu PlayerBase (legado) {hit.name} causou {damage} de dano");
                     Destroy(gameObject);
                     return;
                 }
             }
 
-            // Si llegamos aquí y es un jugador/general/base pero no tiene IHealth, mostrar advertencia
+            // Si llegamos aquí y es un jugador/general/base pero no tiene IHealth
             if (hit.CompareTag("Player") || hit.CompareTag("General") || hit.CompareTag("PlayerBase"))
             {
-                Debug.LogWarning($"[Bullet] Objeto {hit.name} tiene tag Player/General/PlayerBase pero no tiene IHealth ni PlayerBase");
+                Debug.LogWarning($"[Bullet] Objeto {hit.name} tiene tag Player/General pero no tiene script de vida.");
             }
         }
 
-        // 3. DESTRUIR BALA CON OBSTÁCULOS
-        if (hit.CompareTag("Obstacle") || hit.CompareTag("Wall") || hit.CompareTag("Terrain"))
+        // 3. DESTRUIR BALA CON OBSTÁCULOS (CORREGIDO EL ERROR DE TAGS)
+        // NOTA: Asegúrate de crear los Tags "Obstacle", "Wall" y "Terrain" en Unity para que esto funcione.
+        // Si Unity no encuentra el tag, dará error. Para evitar el error si te olvidas el tag, usamos try-catch o verificamos.
+        // Pero lo más limpio es simplemente tener los Tags creados.
+        try
         {
-            Destroy(gameObject);
-            return;
+            if (hit.CompareTag("Obstacle") || hit.CompareTag("Wall") || hit.CompareTag("Terrain"))
+            {
+                Destroy(gameObject);
+                return;
+            }
+        }
+        catch (System.Exception)
+        {
+            // Si entra aquí es porque olvidaste crear el Tag en el editor
+            // Debug.LogError("¡Falta un TAG en el Editor! Crea Obstacle, Wall y Terrain.");
+            // Destruimos la bala por seguridad si choca con algo "Untagged" que sea capa obstáculo
+            if (hit.gameObject.layer == LayerMask.NameToLayer("Obstacle"))
+            {
+                Destroy(gameObject);
+                return;
+            }
         }
 
         // 4. EVITAR COLISIONES CON EL PROPIO EQUIPO
         if ((hit.CompareTag("Enemy") && isEnemyBullet) ||
             ((hit.CompareTag("Player") || hit.CompareTag("General") || hit.CompareTag("PlayerBase")) && !isEnemyBullet))
         {
-            // No hacer nada - evita dañar aliados
             return;
         }
     }

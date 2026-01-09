@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System.Linq; // Necesario para funciones de lista (Any, etc)
 
 public class UnitSelectionManager : MonoBehaviour
 {
@@ -12,15 +13,18 @@ public class UnitSelectionManager : MonoBehaviour
     public bool usarFormacionCircular = true;
 
     [Header("Tweaks de Audio")]
-    [Tooltip("Tempo mínimo entre sons de movimento (em segundos).")]
+    [Tooltip("Tiempo mínimo entre sonidos de movimiento.")]
     public float intervaloMinSomMovimiento = 0.15f;
     private float ultimoSomMovimientoTime = -999f;
 
+    // Variables internas
     private Vector3 inicioArrastre;
     private Vector3 finArrastre;
     private bool arrastrando = false;
     private Camera cam;
-    private List<SimpleCharacterMovement> unidadesSeleccionadas = new List<SimpleCharacterMovement>();
+
+    // Usamos la Interfaz para guardar tanto Tanques como Soldados
+    private List<ISelectableUnit> unidadesSeleccionadas = new List<ISelectableUnit>();
 
     private SpriteRenderer spriteRenderer;
     private GameObject cuadroObj;
@@ -29,6 +33,7 @@ public class UnitSelectionManager : MonoBehaviour
     {
         cam = Camera.main;
 
+        // Crear cuadro visual
         cuadroObj = new GameObject("CuadroSeleccion");
         spriteRenderer = cuadroObj.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = spriteCuadroSeleccion;
@@ -43,8 +48,12 @@ public class UnitSelectionManager : MonoBehaviour
         ProcesarMovimiento();
     }
 
+    // ---------------------------------------------------------
+    // CLICK IZQUIERDO (Seleccionar)
+    // ---------------------------------------------------------
     void ProcesarSeleccion()
     {
+        // 1. Click Abajo
         if (Input.GetMouseButtonDown(0))
         {
             inicioArrastre = Input.mousePosition;
@@ -59,9 +68,12 @@ public class UnitSelectionManager : MonoBehaviour
 
             if (hit.collider != null)
             {
-                SimpleCharacterMovement unidad = hit.collider.GetComponent<SimpleCharacterMovement>();
+                // Buscamos el componente INTERFAZ
+                ISelectableUnit unidad = hit.collider.GetComponent<ISelectableUnit>();
+
                 if (unidad != null)
                 {
+                    // Si no pulsamos Shift, limpiamos la selección anterior
                     if (!Input.GetKey(KeyCode.LeftShift))
                     {
                         DeseleccionarTodas();
@@ -70,52 +82,53 @@ public class UnitSelectionManager : MonoBehaviour
                     bool eraNueva = !unidadesSeleccionadas.Contains(unidad);
                     SeleccionarUnidad(unidad);
 
-                    // 🔊 Som de seleção (clique simples) – só se for nova
-                    if (eraNueva)
-                    {
-                        PlaySelectionSoundFor(unidad);
-                    }
-
-                    // Actualiza indicadores (seta) conforme nova selecção
-                    UpdateSelectionIndicators();
+                    if (eraNueva) PlaySelectionSoundFor(unidad);
                 }
             }
             else
             {
+                // Click en el vacío: Deseleccionar todo
                 if (!Input.GetKey(KeyCode.LeftShift))
                 {
                     DeseleccionarTodas();
-                    UpdateSelectionIndicators();
                 }
             }
         }
 
+        // 2. Arrastrando
         if (arrastrando && Input.GetMouseButton(0))
         {
             finArrastre = Input.mousePosition;
             DibujarCuadroSeleccion();
         }
 
+        // 3. Soltar Click
         if (Input.GetMouseButtonUp(0))
         {
+            // Si hemos arrastrado suficiente distancia, es una selección de área
             if (arrastrando && Vector3.Distance(inicioArrastre, finArrastre) > 10f)
             {
                 SeleccionarUnidadesEnCuadro();
-                UpdateSelectionIndicators();
             }
             arrastrando = false;
             OcultarCuadroSeleccion();
         }
     }
 
+    // ---------------------------------------------------------
+    // CLICK DERECHO (Mover)
+    // ---------------------------------------------------------
     void ProcesarMovimiento()
     {
+        // Limpiamos la lista por si alguna unidad murió
+        unidadesSeleccionadas.RemoveAll(u => u == null || u.gameObject == null);
+
         if (Input.GetMouseButtonDown(1) && unidadesSeleccionadas.Count > 0)
         {
             Vector3 destino = cam.ScreenToWorldPoint(Input.mousePosition);
             destino.z = 0;
 
-            // Calcular posiciones distribuidas
+            // Calculamos formaciones
             Vector3[] destinos = CalcularDestinosDistribuidos(destino, unidadesSeleccionadas.Count);
 
             for (int i = 0; i < unidadesSeleccionadas.Count; i++)
@@ -126,17 +139,93 @@ public class UnitSelectionManager : MonoBehaviour
                 }
             }
 
-            // 🔊 Som de movimento com cooldown (sem verificar tag "Tank")
+            // Audio de movimiento
             if (SoundColector.Instance != null &&
                 Time.time - ultimoSomMovimientoTime >= intervaloMinSomMovimiento)
             {
-                // toca um som genérico de movimento (infantry) para evitar dependência de tags
-                SoundColector.Instance.PlayInfantryMove();
+                // Si hay algún tanque seleccionado, suena sonido pesado
+                bool hayTanque = unidadesSeleccionadas.Any(u => u.tag == "Tank" || u.gameObject.CompareTag("Tank"));
+
+                if (hayTanque) SoundColector.Instance.PlayTankMove();
+                else SoundColector.Instance.PlayInfantryMove();
+
                 ultimoSomMovimientoTime = Time.time;
             }
         }
     }
 
+    // ---------------------------------------------------------
+    // GESTIÓN DE LA LISTA DE SELECCIÓN
+    // ---------------------------------------------------------
+
+    void SeleccionarUnidad(ISelectableUnit unidad)
+    {
+        if (!unidadesSeleccionadas.Contains(unidad))
+        {
+            unidadesSeleccionadas.Add(unidad);
+
+            // AQUÍ ESTABA EL ERROR:
+            // En vez de buscar "indicadorSeleccion.SetActive", llamamos al método .Seleccionar()
+            // Y la unidad ya sabrá qué flecha encender internamente.
+            unidad.Seleccionar();
+        }
+    }
+
+    void DeseleccionarTodas()
+    {
+        foreach (ISelectableUnit unidad in unidadesSeleccionadas)
+        {
+            if (unidad != null && unidad.gameObject != null)
+            {
+                unidad.Deseleccionar();
+            }
+        }
+        unidadesSeleccionadas.Clear();
+
+        // Limpiar HUD si existe
+        if (UnitHUDManager.Instance != null)
+        {
+            UnitHUDManager.Instance.SeleccionarUnidad(null);
+        }
+    }
+
+    void SeleccionarUnidadesEnCuadro()
+    {
+        Vector2 min = cam.ScreenToWorldPoint(new Vector3(
+            Mathf.Min(inicioArrastre.x, finArrastre.x),
+            Mathf.Min(inicioArrastre.y, finArrastre.y), 0));
+
+        Vector2 max = cam.ScreenToWorldPoint(new Vector3(
+            Mathf.Max(inicioArrastre.x, finArrastre.x),
+            Mathf.Max(inicioArrastre.y, finArrastre.y), 0));
+
+        Collider2D[] unidadesEnArea = Physics2D.OverlapAreaAll(min, max, capaUnidades);
+
+        if (!Input.GetKey(KeyCode.LeftShift))
+        {
+            DeseleccionarTodas();
+        }
+
+        ISelectableUnit primeraNueva = null;
+
+        foreach (Collider2D collider in unidadesEnArea)
+        {
+            ISelectableUnit unidad = collider.GetComponent<ISelectableUnit>();
+            if (unidad != null)
+            {
+                bool eraNueva = !unidadesSeleccionadas.Contains(unidad);
+                SeleccionarUnidad(unidad);
+
+                if (eraNueva && primeraNueva == null) primeraNueva = unidad;
+            }
+        }
+
+        if (primeraNueva != null) PlaySelectionSoundFor(primeraNueva);
+    }
+
+    // ---------------------------------------------------------
+    // FORMACIONES
+    // ---------------------------------------------------------
     Vector3[] CalcularDestinosDistribuidos(Vector3 destinoCentral, int cantidadUnidades)
     {
         Vector3[] destinos = new Vector3[cantidadUnidades];
@@ -149,7 +238,6 @@ public class UnitSelectionManager : MonoBehaviour
 
         if (usarFormacionCircular)
         {
-            // Formación circular alrededor del punto
             for (int i = 0; i < cantidadUnidades; i++)
             {
                 float angulo = i * (2f * Mathf.PI / cantidadUnidades);
@@ -160,7 +248,6 @@ public class UnitSelectionManager : MonoBehaviour
         }
         else
         {
-            // Formación en cuadrícula
             int filas = Mathf.CeilToInt(Mathf.Sqrt(cantidadUnidades));
             int columnas = Mathf.CeilToInt((float)cantidadUnidades / filas);
 
@@ -182,112 +269,20 @@ public class UnitSelectionManager : MonoBehaviour
         return destinos;
     }
 
-    void SeleccionarUnidadesEnCuadro()
-    {
-        Vector2 min = cam.ScreenToWorldPoint(new Vector3(
-            Mathf.Min(inicioArrastre.x, finArrastre.x),
-            Mathf.Min(inicioArrastre.y, finArrastre.y),
-            0));
-
-        Vector2 max = cam.ScreenToWorldPoint(new Vector3(
-            Mathf.Max(inicioArrastre.x, finArrastre.x),
-            Mathf.Max(inicioArrastre.y, finArrastre.y),
-            0));
-
-        Collider2D[] unidadesEnArea = Physics2D.OverlapAreaAll(min, max, capaUnidades);
-
-        if (!Input.GetKey(KeyCode.LeftShift))
-        {
-            DeseleccionarTodas();
-        }
-
-        SimpleCharacterMovement primeraNueva = null;
-
-        foreach (Collider2D collider in unidadesEnArea)
-        {
-            SimpleCharacterMovement unidad = collider.GetComponent<SimpleCharacterMovement>();
-            if (unidad != null)
-            {
-                bool eraNueva = !unidadesSeleccionadas.Contains(unidad);
-                SeleccionarUnidad(unidad);
-
-                if (eraNueva && primeraNueva == null)
-                {
-                    primeraNueva = unidad;
-                }
-            }
-        }
-
-        // 🔊 Som de seleção (apenas 1 por arrasto)
-        if (primeraNueva != null)
-        {
-            PlaySelectionSoundFor(primeraNueva);
-        }
-
-        Debug.Log($"Unidades seleccionadas: {unidadesSeleccionadas.Count}");
-
-        // Atualiza indicadores após seleção por arrasto
-        UpdateSelectionIndicators();
-    }
-
-    void SeleccionarUnidad(SimpleCharacterMovement unidad)
-    {
-        if (!unidadesSeleccionadas.Contains(unidad))
-        {
-            unidadesSeleccionadas.Add(unidad);
-            unidad.Seleccionar();
-            Debug.Log($"Unidad seleccionada: {unidad.name}");
-        }
-
-        // Atualiza indicadores sempre que adicionas uma unidade
-        UpdateSelectionIndicators();
-    }
-
-    void DeseleccionarUnidad(SimpleCharacterMovement unidad)
-    {
-        if (unidadesSeleccionadas.Contains(unidad))
-        {
-            unidadesSeleccionadas.Remove(unidad);
-            unidad.Deseleccionar();
-        }
-
-        // Atualiza indicadores quando removes
-        UpdateSelectionIndicators();
-    }
-
-    void DeseleccionarTodas()
-    {
-        foreach (SimpleCharacterMovement unidad in unidadesSeleccionadas)
-        {
-            if (unidad != null)
-            {
-                unidad.Deseleccionar();
-            }
-        }
-        unidadesSeleccionadas.Clear();
-
-        // Atualiza indicadores após limpar seleção
-        UpdateSelectionIndicators();
-    }
-
+    // ---------------------------------------------------------
+    // VISUALES Y SONIDO
+    // ---------------------------------------------------------
     void DibujarCuadroSeleccion()
     {
         Vector3 inicioMundo = cam.ScreenToWorldPoint(new Vector3(inicioArrastre.x, inicioArrastre.y, 0));
         Vector3 finMundo = cam.ScreenToWorldPoint(new Vector3(finArrastre.x, finArrastre.y, 0));
-
-        inicioMundo.z = 0;
-        finMundo.z = 0;
+        inicioMundo.z = 0; finMundo.z = 0;
 
         Vector3 centro = (inicioMundo + finMundo) / 2f;
-        Vector3 tamaño = new Vector3(
-            Mathf.Abs(finMundo.x - inicioMundo.x),
-            Mathf.Abs(finMundo.y - inicioMundo.y),
-            1f
-        );
+        Vector3 tamaño = new Vector3(Mathf.Abs(finMundo.x - inicioMundo.x), Mathf.Abs(finMundo.y - inicioMundo.y), 1f);
 
         cuadroObj.transform.position = centro;
         cuadroObj.transform.localScale = tamaño;
-
         cuadroObj.SetActive(true);
     }
 
@@ -296,75 +291,13 @@ public class UnitSelectionManager : MonoBehaviour
         cuadroObj.SetActive(false);
     }
 
-    // ---------- HELPER DE ÁUDIO ----------
-
-    void PlaySelectionSoundFor(SimpleCharacterMovement unidad)
+    void PlaySelectionSoundFor(ISelectableUnit unidad)
     {
-        if (SoundColector.Instance == null || unidad == null)
-            return;
+        if (SoundColector.Instance == null || unidad == null) return;
 
-        // removed tag check, always play infantry selection sound
-        SoundColector.Instance.PlayInfantrySelect();
-    }
-
-    // ----------------- ADIÇÃO: controlar indicador visual (seta) -----------------
-    // Mostra indicador apenas se EXACTAMENTE 1 unidade do jogador estiver selecionada.
-    void UpdateSelectionIndicators()
-    {
-        // Se exactamente uma selecionada e não for inimigo, mostrar indicador nessa unidade só
-        if (unidadesSeleccionadas.Count == 1 && unidadesSeleccionadas[0] != null && !unidadesSeleccionadas[0].CompareTag("Enemy"))
-        {
-            SimpleCharacterMovement sole = unidadesSeleccionadas[0];
-
-            // Assegura que o indicador está referenciado no componente da unidade
-            EnsureIndicatorAssigned(sole);
-
-            // Desactivar indicador em todas as unidades e activar só na escolhida
-            foreach (var u in FindObjectsOfType<SimpleCharacterMovement>())
-            {
-                if (u == null) continue;
-                if (u.indicadorSeleccion != null)
-                    u.indicadorSeleccion.SetActive(u == sole);
-            }
-        }
+        if (unidad.tag == "Tank" || unidad.gameObject.CompareTag("Tank"))
+            SoundColector.Instance.PlayTankSelect();
         else
-        {
-            // Esconder todos os indicadores
-            foreach (var u in FindObjectsOfType<SimpleCharacterMovement>())
-            {
-                if (u == null) continue;
-                if (u.indicadorSeleccion != null)
-                    u.indicadorSeleccion.SetActive(false);
-            }
-        }
-    }
-
-    // Tenta localizar e associar um indicador (child com FloatingArrow ou com nomes comuns) à unidade,
-    // caso o campo public 'indicadorSeleccion' esteja vazio no prefab/instância.
-    void EnsureIndicatorAssigned(SimpleCharacterMovement unidad)
-    {
-        if (unidad == null) return;
-        if (unidad.indicadorSeleccion != null) return;
-
-        // procura componente FloatingArrow em filhos
-        var floating = unidad.GetComponentInChildren<FloatingArrow>(true);
-        if (floating != null)
-        {
-            unidad.indicadorSeleccion = floating.gameObject;
-            unidad.indicadorSeleccion.SetActive(false);
-            unidad.indicadorSeleccion.transform.SetParent(unidad.transform, true);
-            unidad.indicadorSeleccion.transform.localPosition = new Vector3(0f, 0.5f, 0f);
-            return;
-        }
-
-        // procura por nomes comuns
-        Transform t = unidad.transform.Find("SelectionArrow") ?? unidad.transform.Find("indicadorSeleccion") ?? unidad.transform.Find("Arrow");
-        if (t != null)
-        {
-            unidad.indicadorSeleccion = t.gameObject;
-            unidad.indicadorSeleccion.SetActive(false);
-            unidad.indicadorSeleccion.transform.SetParent(unidad.transform, true);
-            unidad.indicadorSeleccion.transform.localPosition = new Vector3(0f, 0.5f, 0f);
-        }
+            SoundColector.Instance.PlayInfantrySelect();
     }
 }

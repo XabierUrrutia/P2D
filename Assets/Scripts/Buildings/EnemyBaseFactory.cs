@@ -30,18 +30,29 @@ public class EnemyBaseFactory : MonoBehaviour
     public Vector3 sliderOffset = new Vector3(0, 2f, 0);
 
     [Header("Configuración de Fog of War")]
-    public float visionRadius = 15f;  // Radio de visión cuando está conquistada
+    public float visionRadius = 15f;
 
     [Header("Spawn Configuration")]
-    public bool enableSpawning = false;  // Por defecto falso - lo controla el manager
+    public bool enableSpawning = false;
     public GameObject enemyPrefab;
     public float spawnRadius = 3f;
     public float minSpawnDistance = 1.5f;
-    public float spawnIntervalNormal = 10f;
-    public float spawnIntervalDefensive = 5f;
-    public int maxConcurrentEnemiesNormal = 2;
-    public int maxConcurrentEnemiesDefensive = 3;
+
+    // TIEMPOS
+    public float spawnIntervalNormal = 8f;     // Bajado para ser más rápido
+    public float spawnIntervalDefensive = 4f;
+
+    // LÍMITES (AUMENTADOS PARA QUE QUEPAN LOS PELOTONES)
+    public int maxConcurrentEnemiesNormal = 5;    // Antes 2
+    public int maxConcurrentEnemiesDefensive = 8; // Antes 3
     public int totalToSpawn = 0;
+
+    // --- CONFIGURACIÓN DE PELOTÓN ---
+    [Header("Configuración de Pelotón")]
+    public int minSquadSize = 2; // Mínimo 2 para que siempre sea grupo
+    public int maxSquadSize = 3;
+    public float timeBetweenSquadMembers = 0.3f; // Muy rápido entre miembros
+    // ---------------------------------------
 
     [Header("Terrain Validation")]
     public LayerMask groundLayer;
@@ -51,7 +62,7 @@ public class EnemyBaseFactory : MonoBehaviour
     [Header("Estados")]
     public bool isConquered = false;
     public bool isGeneratingMoney = false;
-    public bool isActiveSpawner = false;  // Nueva variable
+    public bool isActiveSpawner = false;
 
     // Variables internas
     private float conquestProgress = 0f;
@@ -69,7 +80,7 @@ public class EnemyBaseFactory : MonoBehaviour
     private FogStaticVision fogStaticVision;
     private bool fogVisionInitialized = false;
 
-    // Colores para estados
+    // Colores
     private Color neutralColor = Color.gray;
     private Color conqueringColor = Color.yellow;
     private Color conqueredColor = Color.green;
@@ -77,130 +88,107 @@ public class EnemyBaseFactory : MonoBehaviour
     void Start()
     {
         InitializeFactory();
-        SetValuesByType();
+        SetValuesByType(); // Configura los valores según el tipo
 
-        // Establecer sprite inicial
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = neutralColor;
-        }
-
-        // Inicializar componente de visión de niebla (desactivado inicialmente)
+        if (spriteRenderer != null) spriteRenderer.color = neutralColor;
         InitializeFogVision();
 
-        // Registrar con el FactorySpawnManager
         if (FactorySpawnManager.Instance != null)
         {
             FactorySpawnManager.Instance.RegisterFactory(this);
         }
-        else
-        {
-            Debug.LogWarning($"[{name}] FactorySpawnManager no encontrado. Spawn desactivado.");
-        }
-
-        // NO iniciar spawn automáticamente - lo controla el manager
-        // TryStartSpawning() será llamado por el manager
     }
 
     void InitializeFactory()
     {
-        // Configurar collider para conquista
         CircleCollider2D collider = GetComponent<CircleCollider2D>();
-        if (collider == null)
-        {
-            collider = gameObject.AddComponent<CircleCollider2D>();
-        }
+        if (collider == null) collider = gameObject.AddComponent<CircleCollider2D>();
         collider.isTrigger = true;
         collider.radius = conquestRange;
 
-        // Rigidbody para triggers
         if (GetComponent<Rigidbody2D>() == null)
         {
             Rigidbody2D rb = gameObject.AddComponent<Rigidbody2D>();
             rb.isKinematic = true;
         }
 
-        // Sprite renderer
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer == null)
-        {
-            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        }
+        if (spriteRenderer == null) spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
     private void InitializeFogVision()
     {
-        // Buscar o crear el componente FogStaticVision
         fogStaticVision = GetComponent<FogStaticVision>();
-        if (fogStaticVision == null)
-        {
-            fogStaticVision = gameObject.AddComponent<FogStaticVision>();
-        }
+        if (fogStaticVision == null) fogStaticVision = gameObject.AddComponent<FogStaticVision>();
 
-        // Configurar parámetros
         fogStaticVision.visionRadius = visionRadius;
         fogStaticVision.alwaysActive = true;
-
-        // Desactivar inicialmente (solo se activará cuando sea conquistada)
         fogStaticVision.enabled = false;
-
         fogVisionInitialized = true;
-        Debug.Log($"[{name}] Componente FogStaticVision inicializado (inicialmente desactivado)");
     }
 
     void SetValuesByType()
     {
+        // AQUI AJUSTAMOS PARA QUE SALGAN MÁS Y MEJOR
         switch (factoryType)
         {
             case FactoryType.Pequena:
                 conquestTime = 10f;
-                moneyPerInterval = 10;
-                moneyInterval = 5f;
-                maxConcurrentEnemiesNormal = 2;
-                maxConcurrentEnemiesDefensive = 3;
-                spawnIntervalNormal = 12f;
-                spawnIntervalDefensive = 6f;
-                visionRadius = 5f;  // Radio menor para fábrica pequeña
+                moneyPerInterval = 50;
+
+                // Capacidad aumentada para permitir pelotones
+                maxConcurrentEnemiesNormal = 4;
+                maxConcurrentEnemiesDefensive = 6;
+
+                spawnIntervalNormal = 10f;
+                spawnIntervalDefensive = 5f;
+                visionRadius = 5f;
+
+                // Siempre salen al menos 2
+                minSquadSize = 2;
+                maxSquadSize = 3;
                 break;
+
             case FactoryType.Mediana:
                 conquestTime = 15f;
-                moneyPerInterval = 25;
-                moneyInterval = 5f;
-                maxConcurrentEnemiesNormal = 3;
-                maxConcurrentEnemiesDefensive = 5;
+                moneyPerInterval = 75;
+
+                maxConcurrentEnemiesNormal = 6;
+                maxConcurrentEnemiesDefensive = 10;
+
                 spawnIntervalNormal = 8f;
                 spawnIntervalDefensive = 4f;
-                visionRadius = 7.5f;  // Radio mediano para fábrica mediana
+                visionRadius = 7.5f;
+
+                minSquadSize = 3;
+                maxSquadSize = 4;
                 break;
+
             case FactoryType.Grande:
                 conquestTime = 20f;
-                moneyPerInterval = 50;
-                moneyInterval = 5f;
-                maxConcurrentEnemiesNormal = 5;
-                maxConcurrentEnemiesDefensive = 8;
-                spawnIntervalNormal = 6f;
-                spawnIntervalDefensive = 2f;
-                visionRadius = 10f;  // Radio mayor para fábrica grande
+                moneyPerInterval = 100;
+
+                maxConcurrentEnemiesNormal = 10;
+                maxConcurrentEnemiesDefensive = 15;
+
+                spawnIntervalNormal = 6f; // Muy rápido
+                spawnIntervalDefensive = 3f;
+                visionRadius = 10f;
+
+                minSquadSize = 4;
+                maxSquadSize = 6; // Pelotones grandes
                 break;
         }
 
-        // Actualizar el radio de visión en el componente FogStaticVision si ya existe
-        if (fogStaticVision != null)
-        {
-            fogStaticVision.visionRadius = visionRadius;
-        }
+        if (fogStaticVision != null) fogStaticVision.visionRadius = visionRadius;
     }
 
     void Update()
     {
         if (Time.timeScale == 0) return;
 
-        if (!isConquered)
-        {
-            UpdateConquestProgress();
-        }
+        if (!isConquered) UpdateConquestProgress();
 
-        // Actualizar posición del slider para seguir al edificio
         if (conquestSlider != null && conquestSlider.gameObject.activeInHierarchy)
         {
             UpdateSliderPosition();
@@ -212,160 +200,118 @@ public class EnemyBaseFactory : MonoBehaviour
         if (sliderCanvas != null)
         {
             sliderCanvas.transform.position = transform.position + sliderOffset;
-
-            // Hacer que el slider mire a la cámara (billboard)
-            if (Camera.main != null)
-            {
-                sliderCanvas.transform.rotation = Camera.main.transform.rotation;
-            }
+            if (Camera.main != null) sliderCanvas.transform.rotation = Camera.main.transform.rotation;
         }
     }
 
     void UpdateConquestProgress()
     {
+        // Lógica de conquista (sin cambios)
         if (conqueringPlayers.Count > 0)
         {
-            // Incrementar progreso con múltiples jugadores
             float progressIncrement = (growthSpeed * conqueringPlayers.Count) / conquestTime;
             conquestProgress += progressIncrement * Time.deltaTime;
             conquestProgress = Mathf.Min(conquestProgress, conquestTime);
 
-            // Mostrar slider
             if (conquestProgress > 0 && conquestSlider != null && !conquestSlider.gameObject.activeInHierarchy)
             {
                 conquestSlider.gameObject.SetActive(true);
                 UpdateSliderPosition();
             }
-
-            // Actualizar color
             spriteRenderer.color = Color.Lerp(neutralColor, conqueringColor, conquestProgress / conquestTime);
         }
         else if (conquestProgress > 0)
         {
-            // Decrementar progreso si no hay jugadores
             float progressDecrement = decaySpeed / conquestTime;
             conquestProgress -= progressDecrement * Time.deltaTime;
             conquestProgress = Mathf.Max(conquestProgress, 0);
 
-            // Ocultar slider si llega a 0
-            if (conquestProgress <= 0 && conquestSlider != null && conquestSlider.gameObject.activeInHierarchy)
+            if (conquestProgress <= 0 && conquestSlider != null)
             {
                 conquestSlider.gameObject.SetActive(false);
                 spriteRenderer.color = neutralColor;
             }
             else
             {
-                // Actualizar color durante decrecimiento
                 spriteRenderer.color = Color.Lerp(neutralColor, conqueringColor, conquestProgress / conquestTime);
             }
         }
 
-        // Actualizar slider
         if (conquestSlider != null && conquestSlider.gameObject.activeInHierarchy)
-        {
             conquestSlider.value = conquestProgress / conquestTime;
-        }
 
-        // Completar conquista
-        if (conquestProgress >= conquestTime && !isConquered)
-        {
-            CompleteConquest();
-        }
+        if (conquestProgress >= conquestTime && !isConquered) CompleteConquest();
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other == null || isConquered) return;
-
         if (other.CompareTag("Player") && !conqueringPlayers.Contains(other.gameObject))
-        {
             conqueringPlayers.Add(other.gameObject);
-            Debug.Log($"[{name}] Jugador entró. Total: {conqueringPlayers.Count}");
-        }
     }
 
     void OnTriggerExit2D(Collider2D other)
     {
         if (other == null) return;
-
         if (other.CompareTag("Player") && conqueringPlayers.Contains(other.gameObject))
-        {
             conqueringPlayers.Remove(other.gameObject);
-            Debug.Log($"[{name}] Jugador salió. Total: {conqueringPlayers.Count}");
-        }
     }
 
     private void CompleteConquest()
     {
         isConquered = true;
-        spriteRenderer.color = conqueredColor;
-
-        if (conquestSlider != null)
-        {
-            conquestSlider.gameObject.SetActive(false);
-        }
-
-        // Limpiar lista de jugadores
+        if (spriteRenderer != null) spriteRenderer.color = conqueredColor;
+        if (conquestSlider != null) conquestSlider.gameObject.SetActive(false);
         conqueringPlayers.Clear();
 
-        Debug.Log($"[{name}] ¡FÁBRICA CONQUISTADA!");
-
-        // Activar visión en la niebla
         ActivateFogVision();
-
-        // Detener spawns
         StopSpawning();
-
-        // Iniciar generación de dinero
         StartMoneyGeneration();
-
-        // Dar recompensa inmediata por conquistar
         GiveConquestReward();
 
-        // Notificar al manager que esta fábrica fue conquistada
-        // (El manager detectará esto en su chequeo periódico)
+        if (MoneyManager.Instance != null)
+        {
+            if (!MoneyManager.Instance.sePaganSalarios) MoneyManager.Instance.ActivarCobroDeSalarios();
+            AplicarInflacionPorConquista();
+        }
+    }
+
+    private void AplicarInflacionPorConquista()
+    {
+        if (MoneyManager.Instance == null) return;
+        float subida = 0f;
+        switch (factoryType)
+        {
+            case FactoryType.Mediana: subida = 0.2f; break;
+            case FactoryType.Grande: subida = 0.5f; break;
+        }
+        if (subida > 0) MoneyManager.Instance.ModificarInflacion(subida);
     }
 
     private void ActivateFogVision()
     {
-        if (!fogVisionInitialized)
-        {
-            InitializeFogVision();
-        }
-
+        if (!fogVisionInitialized) InitializeFogVision();
         if (fogStaticVision != null)
         {
             fogStaticVision.enabled = true;
-
-            // Forzar reinicialización para asegurar que se registre en el sistema de niebla
-            if (fogStaticVision.isInitialized)
+            // Refrescar niebla
+            FogOfWar fog = FindObjectOfType<FogOfWar>();
+            if (fog != null)
             {
-                // Si ya estaba inicializado, reactivar
-                FogOfWar fog = FindObjectOfType<FogOfWar>();
-                if (fog != null)
+                if (fogStaticVision.isInitialized)
                 {
                     fog.UnregisterStaticVision(fogStaticVision);
                     fog.RegisterStaticVision(fogStaticVision);
                     fog.RequestUpdate();
                 }
-            }
-            else
-            {
-                // El componente se inicializará automáticamente en su Start()
-                // Podemos forzar la inicialización si es necesario
-                var method = fogStaticVision.GetType().GetMethod("InitializeFogSystem",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (method != null)
+                else
                 {
-                    method.Invoke(fogStaticVision, null);
+                    // Force init via reflection trick
+                    var method = fogStaticVision.GetType().GetMethod("InitializeFogSystem",
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (method != null) method.Invoke(fogStaticVision, null);
                 }
             }
-
-            Debug.Log($"[{name}] Visión de niebla ACTIVADA con radio: {visionRadius}");
-        }
-        else
-        {
-            Debug.LogWarning($"[{name}] No se encontró componente FogStaticVision");
         }
     }
 
@@ -383,11 +329,7 @@ public class EnemyBaseFactory : MonoBehaviour
         while (isConquered)
         {
             yield return new WaitForSeconds(moneyInterval);
-            if (MoneyManager.Instance != null)
-            {
-                MoneyManager.Instance.AddMoney(moneyPerInterval);
-                Debug.Log($"[{name}] Generados {moneyPerInterval} de dinero");
-            }
+            if (MoneyManager.Instance != null) MoneyManager.Instance.AddMoney(moneyPerInterval);
         }
     }
 
@@ -396,25 +338,14 @@ public class EnemyBaseFactory : MonoBehaviour
         int reward = 0;
         switch (factoryType)
         {
-            case FactoryType.Pequena:
-                reward = 100;
-                break;
-            case FactoryType.Mediana:
-                reward = 200;
-                break;
-            case FactoryType.Grande:
-                reward = 400;
-                break;
+            case FactoryType.Pequena: reward = 100; break;
+            case FactoryType.Mediana: reward = 200; break;
+            case FactoryType.Grande: reward = 400; break;
         }
-
-        if (MoneyManager.Instance != null)
-        {
-            MoneyManager.Instance.AddMoney(reward);
-            Debug.Log($"[{name}] ¡Recompensa de {reward} por conquistar!");
-        }
+        if (MoneyManager.Instance != null) MoneyManager.Instance.AddMoney(reward);
     }
 
-    // ----- Sistema de Spawn -----
+    // ----- AQUÍ ESTÁ EL CAMBIO DE LÓGICA IMPORTANTE -----
     public void TryStartSpawning()
     {
         if (isConquered || !enableSpawning || enemyPrefab == null) return;
@@ -423,96 +354,102 @@ public class EnemyBaseFactory : MonoBehaviour
         {
             spawnCoroutine = StartCoroutine(SpawnLoop());
             isActiveSpawner = true;
-            Debug.Log($"[{name}] Spawn iniciado (ACTIVADO POR MANAGER)");
         }
     }
 
     private IEnumerator SpawnLoop()
     {
+        // Pequeño retardo inicial para no spawnear instantáneamente al cargar la escena
+        yield return new WaitForSeconds(1f);
+
         while (!isConquered && enableSpawning)
         {
-            // Determinar modo actual
             bool isDefensiveMode = conqueringPlayers.Count > 0;
             float currentSpawnInterval = isDefensiveMode ? spawnIntervalDefensive : spawnIntervalNormal;
             int currentMaxEnemies = isDefensiveMode ? maxConcurrentEnemiesDefensive : maxConcurrentEnemiesNormal;
 
             CleanupNullSpawned();
 
-            bool canSpawn = (totalToSpawn == 0 || spawnedCount < totalToSpawn) &&
-                           spawnedEnemies.Count < currentMaxEnemies;
+            // 1. Calcular huecos libres
+            int slotsDisponibles = currentMaxEnemies - spawnedEnemies.Count;
+            int enemigosRestantesParaTotal = (totalToSpawn > 0) ? (totalToSpawn - spawnedCount) : 999;
+            int limiteReal = Mathf.Min(slotsDisponibles, enemigosRestantesParaTotal);
 
-            if (canSpawn)
+            // 2. ¿Podemos spawnear AL MENOS UNO?
+            if (limiteReal > 0)
             {
-                Vector3 spawnPosition = GetValidSpawnPosition();
-                if (spawnPosition != Vector3.zero)
-                {
-                    SpawnEnemyAtPosition(spawnPosition);
-                }
-            }
+                // Calculamos tamaño del pelotón, asegurando que no supere el hueco libre
+                int tamañoDeseado = Random.Range(minSquadSize, maxSquadSize + 1);
+                int enemigosASpawnear = Mathf.Min(tamañoDeseado, limiteReal);
 
-            yield return new WaitForSeconds(currentSpawnInterval);
+                // --- BUCLE DEL PELOTÓN ---
+                for (int i = 0; i < enemigosASpawnear; i++)
+                {
+                    Vector3 spawnPosition = GetValidSpawnPosition();
+                    if (spawnPosition != Vector3.zero)
+                    {
+                        SpawnEnemyAtPosition(spawnPosition);
+                    }
+                    else
+                    {
+                        // Si no encuentra sitio, abortamos este intento del pelotón
+                        break;
+                    }
+
+                    // Pausa muy corta entre soldados del mismo grupo (ej: 0.3s)
+                    yield return new WaitForSeconds(timeBetweenSquadMembers);
+                }
+
+                // ¡ÉXITO! Hemos sacado un pelotón. Ahora sí descansamos el tiempo largo.
+                yield return new WaitForSeconds(currentSpawnInterval);
+            }
+            else
+            {
+                // ESTA ES LA CLAVE:
+                // Si la fábrica está LLENA (limiteReal <= 0), NO esperamos 10 segundos.
+                // Esperamos solo 1 segundo y volvemos a comprobar.
+                // Así, en cuanto muera uno, el spawn reacciona rápido.
+                yield return new WaitForSeconds(1f);
+            }
         }
 
         spawnCoroutine = null;
         isActiveSpawner = false;
     }
+    // ---------------------------------------------------
 
     private Vector3 GetValidSpawnPosition()
     {
-        for (int attempt = 0; attempt < 20; attempt++)
+        for (int attempt = 0; attempt < 15; attempt++)
         {
             Vector3 spawnPosition = GetRandomPositionAroundFactory();
-
-            if (IsValidSpawnPosition(spawnPosition))
-            {
-                return spawnPosition;
-            }
+            if (IsValidSpawnPosition(spawnPosition)) return spawnPosition;
         }
-
         return Vector3.zero;
     }
 
     private Vector3 GetRandomPositionAroundFactory()
     {
-        // Generar posición en círculo alrededor de la fábrica
         float angle = Random.Range(0f, 360f);
         float distance = Random.Range(minSpawnDistance, spawnRadius);
-
-        Vector2 offset = new Vector2(
-            Mathf.Cos(angle * Mathf.Deg2Rad) * distance,
-            Mathf.Sin(angle * Mathf.Deg2Rad) * distance
-        );
-
+        Vector2 offset = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad) * distance, Mathf.Sin(angle * Mathf.Deg2Rad) * distance);
         return transform.position + new Vector3(offset.x, offset.y, 0f);
     }
 
     private bool IsValidSpawnPosition(Vector3 position)
     {
-        // Verificar terreno
-        if (!Physics2D.OverlapCircle(position, 0.5f, groundLayer))
-            return false;
+        if (!Physics2D.OverlapCircle(position, 0.5f, groundLayer)) return false;
+        if (Physics2D.OverlapCircle(position, 0.5f, waterLayer)) return false;
+        if (obstacleLayer != 0 && Physics2D.OverlapCircle(position, 0.5f, obstacleLayer)) return false;
 
-        // Verificar agua
-        if (Physics2D.OverlapCircle(position, 0.5f, waterLayer))
-            return false;
-
-        // Verificar obstáculos
-        if (obstacleLayer != 0 && Physics2D.OverlapCircle(position, 0.5f, obstacleLayer))
-            return false;
-
-        // Verificar que no esté muy cerca de otros enemigos
-        Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(position, 1f);
+        // Reducimos el radio de chequeo entre enemigos para que puedan salir juntos en pelotón
+        Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(position, 0.5f);
         foreach (Collider2D collider in nearbyEnemies)
         {
-            if (collider.CompareTag("Enemy"))
-                return false;
+            if (collider.CompareTag("Enemy")) return false;
         }
 
-        // Verificar que no esté dentro del edificio
-        float distanceToCenter = Vector3.Distance(position, transform.position);
-        if (distanceToCenter < 1f)
-            return false;
-
+        if (Vector3.Distance(position, transform.position) < 1f) return false;
         return true;
     }
 
@@ -523,39 +460,24 @@ public class EnemyBaseFactory : MonoBehaviour
         spawnedEnemies.Add(enemy);
         spawnedCount++;
 
-        // Obtener referencia al EnemyAI
         var enemyAI = enemy.GetComponent<EnemyAI>();
         if (enemyAI != null)
         {
-            // Configurar para atacar la base automáticamente
             if (enemyAI.baseJogador == null)
             {
                 GameObject playerBase = GameObject.FindGameObjectWithTag("PlayerBase");
-                if (playerBase != null)
-                {
-                    enemyAI.baseJogador = playerBase.transform;
-                }
+                if (playerBase != null) enemyAI.baseJogador = playerBase.transform;
             }
-
-            // Activar patrullaje (irán a la base y patrullarán alrededor)
             enemyAI.SetUsarPatrullaje(true);
-
-            // Registrar en sistemas
-            if (EnemyManager.Instance != null)
-            {
-                EnemyManager.Instance.RegistrarEnemy(enemyAI);
-            }
+            if (EnemyManager.Instance != null) EnemyManager.Instance.RegistrarEnemy(enemyAI);
         }
-
-        Debug.Log($"[{name}] Enemigo spawnado en {position} (total: {spawnedCount})");
     }
 
     private void CleanupNullSpawned()
     {
         for (int i = spawnedEnemies.Count - 1; i >= 0; i--)
         {
-            if (spawnedEnemies[i] == null)
-                spawnedEnemies.RemoveAt(i);
+            if (spawnedEnemies[i] == null) spawnedEnemies.RemoveAt(i);
         }
     }
 
@@ -566,98 +488,38 @@ public class EnemyBaseFactory : MonoBehaviour
             StopCoroutine(spawnCoroutine);
             spawnCoroutine = null;
         }
-
         enableSpawning = false;
         isActiveSpawner = false;
-        Debug.Log($"[{name}] Spawning detenido");
     }
 
-    public bool IsConquered()
-    {
-        return isConquered;
-    }
-    // ---------------------------
+    public bool IsConquered() => isConquered;
 
     void OnDrawGizmosSelected()
     {
-        // Rango de conquista
         Gizmos.color = isConquered ? Color.green : (conqueringPlayers.Count > 0 ? Color.yellow : Color.red);
         Gizmos.DrawWireSphere(transform.position, conquestRange);
-
-        // Rango de spawn
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
-
-        Gizmos.color = Color.magenta;
-        Gizmos.DrawWireSphere(transform.position, minSpawnDistance);
-
-        // Posición del slider
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position + sliderOffset, 0.2f);
-
-        // Radio de visión de niebla (solo si está conquistada o en diseño)
-        if (isConquered || Application.isEditor && !Application.isPlaying)
-        {
-            Gizmos.color = new Color(0, 1, 0, 0.3f);
-            Gizmos.DrawWireSphere(transform.position, visionRadius);
-        }
-
-        // Indicador visual si es el spawner activo
-        if (isActiveSpawner)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, 2f);
-        }
     }
 
     void OnDestroy()
     {
-        if (sliderCanvas != null)
-        {
-            Destroy(sliderCanvas.gameObject);
-        }
-
-        // Desregistrar del sistema de niebla si está activo
+        if (sliderCanvas != null) Destroy(sliderCanvas.gameObject);
         if (fogStaticVision != null && fogStaticVision.isInitialized)
         {
             FogOfWar fog = FindObjectOfType<FogOfWar>();
-            if (fog != null)
-            {
-                fog.UnregisterStaticVision(fogStaticVision);
-            }
+            if (fog != null) fog.UnregisterStaticVision(fogStaticVision);
         }
     }
 
-    // Método para reiniciar la fábrica (si implementas recaptura)
     public void ResetFactory()
     {
         isConquered = false;
         conquestProgress = 0f;
         spriteRenderer.color = neutralColor;
-
-        // Desactivar visión de niebla
-        if (fogStaticVision != null && fogStaticVision.enabled)
-        {
-            fogStaticVision.enabled = false;
-            FogOfWar fog = FindObjectOfType<FogOfWar>();
-            if (fog != null)
-            {
-                fog.UnregisterStaticVision(fogStaticVision);
-                fog.RequestUpdate();
-            }
-        }
-
-        // Detener generación de dinero
+        if (fogStaticVision != null) fogStaticVision.enabled = false;
         isGeneratingMoney = false;
-        if (moneyGenerationCoroutine != null)
-        {
-            StopCoroutine(moneyGenerationCoroutine);
-            moneyGenerationCoroutine = null;
-        }
-
-        // Limpiar lista de conquistadores
+        if (moneyGenerationCoroutine != null) StopCoroutine(moneyGenerationCoroutine);
         conqueringPlayers.Clear();
-
-        Debug.Log($"[{name}] Fábrica reiniciada (neutra)");
     }
 }

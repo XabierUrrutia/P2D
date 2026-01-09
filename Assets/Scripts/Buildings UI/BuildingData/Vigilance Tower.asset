@@ -15,6 +15,6 @@ MonoBehaviour:
   buildingName: Vigilance Tower
   buildingSprite: {fileID: 452267333, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   buildingPrefab: {fileID: 1525862255766077723, guid: b42bf87d34d13774d8b26357558e4b0e, type: 3}
-  cost: 10
+  cost: 150
   buildTime: 3
   gridSize: {x: 1, y: 1}
