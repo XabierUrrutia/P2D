@@ -364,8 +364,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 5
-  m_Sprite: {fileID: -244753516, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  m_Color: {r: 0.990566, g: 0.9031082, b: 0.38781592, a: 1}
+  m_Sprite: {fileID: -2077340998, guid: 18160f22044405348a4c814a61f3fe3f, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -390,6 +390,7 @@ MonoBehaviour:
   factoryType: 2
   conquestTime: 10
   conquestRange: 2
+  conqueredSprite: {fileID: -2088266850, guid: 18160f22044405348a4c814a61f3fe3f, type: 3}
   growthSpeed: 2
   decaySpeed: 0.5
   moneyPerInterval: 25
@@ -406,6 +407,9 @@ MonoBehaviour:
   maxConcurrentEnemiesNormal: 2
   maxConcurrentEnemiesDefensive: 3
   totalToSpawn: 0
+  minSquadSize: 2
+  maxSquadSize: 3
+  timeBetweenSquadMembers: 0.3
   groundLayer:
     serializedVersion: 2
     m_Bits: 72
@@ -594,7 +598,7 @@ RectTransform:
   m_GameObject: {fileID: 8053675698076769447}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5798, y: 1.5798, z: 1.5798}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6950892218617799391}
@@ -604,7 +608,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 135}
   m_SizeDelta: {x: 500, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3051139635738822748

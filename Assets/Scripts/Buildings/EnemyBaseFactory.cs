@@ -16,6 +16,7 @@ public class EnemyBaseFactory : MonoBehaviour
     public FactoryType factoryType;
     public float conquestTime = 10f;
     public float conquestRange = 5f;
+    public Sprite conqueredSprite; // Tu sprite de base conquistada
 
     [Header("Velocidades de Conquista")]
     public float growthSpeed = 2f;
@@ -39,19 +40,19 @@ public class EnemyBaseFactory : MonoBehaviour
     public float minSpawnDistance = 1.5f;
 
     // TIEMPOS
-    public float spawnIntervalNormal = 8f;     // Bajado para ser más rápido
+    public float spawnIntervalNormal = 8f;
     public float spawnIntervalDefensive = 4f;
 
-    // LÍMITES (AUMENTADOS PARA QUE QUEPAN LOS PELOTONES)
-    public int maxConcurrentEnemiesNormal = 5;    // Antes 2
-    public int maxConcurrentEnemiesDefensive = 8; // Antes 3
+    // LÍMITES
+    public int maxConcurrentEnemiesNormal = 5;
+    public int maxConcurrentEnemiesDefensive = 8;
     public int totalToSpawn = 0;
 
     // --- CONFIGURACIÓN DE PELOTÓN ---
     [Header("Configuración de Pelotón")]
-    public int minSquadSize = 2; // Mínimo 2 para que siempre sea grupo
+    public int minSquadSize = 2;
     public int maxSquadSize = 3;
-    public float timeBetweenSquadMembers = 0.3f; // Muy rápido entre miembros
+    public float timeBetweenSquadMembers = 0.3f;
     // ---------------------------------------
 
     [Header("Terrain Validation")]
@@ -69,6 +70,7 @@ public class EnemyBaseFactory : MonoBehaviour
     private Canvas sliderCanvas;
     private List<GameObject> conqueringPlayers = new List<GameObject>();
     private SpriteRenderer spriteRenderer;
+    private Sprite originalSprite;
 
     // Spawn internals
     private readonly List<GameObject> spawnedEnemies = new List<GameObject>();
@@ -80,15 +82,14 @@ public class EnemyBaseFactory : MonoBehaviour
     private FogStaticVision fogStaticVision;
     private bool fogVisionInitialized = false;
 
-    // Colores
+    // Colores (Solo usados para estados finales o iniciales ahora)
     private Color neutralColor = Color.gray;
-    private Color conqueringColor = Color.yellow;
     private Color conqueredColor = Color.green;
 
     void Start()
     {
         InitializeFactory();
-        SetValuesByType(); // Configura los valores según el tipo
+        SetValuesByType();
 
         if (spriteRenderer != null) spriteRenderer.color = neutralColor;
         InitializeFogVision();
@@ -114,6 +115,8 @@ public class EnemyBaseFactory : MonoBehaviour
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer == null) spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        if (spriteRenderer != null) originalSprite = spriteRenderer.sprite;
     }
 
     private void InitializeFogVision()
@@ -129,54 +132,42 @@ public class EnemyBaseFactory : MonoBehaviour
 
     void SetValuesByType()
     {
-        // AQUI AJUSTAMOS PARA QUE SALGAN MÁS Y MEJOR
         switch (factoryType)
         {
             case FactoryType.Pequena:
                 conquestTime = 10f;
                 moneyPerInterval = 50;
-
-                // Capacidad aumentada para permitir pelotones
                 maxConcurrentEnemiesNormal = 4;
                 maxConcurrentEnemiesDefensive = 6;
-
                 spawnIntervalNormal = 10f;
                 spawnIntervalDefensive = 5f;
                 visionRadius = 5f;
-
-                // Siempre salen al menos 2
                 minSquadSize = 2;
                 maxSquadSize = 3;
                 break;
 
             case FactoryType.Mediana:
-                conquestTime = 15f;
+                conquestTime = 12f;
                 moneyPerInterval = 75;
-
                 maxConcurrentEnemiesNormal = 6;
                 maxConcurrentEnemiesDefensive = 10;
-
                 spawnIntervalNormal = 8f;
                 spawnIntervalDefensive = 4f;
                 visionRadius = 7.5f;
-
                 minSquadSize = 3;
                 maxSquadSize = 4;
                 break;
 
             case FactoryType.Grande:
-                conquestTime = 20f;
+                conquestTime = 15f;
                 moneyPerInterval = 100;
-
                 maxConcurrentEnemiesNormal = 10;
                 maxConcurrentEnemiesDefensive = 15;
-
-                spawnIntervalNormal = 6f; // Muy rápido
+                spawnIntervalNormal = 6f;
                 spawnIntervalDefensive = 3f;
                 visionRadius = 10f;
-
                 minSquadSize = 4;
-                maxSquadSize = 6; // Pelotones grandes
+                maxSquadSize = 6;
                 break;
         }
 
@@ -206,7 +197,8 @@ public class EnemyBaseFactory : MonoBehaviour
 
     void UpdateConquestProgress()
     {
-        // Lógica de conquista (sin cambios)
+        // CAMBIO REALIZADO: Se han eliminado las líneas de Color.Lerp
+
         if (conqueringPlayers.Count > 0)
         {
             float progressIncrement = (growthSpeed * conqueringPlayers.Count) / conquestTime;
@@ -218,7 +210,7 @@ public class EnemyBaseFactory : MonoBehaviour
                 conquestSlider.gameObject.SetActive(true);
                 UpdateSliderPosition();
             }
-            spriteRenderer.color = Color.Lerp(neutralColor, conqueringColor, conquestProgress / conquestTime);
+            // AQUÍ ANTES CAMBIABA EL COLOR. YA NO.
         }
         else if (conquestProgress > 0)
         {
@@ -229,12 +221,10 @@ public class EnemyBaseFactory : MonoBehaviour
             if (conquestProgress <= 0 && conquestSlider != null)
             {
                 conquestSlider.gameObject.SetActive(false);
+                // Aseguramos que esté neutral por si acaso, aunque no debería haber cambiado
                 spriteRenderer.color = neutralColor;
             }
-            else
-            {
-                spriteRenderer.color = Color.Lerp(neutralColor, conqueringColor, conquestProgress / conquestTime);
-            }
+            // AQUÍ TAMPOCO CAMBIA EL COLOR MIENTRAS BAJA.
         }
 
         if (conquestSlider != null && conquestSlider.gameObject.activeInHierarchy)
@@ -260,7 +250,21 @@ public class EnemyBaseFactory : MonoBehaviour
     private void CompleteConquest()
     {
         isConquered = true;
-        if (spriteRenderer != null) spriteRenderer.color = conqueredColor;
+
+        // Cambio de Sprite y Color final
+        if (spriteRenderer != null)
+        {
+            if (conqueredSprite != null)
+            {
+                spriteRenderer.sprite = conqueredSprite;
+                spriteRenderer.color = Color.white; // Blanco para que se vea bien tu sprite
+            }
+            else
+            {
+                spriteRenderer.color = conqueredColor; // Verde si no hay sprite
+            }
+        }
+
         if (conquestSlider != null) conquestSlider.gameObject.SetActive(false);
         conqueringPlayers.Clear();
 
@@ -294,7 +298,6 @@ public class EnemyBaseFactory : MonoBehaviour
         if (fogStaticVision != null)
         {
             fogStaticVision.enabled = true;
-            // Refrescar niebla
             FogOfWar fog = FindObjectOfType<FogOfWar>();
             if (fog != null)
             {
@@ -306,7 +309,6 @@ public class EnemyBaseFactory : MonoBehaviour
                 }
                 else
                 {
-                    // Force init via reflection trick
                     var method = fogStaticVision.GetType().GetMethod("InitializeFogSystem",
                         System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (method != null) method.Invoke(fogStaticVision, null);
@@ -345,7 +347,6 @@ public class EnemyBaseFactory : MonoBehaviour
         if (MoneyManager.Instance != null) MoneyManager.Instance.AddMoney(reward);
     }
 
-    // ----- AQUÍ ESTÁ EL CAMBIO DE LÓGICA IMPORTANTE -----
     public void TryStartSpawning()
     {
         if (isConquered || !enableSpawning || enemyPrefab == null) return;
@@ -359,7 +360,6 @@ public class EnemyBaseFactory : MonoBehaviour
 
     private IEnumerator SpawnLoop()
     {
-        // Pequeño retardo inicial para no spawnear instantáneamente al cargar la escena
         yield return new WaitForSeconds(1f);
 
         while (!isConquered && enableSpawning)
@@ -370,19 +370,15 @@ public class EnemyBaseFactory : MonoBehaviour
 
             CleanupNullSpawned();
 
-            // 1. Calcular huecos libres
             int slotsDisponibles = currentMaxEnemies - spawnedEnemies.Count;
             int enemigosRestantesParaTotal = (totalToSpawn > 0) ? (totalToSpawn - spawnedCount) : 999;
             int limiteReal = Mathf.Min(slotsDisponibles, enemigosRestantesParaTotal);
 
-            // 2. ¿Podemos spawnear AL MENOS UNO?
             if (limiteReal > 0)
             {
-                // Calculamos tamaño del pelotón, asegurando que no supere el hueco libre
                 int tamañoDeseado = Random.Range(minSquadSize, maxSquadSize + 1);
                 int enemigosASpawnear = Mathf.Min(tamañoDeseado, limiteReal);
 
-                // --- BUCLE DEL PELOTÓN ---
                 for (int i = 0; i < enemigosASpawnear; i++)
                 {
                     Vector3 spawnPosition = GetValidSpawnPosition();
@@ -392,23 +388,14 @@ public class EnemyBaseFactory : MonoBehaviour
                     }
                     else
                     {
-                        // Si no encuentra sitio, abortamos este intento del pelotón
                         break;
                     }
-
-                    // Pausa muy corta entre soldados del mismo grupo (ej: 0.3s)
                     yield return new WaitForSeconds(timeBetweenSquadMembers);
                 }
-
-                // ¡ÉXITO! Hemos sacado un pelotón. Ahora sí descansamos el tiempo largo.
                 yield return new WaitForSeconds(currentSpawnInterval);
             }
             else
             {
-                // ESTA ES LA CLAVE:
-                // Si la fábrica está LLENA (limiteReal <= 0), NO esperamos 10 segundos.
-                // Esperamos solo 1 segundo y volvemos a comprobar.
-                // Así, en cuanto muera uno, el spawn reacciona rápido.
                 yield return new WaitForSeconds(1f);
             }
         }
@@ -416,7 +403,6 @@ public class EnemyBaseFactory : MonoBehaviour
         spawnCoroutine = null;
         isActiveSpawner = false;
     }
-    // ---------------------------------------------------
 
     private Vector3 GetValidSpawnPosition()
     {
@@ -442,7 +428,6 @@ public class EnemyBaseFactory : MonoBehaviour
         if (Physics2D.OverlapCircle(position, 0.5f, waterLayer)) return false;
         if (obstacleLayer != 0 && Physics2D.OverlapCircle(position, 0.5f, obstacleLayer)) return false;
 
-        // Reducimos el radio de chequeo entre enemigos para que puedan salir juntos en pelotón
         Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(position, 0.5f);
         foreach (Collider2D collider in nearbyEnemies)
         {
@@ -516,7 +501,13 @@ public class EnemyBaseFactory : MonoBehaviour
     {
         isConquered = false;
         conquestProgress = 0f;
+
+        if (spriteRenderer != null && originalSprite != null)
+        {
+            spriteRenderer.sprite = originalSprite;
+        }
         spriteRenderer.color = neutralColor;
+
         if (fogStaticVision != null) fogStaticVision.enabled = false;
         isGeneratingMoney = false;
         if (moneyGenerationCoroutine != null) StopCoroutine(moneyGenerationCoroutine);

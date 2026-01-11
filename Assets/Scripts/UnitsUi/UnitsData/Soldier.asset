@@ -15,6 +15,6 @@ MonoBehaviour:
   buildingName: Soldier
   buildingSprite: {fileID: -297889531, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   buildingPrefab: {fileID: 6345127346883322234, guid: 462e604a0087131468f7332b8b031e98, type: 3}
-  cost: 1
-  buildTime: 0
+  cost: 75
+  buildTime: 1
   gridSize: {x: 1, y: 1}

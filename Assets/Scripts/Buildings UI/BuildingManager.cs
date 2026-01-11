@@ -300,8 +300,7 @@ public class BuildingManager : MonoBehaviour
         foreach (var b in toDisable) if (b != null) b.enabled = true;
         foreach (var m in constructionInstMaterials) if (m != null) Destroy(m);
 
-        Debug.Log($"[BuildingManager] Construção concluída: {placed.name}");
-    }
+        Debug.Log($"[BuildingManager] Construção concluída: {placed.name}");    }
 
     IEnumerator ConstructionPulseRoutine(Transform target)
     {

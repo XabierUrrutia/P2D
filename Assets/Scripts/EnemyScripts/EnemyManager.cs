@@ -11,7 +11,10 @@ public class EnemyManager : MonoBehaviour
 
     [Header("Gestión de Múltiples Jugadores")]
     private List<Transform> todosJogadores = new List<Transform>();
-    private List<EnemyAI> todosEnemigos = new List<EnemyAI>();
+
+    // LISTAS SEPARADAS PARA DISTINTOS TIPOS DE ENEMIGOS
+    private List<EnemyAI> todosEnemigos = new List<EnemyAI>(); // Soldados
+    private List<EnemyTankShooting> todosTanques = new List<EnemyTankShooting>(); // Tanques
 
     void Awake()
     {
@@ -63,7 +66,6 @@ public class EnemyManager : MonoBehaviour
             playerBase = baseObj.transform;
             Debug.Log("Base encontrada y asignada: " + playerBase.name + " en posición: " + playerBase.position);
 
-            // Si la base está en (0,0,0), es un problema
             if (playerBase.position == Vector3.zero)
             {
                 Debug.LogError("¡LA BASE ESTÁ EN (0,0,0)! Verifica la posición en la escena.");
@@ -84,7 +86,6 @@ public class EnemyManager : MonoBehaviour
 
         foreach (GameObject jogadorObj in jogadoresEncontrados)
         {
-            // CAMBIO: Buscar IHealth en lugar de PlayerHealth específico
             IHealth health = jogadorObj.GetComponent<IHealth>();
             if (health != null && !health.IsDead && jogadorObj.activeInHierarchy)
             {
@@ -104,11 +105,13 @@ public class EnemyManager : MonoBehaviour
     void RegistrarEnemigosExistentes()
     {
         todosEnemigos.Clear();
+        todosTanques.Clear();
 
+        // 1. Registrar Soldados (EnemyAI)
         EnemyAI[] enemigosEncontrados = FindObjectsOfType<EnemyAI>();
         todosEnemigos.AddRange(enemigosEncontrados);
 
-        // Notificar a cada enemigo sobre todos los jugadores
+        // Notificar a cada soldado sobre los jugadores (porque EnemyAI usa un sistema de lista interna)
         foreach (EnemyAI enemigo in todosEnemigos)
         {
             if (enemigo != null)
@@ -119,60 +122,52 @@ public class EnemyManager : MonoBehaviour
                 }
             }
         }
+
+        // 2. Registrar Tanques (EnemyTankShooting)
+        EnemyTankShooting[] tanquesEncontrados = FindObjectsOfType<EnemyTankShooting>();
+        todosTanques.AddRange(tanquesEncontrados);
+
+        // Nota: Los tanques usan un sistema de búsqueda en Update (GetJogadorMaisProximo), 
+        // por lo que no necesitan "AdicionarJogador" explícitamente, pero quedan registrados para el conteo.
     }
 
     // MÉTODOS PÚBLICOS PARA GESTIÓN DE JUGADORES
 
-    /// <summary>
-    /// Registra un nuevo jugador (cuando se compra)
-    /// </summary>
     public void RegistrarNovoJogador(Transform novoJogador)
     {
         if (!todosJogadores.Contains(novoJogador))
         {
-            // CAMBIO: Verificar IHealth antes de registrar
             IHealth health = novoJogador.GetComponent<IHealth>();
             if (health != null && !health.IsDead)
             {
                 todosJogadores.Add(novoJogador);
 
-                // Notificar a todos los enemigos sobre el nuevo jugador
+                // Notificar a los soldados (EnemyAI)
                 foreach (EnemyAI enemy in todosEnemigos)
                 {
-                    if (enemy != null)
-                    {
-                        enemy.AdicionarJogador(novoJogador);
-                    }
+                    if (enemy != null) enemy.AdicionarJogador(novoJogador);
                 }
 
+                // Los tanques lo detectarán automáticamente en su próximo ciclo de búsqueda
+
                 Debug.Log($"Nuevo jugador registrado: {novoJogador.name}. Total: {todosJogadores.Count}");
-            }
-            else
-            {
-                Debug.LogWarning($"Intento de registrar {novoJogador.name} sin IHealth o está muerto");
             }
         }
     }
 
-    /// <summary>
-    /// Remueve un jugador (cuando muere)
-    /// </summary>
     public void RemoverJogador(Transform jogadorMorto)
     {
         if (todosJogadores.Contains(jogadorMorto))
         {
             todosJogadores.Remove(jogadorMorto);
 
-            // Notificar a todos los enemigos
+            // Notificar a los soldados
             foreach (EnemyAI enemy in todosEnemigos)
             {
-                if (enemy != null)
-                {
-                    enemy.RemoverJogador(jogadorMorto);
-                }
+                if (enemy != null) enemy.RemoverJogador(jogadorMorto);
             }
 
-            // Actualizar jugador principal si era el que murió
+            // Actualizar referencia 'player' si es necesario
             if (player == jogadorMorto && todosJogadores.Count > 0)
             {
                 player = todosJogadores[0];
@@ -186,43 +181,51 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
-    // MÉTODOS PÚBLICOS PARA GESTIÓN DE ENEMIGOS
+    // --- GESTIÓN DE ENEMIGOS (SOLDADOS) ---
 
-    /// <summary>
-    /// Registra un nuevo enemigo (cuando se spawn)
-    /// </summary>
     public void RegistrarEnemy(EnemyAI novoEnemy)
     {
         if (!todosEnemigos.Contains(novoEnemy))
         {
             todosEnemigos.Add(novoEnemy);
 
-            // Pasar todos los jugadores conocidos al nuevo enemigo
+            // Pasar jugadores conocidos al nuevo soldado
             foreach (Transform jogador in todosJogadores)
             {
-                if (jogador != null)
-                {
-                    novoEnemy.AdicionarJogador(jogador);
-                }
+                if (jogador != null) novoEnemy.AdicionarJogador(jogador);
             }
-
-            Debug.Log($"Nuevo enemigo registrado: {novoEnemy.name}. Total: {todosEnemigos.Count}");
         }
     }
 
-    /// <summary>
-    /// Remueve un enemigo (cuando muere)
-    /// </summary>
     public void RemoverEnemy(EnemyAI enemyMorto)
     {
         if (todosEnemigos.Contains(enemyMorto))
         {
             todosEnemigos.Remove(enemyMorto);
-            Debug.Log($"Enemigo removido: {enemyMorto.name}. Total: {todosEnemigos.Count}");
         }
     }
 
-    // MÉTODOS DE CONSULTA
+    // --- GESTIÓN DE TANQUES (NUEVO) ---
+
+    public void RegistrarTanque(EnemyTankShooting novoTanque)
+    {
+        if (!todosTanques.Contains(novoTanque))
+        {
+            todosTanques.Add(novoTanque);
+            Debug.Log($"Tanque registrado: {novoTanque.name}");
+        }
+    }
+
+    public void RemoverTanque(EnemyTankShooting tanqueMorto)
+    {
+        if (todosTanques.Contains(tanqueMorto))
+        {
+            todosTanques.Remove(tanqueMorto);
+            Debug.Log($"Tanque removido: {tanqueMorto.name}");
+        }
+    }
+
+    // --- MÉTODOS DE CONSULTA ---
 
     public List<Transform> GetTodosJogadores()
     {
@@ -234,9 +237,13 @@ public class EnemyManager : MonoBehaviour
         return todosJogadores.Count;
     }
 
+    /// <summary>
+    /// Devuelve el total de enemigos (Soldados + Tanques)
+    /// Útil para saber si la oleada terminó.
+    /// </summary>
     public int GetQuantidadeEnemigos()
     {
-        return todosEnemigos.Count;
+        return todosEnemigos.Count + todosTanques.Count;
     }
 
     public Transform GetJogadorMaisProximo(Vector3 posicao)
@@ -250,7 +257,6 @@ public class EnemyManager : MonoBehaviour
         {
             if (jogador == null || !jogador.gameObject.activeInHierarchy) continue;
 
-            // CAMBIO: Verificar IHealth
             IHealth health = jogador.GetComponent<IHealth>();
             if (health == null || health.IsDead) continue;
 
@@ -265,37 +271,27 @@ public class EnemyManager : MonoBehaviour
         return jogadorMaisProximo;
     }
 
-    // Método para buscar IHealth en un GameObject
     public IHealth GetIHealthFromObject(GameObject obj)
     {
         if (obj == null) return null;
-
         IHealth health = obj.GetComponent<IHealth>();
         if (health != null) return health;
-
-        // Buscar en hijos
-        health = obj.GetComponentInChildren<IHealth>();
-        return health;
+        return obj.GetComponentInChildren<IHealth>();
     }
 
-    // Método público para reasignar la base si es necesario
     public void ReasignarBase(Transform nuevaBase)
     {
         playerBase = nuevaBase;
-        Debug.Log($"Base reasignada a: {nuevaBase.name}");
     }
 
-    // Método para forzar actualización de jugadores (útil en testing)
     public void ForcarAtualizacaoJogadores()
     {
         BuscarYRegistrarTodosJogadores();
     }
 
-    // Método para obtener todos los IHealth activos
     public List<IHealth> GetTodosIHealth()
     {
         List<IHealth> healths = new List<IHealth>();
-
         foreach (Transform jogador in todosJogadores)
         {
             if (jogador != null)
@@ -307,7 +303,6 @@ public class EnemyManager : MonoBehaviour
                 }
             }
         }
-
         return healths;
     }
 }

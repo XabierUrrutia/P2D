@@ -898,7 +898,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 6345127346883322234, guid: 462e604a0087131468f7332b8b031e98, type: 3}
-  cantidadSoldados: 5
+  cantidadSoldados: 10
   radioSpawn: 1.5
   cameraScript: {fileID: 0}
   usarFormacionCircular: 1
