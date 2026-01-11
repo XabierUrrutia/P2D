@@ -20,14 +20,21 @@ public class cameraFollow : MonoBehaviour
     [Header("Zoom (Mouse Scroll)")]
     [Tooltip("Camera a controlar. Se vazio, tentará obter Camera.main ou Camera no mesmo GameObject.")]
     public Camera cam;
-    public float zoomSpeed = 5f;
     public float zoomSmoothSpeed = 10f;
+
+    [Tooltip("Níveis de zoom ortográfico (4 pontos). Se vazio, será preenchido automaticamente.")]
+    public float[] orthoZoomLevels = new float[4] { 3f, 5f, 7f, 10f };
+
+    [Tooltip("Níveis de zoom em FOV (4 pontos). Se vazio, será preenchido automaticamente.")]
+    public float[] fovZoomLevels = new float[4] { 25f, 35f, 45f, 60f };
+
     public float minOrthoSize = 2f;
     public float maxOrthoSize = 10f;
     public float minFOV = 15f;
     public float maxFOV = 60f;
 
-    private float _targetZoom; // orthoSize ou FOV dependendo do tipo
+    private int _currentZoomLevel = 1; // começa num nível intermédio
+    private float _targetZoom;         // orthoSize ou FOV dependendo do tipo
     private bool _isOrthographic = true;
 
     void Start()
@@ -42,29 +49,42 @@ public class cameraFollow : MonoBehaviour
         if (cam != null)
         {
             _isOrthographic = cam.orthographic;
-            _targetZoom = _isOrthographic ? cam.orthographicSize : cam.fieldOfView;
+
+            // Garantir 4 níveis válidos
+            if (orthoZoomLevels == null || orthoZoomLevels.Length != 4)
+                orthoZoomLevels = new float[4] { 3f, 5f, 7f, 10f };
+
+            if (fovZoomLevels == null || fovZoomLevels.Length != 4)
+                fovZoomLevels = new float[4] { 25f, 35f, 45f, 60f };
+
+            // Clampar níveis dentro dos min/max
+            for (int i = 0; i < orthoZoomLevels.Length; i++)
+                orthoZoomLevels[i] = Mathf.Clamp(orthoZoomLevels[i], minOrthoSize, maxOrthoSize);
+
+            for (int i = 0; i < fovZoomLevels.Length; i++)
+                fovZoomLevels[i] = Mathf.Clamp(fovZoomLevels[i], minFOV, maxFOV);
+
+            // Definir target inicial no nível atual
+            if (_isOrthographic)
+            {
+                _targetZoom = orthoZoomLevels[Mathf.Clamp(_currentZoomLevel, 0, orthoZoomLevels.Length - 1)];
+                cam.orthographicSize = _targetZoom;
+            }
+            else
+            {
+                _targetZoom = fovZoomLevels[Mathf.Clamp(_currentZoomLevel, 0, fovZoomLevels.Length - 1)];
+                cam.fieldOfView = _targetZoom;
+            }
         }
     }
 
     void LateUpdate()
     {
+        // NÃO chamamos mais HandleZoomInput se estamos a usar novo sistema para zoom,
+        // mas se ainda usas o scroll antigo, podes chamar aqui:
         HandleZoomInput();
 
-        if (isManualControl)
-        {
-            // Movimiento manual con WASD
-            Vector3 moveInput = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
-            Vector3 desiredPosition = transform.position + moveInput * moveSpeed * Time.deltaTime;
-
-            if (useBounds)
-            {
-                desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
-                desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
-            }
-
-            transform.position = desiredPosition;
-        }
-        else if (target != null)
+        if (!isManualControl && target != null)
         {
             // Seguimiento normal del personaje
             Vector3 desiredPosition = target.position + offset;
@@ -79,7 +99,7 @@ public class cameraFollow : MonoBehaviour
             transform.position = smoothedPosition;
         }
 
-        // Aplicar zoom suavemente
+        // Aplicar zoom suavemente (continua igual)
         if (cam != null)
         {
             if (_isOrthographic)
@@ -100,17 +120,67 @@ public class cameraFollow : MonoBehaviour
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (Mathf.Abs(scroll) > 0.0001f)
         {
-            // Scroll para cima (positivo) deve aproximar (zoom in): diminuir orthoSize / FOV
-            float delta = -scroll * zoomSpeed;
+            // Scroll para cima (positivo) aproxima (zoom in): passar para nível mais "perto" (índice menor)
+            if (scroll > 0f)
+                _currentZoomLevel--;
+            else
+                _currentZoomLevel++;
 
             if (_isOrthographic)
             {
-                _targetZoom = Mathf.Clamp(_targetZoom + delta, minOrthoSize, maxOrthoSize);
+                _currentZoomLevel = Mathf.Clamp(_currentZoomLevel, 0, orthoZoomLevels.Length - 1);
+                _targetZoom = orthoZoomLevels[_currentZoomLevel];
             }
             else
             {
-                _targetZoom = Mathf.Clamp(_targetZoom + delta, minFOV, maxFOV);
+                _currentZoomLevel = Mathf.Clamp(_currentZoomLevel, 0, fovZoomLevels.Length - 1);
+                _targetZoom = fovZoomLevels[_currentZoomLevel];
             }
+        }
+    }
+
+    public void ManualMove(Vector2 input)
+    {
+        isManualControl = true;
+
+        Vector3 moveInput = new Vector3(input.x, input.y, 0f);
+        if (moveInput.sqrMagnitude > 1f)
+            moveInput.Normalize();
+
+        Vector3 desiredPosition = transform.position + moveInput * moveSpeed * Time.deltaTime;
+
+        if (useBounds)
+        {
+            desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
+            desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
+        }
+
+        transform.position = desiredPosition;
+    }
+
+    public void ManualZoom(float scrollDelta)
+    {
+        if (cam == null)
+            return;
+
+        // Em vez de usar delta contínuo, vamos só mudar de nível com base no sinal do scrollDelta
+        if (Mathf.Abs(scrollDelta) <= 0.0001f)
+            return;
+
+        if (scrollDelta > 0f)
+            _currentZoomLevel--;
+        else
+            _currentZoomLevel++;
+
+        if (_isOrthographic)
+        {
+            _currentZoomLevel = Mathf.Clamp(_currentZoomLevel, 0, orthoZoomLevels.Length - 1);
+            _targetZoom = orthoZoomLevels[_currentZoomLevel];
+        }
+        else
+        {
+            _currentZoomLevel = Mathf.Clamp(_currentZoomLevel, 0, fovZoomLevels.Length - 1);
+            _targetZoom = fovZoomLevels[_currentZoomLevel];
         }
     }
 

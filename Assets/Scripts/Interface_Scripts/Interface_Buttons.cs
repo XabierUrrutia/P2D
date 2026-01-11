@@ -50,7 +50,7 @@ public class Interface_Buttons : MonoBehaviour
         SceneManager.LoadScene(sceneIndex);
     }
 
-    public void GoToSettingsMenu()
+    public void GoToChooseSettings()
     {
         LoadSceneAndSave(1);
     }
@@ -99,6 +99,14 @@ public class Interface_Buttons : MonoBehaviour
     public void SecondLevel()
     {
         LoadSceneAndSave(3);
+    }
+    public void GotoSettingsMenu()
+    {
+        LoadSceneAndSave(11);
+    }
+    public void GotoControlsMenu()
+    {
+        LoadSceneAndSave(10);
     }
     public void GoInGameSettings()
     {

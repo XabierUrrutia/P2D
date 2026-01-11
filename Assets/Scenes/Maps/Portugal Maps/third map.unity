@@ -173770,7 +173770,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 601001897}
         m_TargetAssemblyTypeName: Interface_Buttons, Assembly-CSharp
-        m_MethodName: GoToSettingsMenu
+        m_MethodName: GoToChooseSettings
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -174571,6 +174571,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   visionRadius: 10
   alwaysActive: 1
+  isInitialized: 0
 --- !u!1 &282120802
 GameObject:
   m_ObjectHideFlags: 0
@@ -179754,6 +179755,71 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &541595232
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 541595233}
+  - component: {fileID: 541595234}
+  - component: {fileID: 541595235}
+  m_Layer: 0
+  m_Name: ControlsManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &541595233
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 541595232}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1755456274}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &541595234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 541595232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acaa98e6038ffe3439662dfe65a97f3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputActionsAsset: {fileID: -944628639613478452, guid: 6acfcb1027956684b89346f813045ac3, type: 3}
+  gameplayMapName: Gameplay
+--- !u!114 &541595235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 541595232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f86f7156aa03444a9c437e20f1b7e57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraUpAction: {fileID: -7105610200792558895, guid: 6acfcb1027956684b89346f813045ac3, type: 3}
+  cameraDownAction: {fileID: -5976054365474903837, guid: 6acfcb1027956684b89346f813045ac3, type: 3}
+  cameraLeftAction: {fileID: -2949544485417004667, guid: 6acfcb1027956684b89346f813045ac3, type: 3}
+  cameraRightAction: {fileID: -5961746272590155545, guid: 6acfcb1027956684b89346f813045ac3, type: 3}
+  zoomCameraAction: {fileID: -8869486946749788982, guid: 6acfcb1027956684b89346f813045ac3, type: 3}
+  cameraFollow: {fileID: 1144464467}
 --- !u!1 &545585111
 GameObject:
   m_ObjectHideFlags: 0
@@ -179798,8 +179864,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d53152daa915a234faa5d3e164e888eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  costoMultiplicador: 1
+  sePaganSalarios: 0
+  startMoney: 10
   currentMoney: 7
-  moneyText: {fileID: 995756608}
   incomeTickInterval: 1
 --- !u!1 &574757442
 GameObject:
@@ -626960,6 +627028,7 @@ Transform:
   - {fileID: 855308325}
   - {fileID: 878240822}
   - {fileID: 1466973271}
+  - {fileID: 541595233}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1755808894
