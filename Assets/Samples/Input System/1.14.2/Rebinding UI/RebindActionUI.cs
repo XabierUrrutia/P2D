@@ -170,7 +170,9 @@ namespace UnityEngine.InputSystem.Samples.RebindUI
                 for (var i = bindingIndex + 1;
                      i < action.bindings.Count && action.bindings[i].isPartOfComposite;
                      ++i)
+                {
                     action.RemoveBindingOverride(i);
+                }
             }
             else
             {
@@ -178,7 +180,15 @@ namespace UnityEngine.InputSystem.Samples.RebindUI
             }
 
             UpdateBindingDisplay();
+
+            // Feedback simples quando volta ao default
+            if (m_RebindText != null)
+            {
+                var actionName = m_Action?.action != null ? m_Action.action.name : "Action";
+                m_RebindText.text = $"{actionName}: tecla reposta para o valor padrão.";
+            }
         }
+
         private void Start()
         {
             LoadActionBinding();
@@ -186,12 +196,12 @@ namespace UnityEngine.InputSystem.Samples.RebindUI
 
         private void SaveActionBinding()
         {
-            // guarda todos os overrides do actionMap desta action
             var map = actionReference.action.actionMap;
             var currentBindings = map.SaveBindingOverridesAsJson();
             PlayerPrefs.SetString($"Bindings_{map.name}", currentBindings);
             PlayerPrefs.Save();
         }
+
         private void LoadActionBinding()
         {
             var map = actionReference.action.actionMap;
@@ -227,14 +237,33 @@ namespace UnityEngine.InputSystem.Samples.RebindUI
             action.Disable();
             m_RebindOperation?.Cancel();
 
-            void CleanUp()
+            void CleanUp(bool canceled)
             {
                 m_RebindOperation?.Dispose();
                 m_RebindOperation = null;
                 m_Action.action.Enable();
                 action.actionMap.Enable();
                 m_UIInputActionMap?.Enable();
-                SaveActionBinding();
+
+                if (!canceled)
+                    SaveActionBinding();
+
+                // Feedback final
+                if (m_RebindText != null)
+                {
+                    var actionName = m_Action?.action != null ? m_Action.action.name : "Action";
+                    if (canceled)
+                    {
+                        m_RebindText.text = $"{actionName}: change canceled, previous key retained.";
+                    }
+                    else
+                    {
+                        var displayString = m_BindingText != null ? m_BindingText.text : string.Empty;
+                        m_RebindText.text = string.IsNullOrEmpty(displayString)
+                            ? $"{actionName}: new key defined."
+                            : $"{actionName}: now use [{displayString}].";
+                    }
+                }
             }
 
             action.actionMap.Disable();
@@ -247,7 +276,7 @@ namespace UnityEngine.InputSystem.Samples.RebindUI
                     if (m_RebindOverlay != null)
                         m_RebindOverlay.SetActive(false);
                     UpdateBindingDisplay();
-                    CleanUp();
+                    CleanUp(canceled: true);
                 })
                 .OnComplete(operation =>
                 {
@@ -255,7 +284,7 @@ namespace UnityEngine.InputSystem.Samples.RebindUI
                         m_RebindOverlay.SetActive(false);
                     m_RebindStopEvent?.Invoke(this, operation);
                     UpdateBindingDisplay();
-                    CleanUp();
+                    CleanUp(canceled: false);
 
                     if (allCompositeParts)
                     {
@@ -270,15 +299,28 @@ namespace UnityEngine.InputSystem.Samples.RebindUI
 
             var partName = default(string);
             if (action.bindings[bindingIndex].isPartOfComposite)
-                partName = $"Binding '{action.bindings[bindingIndex].name}'. ";
+                partName = $"Parte '{action.bindings[bindingIndex].name}'. ";
 
             m_RebindOverlay?.SetActive(true);
             if (m_RebindText != null)
             {
-                var text = !string.IsNullOrEmpty(m_RebindOperation.expectedControlType)
-                    ? $"{partName}Waiting for {m_RebindOperation.expectedControlType} input..."
-                    : $"{partName}Waiting for input...";
-                m_RebindText.text = text;
+                var actionName = m_Action?.action != null ? m_Action.action.name : "esta ação";
+                var expectedType = m_RebindOperation.expectedControlType;
+
+                if (!string.IsNullOrEmpty(expectedType))
+                {
+                    m_RebindText.text =
+                        $"{partName}Changing control of [{actionName}].\n" +
+                        $"Press a key or button of type {expectedType}...\n" +
+                        "Press ESC to cancel.";
+                }
+                else
+                {
+                    m_RebindText.text =
+                        $"{partName}Changing control of [{actionName}].\n" +
+                        "Press any key or button...\n" +
+                        "Press ESC to cancel.";
+                }
             }
 
             if (m_RebindOverlay == null &&
@@ -286,7 +328,7 @@ namespace UnityEngine.InputSystem.Samples.RebindUI
                 m_RebindStartEvent == null &&
                 m_BindingText != null)
             {
-                m_BindingText.text = "<Waiting...>";
+                m_BindingText.text = "<A aguardar novo input...>";
             }
 
             m_RebindStartEvent?.Invoke(this, m_RebindOperation);
