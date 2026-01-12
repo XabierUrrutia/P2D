@@ -15,6 +15,6 @@ MonoBehaviour:
   buildingName: General
   buildingSprite: {fileID: -1128656789, guid: 5e754c6fbd48fbb458b78b7fcb33b6a6, type: 3}
   buildingPrefab: {fileID: 6345127346883322234, guid: 3938e80781d58084bab8eb79d62c66a3, type: 3}
-  cost: 400
+  cost: 150
   buildTime: 3
   gridSize: {x: 1, y: 1}

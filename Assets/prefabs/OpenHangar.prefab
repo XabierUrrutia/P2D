@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5885030376611176540}
   - component: {fileID: 6127988914857812050}
   - component: {fileID: 6204514252691574344}
+  - component: {fileID: -7727986324150505330}
   m_Layer: 0
   m_Name: OpenHangar
   m_TagString: Untagged
@@ -191,3 +192,17 @@ TilemapCollider2D:
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
   m_UseDelaunayMesh: 0
+--- !u!114 &-7727986324150505330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2057124343739751168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5b27b879dc906d4abc2d916c1b70dd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tipoQueAumenta: 1
+  cantidadQueSuma: 1

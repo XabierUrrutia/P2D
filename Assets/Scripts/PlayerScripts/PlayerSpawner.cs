@@ -29,15 +29,6 @@ public class PlayerSpawner : MonoBehaviour
 
     public void SpawnSoldados()
     {
-        // Destruir soldados anteriores si existen
-        foreach (GameObject soldado in soldadosSpawneados)
-        {
-            if (soldado != null)
-            {
-                Destroy(soldado);
-            }
-        }
-        soldadosSpawneados.Clear();
 
         if (playerPrefab != null)
         {
@@ -46,16 +37,16 @@ public class PlayerSpawner : MonoBehaviour
             for (int i = 0; i < cantidadSoldados; i++)
             {
                 GameObject soldado = Instantiate(playerPrefab, posicionesSpawn[i], transform.rotation);
-                soldadosSpawneados.Add(soldado);
 
+                // Añadimos a la lista para tener referencia, pero ya no los borraremos
+                soldadosSpawneados.Add(soldado);
             }
 
-            // Asignar el PRIMER soldado a la cámara (o puedes cambiar esto)
+            // Asignar cámara al último creado (opcional)
             if (cameraScript != null && soldadosSpawneados.Count > 0)
             {
-                cameraScript.target = soldadosSpawneados[0].transform;
+                // cameraScript.target = soldadosSpawneados[0].transform; 
             }
-
         }
     }
 

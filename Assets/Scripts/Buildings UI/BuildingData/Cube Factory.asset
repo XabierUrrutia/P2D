@@ -15,6 +15,6 @@ MonoBehaviour:
   buildingName: Cube Factory
   buildingSprite: {fileID: -982189450, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   buildingPrefab: {fileID: 3259702835758711629, guid: dfebc5dce3c484b4d99e7952ae7eb144, type: 3}
-  cost: 20
+  cost: 300
   buildTime: 3
   gridSize: {x: 1, y: 1}

@@ -814,6 +814,7 @@ GameObject:
   - component: {fileID: 5626338546837467521}
   - component: {fileID: 8085584678376350317}
   - component: {fileID: 538008997578650327}
+  - component: {fileID: -6227407995968305431}
   m_Layer: 10
   m_Name: General
   m_TagString: Player
@@ -914,7 +915,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0206ad2e4fa4e944b33078db9467cee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velocidad: 1.8
+  velocidad: 1.7
   distanciaParada: 0.1
   cooldownClick: 0.7
   capaSuelo:
@@ -1097,7 +1098,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   hasShield: 1
-  maxShield: 50
+  maxShield: 150
   shieldRegenRate: 10
   shieldRegenDelay: 3
   healthBar: {fileID: 3575284267761898804}
@@ -1129,6 +1130,20 @@ MonoBehaviour:
   maxNivel: 3
   bonusSalud: 2
   "bonusDa\xF1o": 1
+--- !u!114 &-6227407995968305431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6345127346883322234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62f85558d9343a64da334c286f5a4613, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soyUnaUnidadDe: 0
+  costePoblacion: 2
 --- !u!1 &7200475562421419594
 GameObject:
   m_ObjectHideFlags: 0

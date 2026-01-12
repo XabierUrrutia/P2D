@@ -2,163 +2,160 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Painel de recrutamento simplificado: apenas dois tipos => Soldado e General.
-/// Anexar ao prefab do painel (PanelSoldadosUI). EdificioClick chama ConfigurarPanel(...).
-/// </summary>
 public class PanelSoldadosUI : MonoBehaviour
 {
-    [Header("Referências UI")]
-    [Tooltip("Root do painel (normalmente inativo).")]
+    [Header("Referencias UI")]
     public GameObject panelRoot;
-
-    [Tooltip("Botão fechar do painel")]
     public Button closeButton;
-
-    [Header("Botões de Recrutamento")]
     public Button soldadoButton;
-    public TextMeshProUGUI soldadoCostText;
+    public Button generalButton; // <--- Botón del General
 
-    public Button generalButton;
+    [Header("Textos de Coste")]
+    public TextMeshProUGUI soldadoCostText;
     public TextMeshProUGUI generalCostText;
 
-    [Header("Custos")]
-    public int costSoldado = 10;
-    public int costGeneral = 50;
+    [Header("DATOS DE UNIDADES (Arrastra los ScriptableObjects aquí)")]
+    public BuildingData datosDelSoldado; // <--- Arrastra aquí el Data del Soldado Raso
+    public BuildingData datosDelGeneral; // <--- Arrastra aquí el Data del General
 
-    // estado
+    [Header("Configuración Económica")]
+    public int costSoldado = 50;
+    public int costGeneral = 200;
+
+    [Header("Configuración de Población")]
+    private int pobCosteSoldado = 1; // El soldado ocupa 1 cama
+    private int pobCosteGeneral = 2; // El general ocupa 2 camas
+
     private EdificioClick currentBuilding = null;
 
     void Awake()
     {
-        if (panelRoot != null)
-            panelRoot.SetActive(false);
+        if (panelRoot != null) panelRoot.SetActive(false);
+        if (closeButton != null) closeButton.onClick.AddListener(HidePanel);
 
-        if (closeButton != null)
-            closeButton.onClick.AddListener(HidePanel);
-
+        // Asignar funciones a los botones
         if (soldadoButton != null) soldadoButton.onClick.AddListener(OnRecruitSoldado);
         if (generalButton != null) generalButton.onClick.AddListener(OnRecruitGeneral);
 
-        UpdateCostTexts();
+        UpdateUI();
     }
 
     void OnEnable()
     {
-        // Quando o painel for activado, atualizar estado dos botões (fundos)
-        RefreshButtonsInteractable();
+        if (PopulationManager.Instance != null)
+            PopulationManager.Instance.OnPopulationChanged += UpdateUI;
+        UpdateUI();
     }
 
-    void UpdateCostTexts()
+    void OnDisable()
     {
-        if (soldadoCostText != null) soldadoCostText.text = $"Custo: {costSoldado}";
-        if (generalCostText != null) generalCostText.text = $"Custo: {costGeneral}";
+        if (PopulationManager.Instance != null)
+            PopulationManager.Instance.OnPopulationChanged -= UpdateUI;
     }
 
-    void RefreshButtonsInteractable()
+    void UpdateUI()
     {
-        if (MoneyManager.Instance != null)
+        // Actualizar Textos
+        if (soldadoCostText != null) soldadoCostText.text = $"Soldado: {costSoldado}$";
+        if (generalCostText != null) generalCostText.text = $"General: {costGeneral}$";
+
+        bool hasMoney = MoneyManager.Instance != null;
+        bool hasPop = PopulationManager.Instance != null;
+        int currentMoney = hasMoney ? MoneyManager.Instance.CurrentMoney : 0;
+
+        // --- LÓGICA BOTÓN SOLDADO ---
+        if (soldadoButton != null)
         {
-            int money = MoneyManager.Instance.CurrentMoney;
-            if (soldadoButton != null) soldadoButton.interactable = money >= costSoldado;
-            if (generalButton != null) generalButton.interactable = money >= costGeneral;
+            bool puedePagar = currentMoney >= costSoldado;
+            bool tieneSitio = hasPop && PopulationManager.Instance.HayEspacio(PopulationManager.TipoUnidad.Soldado, pobCosteSoldado);
+            soldadoButton.interactable = puedePagar && tieneSitio;
         }
-        else
+
+        // --- LÓGICA BOTÓN GENERAL ---
+        if (generalButton != null)
         {
-            if (soldadoButton != null) soldadoButton.interactable = true;
-            if (generalButton != null) generalButton.interactable = true;
+            bool puedePagar = currentMoney >= costGeneral;
+            // El general ocupa MÁS espacio (pobCosteGeneral = 2)
+            bool tieneSitio = hasPop && PopulationManager.Instance.HayEspacio(PopulationManager.TipoUnidad.Soldado, pobCosteGeneral);
+            generalButton.interactable = puedePagar && tieneSitio;
         }
     }
 
-    /// <summary>
-    /// API simplificada: chamada por EdificioClick.
-    /// </summary>
     public void ConfigurarPanel(EdificioClick edificio)
     {
         currentBuilding = edificio;
-
         if (panelRoot != null) panelRoot.SetActive(true);
-
-        UpdateCostTexts();
-        RefreshButtonsInteractable();
+        UpdateUI();
     }
 
-    /// <summary>
-    /// Retorna o edifício atualmente associado ao painel (para toggle).
-    /// </summary>
-    public EdificioClick GetCurrentBuilding()
-    {
-        return currentBuilding;
-    }
+    public EdificioClick GetCurrentBuilding() { return currentBuilding; }
 
-    // Handlers dos botões
+    // =========================================================
+    //               RECLUTAR SOLDADO
+    // =========================================================
     public void OnRecruitSoldado()
     {
-        TryRecruitSoldado();
+        // 1. Check Población
+        if (PopulationManager.Instance != null && !PopulationManager.Instance.HayEspacio(PopulationManager.TipoUnidad.Soldado, pobCosteSoldado))
+        {
+            Debug.Log("¡Necesitas más camas para el Soldado!");
+            return;
+        }
+
+        // 2. Check Dinero
+        if (MoneyManager.Instance != null && MoneyManager.Instance.CurrentMoney < costSoldado)
+        {
+            Debug.Log("No tienes dinero para el Soldado.");
+            return;
+        }
+
+        // 3. ¡A CONSTRUIR!
+        if (datosDelSoldado != null)
+        {
+            // HidePanel(); // Descomenta si quieres que se cierre el menú
+            BuildingManager.Instance.SelectBuilding(datosDelSoldado);
+        }
+        else
+        {
+            Debug.LogError("Falta asignar 'Datos Del Soldado' en el Inspector.");
+        }
     }
 
+    // =========================================================
+    //               RECLUTAR GENERAL
+    // =========================================================
     public void OnRecruitGeneral()
     {
-        TryRecruitGeneral();
-    }
-
-    private void TryRecruitSoldado()
-    {
-        if (currentBuilding == null)
+        // 1. Check Población (Ojo: usa pobCosteGeneral que vale 2)
+        if (PopulationManager.Instance != null && !PopulationManager.Instance.HayEspacio(PopulationManager.TipoUnidad.Soldado, pobCosteGeneral))
         {
-            Debug.LogWarning("[PanelSoldadosUI] Nenhum edifício associado.");
+            Debug.Log("¡Necesitas MÁS camas para el General (Ocupa 2)!");
             return;
         }
 
-        if (MoneyManager.Instance == null)
+        // 2. Check Dinero
+        if (MoneyManager.Instance != null && MoneyManager.Instance.CurrentMoney < costGeneral)
         {
-            Debug.LogError("[PanelSoldadosUI] MoneyManager não encontrado.");
+            Debug.Log("No tienes dinero para el General.");
             return;
         }
 
-        if (!MoneyManager.Instance.SpendMoney(costSoldado))
+        // 3. ¡A CONSTRUIR!
+        if (datosDelGeneral != null)
         {
-            Debug.Log("[PanelSoldadosUI] Dinheiro insuficiente para recrutar Soldado.");
-            return;
+            // HidePanel(); // Descomenta si quieres que se cierre el menú
+            BuildingManager.Instance.SelectBuilding(datosDelGeneral);
         }
-
-        currentBuilding.ReclutarSoldado(EdificioClick.TipoSoldado.Infanteria);
-        Debug.Log($"[PanelSoldadosUI] Recrutado Soldado em {currentBuilding.name} por {costSoldado}.");
-
-        RefreshButtonsInteractable();
-    }
-
-    private void TryRecruitGeneral()
-    {
-        if (currentBuilding == null)
+        else
         {
-            Debug.LogWarning("[PanelSoldadosUI] Nenhum edifício associado.");
-            return;
+            Debug.LogError("Falta asignar 'Datos Del General' en el Inspector.");
         }
-
-        if (MoneyManager.Instance == null)
-        {
-            Debug.LogError("[PanelSoldadosUI] MoneyManager não encontrado.");
-            return;
-        }
-
-        if (!MoneyManager.Instance.SpendMoney(costGeneral))
-        {
-            Debug.Log("[PanelSoldadosUI] Dinheiro insuficiente para recrutar General.");
-            return;
-        }
-
-        currentBuilding.ReclutarSoldado(EdificioClick.TipoSoldado.Caballeria);
-        Debug.Log($"[PanelSoldadosUI] Recrutado General em {currentBuilding.name} por {costGeneral}.");
-
-        RefreshButtonsInteractable();
     }
 
     public void HidePanel()
     {
         if (panelRoot != null) panelRoot.SetActive(false);
         currentBuilding = null;
-        Time.timeScale = 1f; // Descongela o jogo ao fechar
-        Debug.Log("[PanelSoldadosUI] Painel fechado. Jogo descongelado.");
+        Time.timeScale = 1f;
     }
 }

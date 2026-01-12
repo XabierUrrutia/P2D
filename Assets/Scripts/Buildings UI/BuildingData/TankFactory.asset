@@ -15,6 +15,6 @@ MonoBehaviour:
   buildingName: Tank Factory
   buildingSprite: {fileID: 1405387626, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   buildingPrefab: {fileID: 6708317264880824817, guid: 592115e5a8c33ed409f91b5404089e7e, type: 3}
-  cost: 50
+  cost: 1500
   buildTime: 3
   gridSize: {x: 1, y: 1}

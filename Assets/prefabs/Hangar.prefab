@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 9116862288067425902}
   - component: {fileID: 4756105021906686319}
   - component: {fileID: 4891453762006624973}
+  - component: {fileID: 5198062612122413592}
   m_Layer: 4
   m_Name: Hangar
   m_TagString: Hangar
@@ -244,3 +245,17 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 2.5, y: 1.93}
   m_EdgeRadius: 0
+--- !u!114 &5198062612122413592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3956915481108066332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5b27b879dc906d4abc2d916c1b70dd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tipoQueAumenta: 0
+  cantidadQueSuma: 10

@@ -102,7 +102,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 3, z: 5}
+  m_LocalScale: {x: 3, y: 3, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8949098244507560372}
@@ -898,7 +898,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 6345127346883322234, guid: 462e604a0087131468f7332b8b031e98, type: 3}
-  cantidadSoldados: 10
+  cantidadSoldados: 5
   radioSpawn: 1.5
   cameraScript: {fileID: 0}
   usarFormacionCircular: 1

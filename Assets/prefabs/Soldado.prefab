@@ -186,7 +186,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 4086228222727233999}
@@ -232,7 +232,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 10
-  m_Sprite: {fileID: 21300000, guid: 02cf8883b6861d245bf6f3065e230fed, type: 3}
+  m_Sprite: {fileID: -1030948590, guid: 538daff63323e474f9631a1a4f5fccee, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -751,6 +751,7 @@ GameObject:
   - component: {fileID: -4340466006893484424}
   - component: {fileID: 5626338546837467521}
   - component: {fileID: 9020389207722166144}
+  - component: {fileID: -6913281061539137623}
   m_Layer: 10
   m_Name: Soldado
   m_TagString: Player
@@ -1079,6 +1080,20 @@ MonoBehaviour:
   maxNivel: 3
   bonusSalud: 10
   "bonusDa\xF1o": 4
+--- !u!114 &-6913281061539137623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6345127346883322234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62f85558d9343a64da334c286f5a4613, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soyUnaUnidadDe: 0
+  costePoblacion: 1
 --- !u!1 &6694624596917303429
 GameObject:
   m_ObjectHideFlags: 0
