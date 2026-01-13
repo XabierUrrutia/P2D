@@ -1324,7 +1324,7 @@ MonoBehaviour:
   defaultUnitVoiceGender: 0
   unitFemaleChance: 0.5
   aiVoiceGender: 1
-  masterMixer: {fileID: 0}
+  masterMixer: {fileID: 24100000, guid: cf9b491ca6eb63545b199c816d6551c9, type: 2}
   musicVolumeParameter: MusicVolume
   sfxVolumeParameter: SfxVolume
   voiceVolumeParameter: VoiceVolume
@@ -1337,9 +1337,16 @@ MonoBehaviour:
   musicSource: {fileID: 0}
   sfx2DSource: {fileID: 0}
   voiceSource: {fileID: 0}
-  menuMusicClips: []
-  gameplayMusicClips: []
-  pauseMusicClips: []
+  menuMusicClips:
+  - {fileID: 8300000, guid: dc880148fd7c2664d8db48eeb68b74a4, type: 3}
+  gameplayMusicClips:
+  - {fileID: 8300000, guid: 85cf0a419a204f74489659cc38821e73, type: 3}
+  - {fileID: 8300000, guid: 564f631092aa384468fefec15d36eb4c, type: 3}
+  - {fileID: 8300000, guid: fafa2bb1f2ebb4344985cf29d787a16e, type: 3}
+  - {fileID: 8300000, guid: 88e155e91a1926f4f91988c1e05c59e7, type: 3}
+  - {fileID: 8300000, guid: d747bcf3ce17d9f4b98046d40f8a75df, type: 3}
+  pauseMusicClips:
+  - {fileID: 8300000, guid: e7fe8ea8ffbf8904d932d146f669caea, type: 3}
   victoryMusicClips: []
   defeatMusicClips: []
   globalMinVoiceInterval: 0.35
