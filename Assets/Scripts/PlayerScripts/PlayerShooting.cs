@@ -555,7 +555,7 @@ public class PlayerShooting : MonoBehaviour
                 rb.velocity = direction * bulletSpeed;
             }
         }
-
+        /*
         if (playSound && SoundColector.Instance != null)
         {
             if (CompareTag("Tank"))
@@ -563,7 +563,7 @@ public class PlayerShooting : MonoBehaviour
             else
                 SoundColector.Instance.PlayInfantryShot();
         }
-
+        */
         currentAmmo--;
         UpdateUI();
     }

@@ -367,10 +367,10 @@ public class GeneralHealth : MonoBehaviour, IHealth
         Debug.Log($"[GeneralHealth] {name}: ¡General muerto!");
 
         // Sonido de muerte específico para generales
-        if (SoundColector.Instance != null)
+        /*if (SoundColector.Instance != null)
         {
             SoundColector.Instance.PlayInfantryDeath();
-        }
+        }*/
 
         // Notificar al GameManager que esta unidad ha muerto
         if (isRegistered && GameManager.Instance != null)

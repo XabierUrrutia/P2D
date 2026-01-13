@@ -1289,6 +1289,861 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1503701431}
   m_CullTransparentMesh: 1
+--- !u!1 &1640619536
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1640619538}
+  - component: {fileID: 1640619537}
+  m_Layer: 0
+  m_Name: AudioSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1640619537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640619536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40367b6d09782124a975fb9eecd2bd30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  voiceLanguage: 0
+  autoFallbackLanguage: 2
+  unitVoiceGenderMode: 1
+  defaultUnitVoiceGender: 0
+  unitFemaleChance: 0.5
+  aiVoiceGender: 1
+  masterMixer: {fileID: 0}
+  musicVolumeParameter: MusicVolume
+  sfxVolumeParameter: SfxVolume
+  voiceVolumeParameter: VoiceVolume
+  musicVolume: 0.7
+  sfxVolume: 1
+  voiceVolume: 1
+  enableMusicDucking: 1
+  musicDuckFactor: 0.3
+  musicDuckLerpSpeed: 3
+  musicSource: {fileID: 0}
+  sfx2DSource: {fileID: 0}
+  voiceSource: {fileID: 0}
+  menuMusicClips: []
+  gameplayMusicClips: []
+  pauseMusicClips: []
+  victoryMusicClips: []
+  defeatMusicClips: []
+  globalMinVoiceInterval: 0.35
+  unitSelectSingleVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 6320a1380adfa7646a3791d77e734c1b, type: 3}
+    - {fileID: 8300000, guid: a6690b305768da14fadb872a3b05f262, type: 3}
+    - {fileID: 8300000, guid: 9e297de8eb8dcc54bb0a1e39f3891a0e, type: 3}
+    - {fileID: 8300000, guid: f446271aa93eeb54d9e3981fa4ef0d63, type: 3}
+    - {fileID: 8300000, guid: c6d4b637e8ab1fe4ca907d06496c260e, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 41a9a735ef4786247b2a52a372bfa5b1, type: 3}
+    - {fileID: 8300000, guid: e6c90622f7c3caa43a4a506c60b610ac, type: 3}
+    - {fileID: 8300000, guid: 1de77a4af802866438071c6f584f93e1, type: 3}
+    - {fileID: 8300000, guid: b008598fbe13bdf4c82c8ebf95eabfe1, type: 3}
+    - {fileID: 8300000, guid: 56f40048d96e3514ab7fbf47f4828ed4, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 1c663b3566959c440a1e0303a9f52e6f, type: 3}
+    - {fileID: 8300000, guid: 922823360a461a64b90e2eb680ca49e7, type: 3}
+    - {fileID: 8300000, guid: 74edc01ceaa7c2345879860d11b24f12, type: 3}
+    - {fileID: 8300000, guid: 38c626c8d96c761489868c1dd6eb4605, type: 3}
+    - {fileID: 8300000, guid: 1df593b245483e14ab9907925328486b, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: 34636e64fd42d7f4f9caa229503dab06, type: 3}
+    - {fileID: 8300000, guid: e28d0c77a8eddb748baa707c410e4389, type: 3}
+    - {fileID: 8300000, guid: cacc70266c5236040b4099eec8018634, type: 3}
+    - {fileID: 8300000, guid: de42b22952eead74c92e15a5f4a0a336, type: 3}
+    - {fileID: 8300000, guid: bd4cda9a6865d60478b4c7001188e852, type: 3}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitSelectGroupSmallVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 0df2bfda211eb56428b90424b36bf0c9, type: 3}
+    - {fileID: 8300000, guid: 9509ad6aa6cdd7e4b9ca4616839f8b4e, type: 3}
+    - {fileID: 8300000, guid: 3589011144545fe45967329a290435b3, type: 3}
+    - {fileID: 8300000, guid: 476e499f2e413a14bbcfa7c0badd4299, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 1f072dade36345e4fbf948a310452cdc, type: 3}
+    - {fileID: 8300000, guid: 92d00d729086af044940970c71e0a85a, type: 3}
+    - {fileID: 8300000, guid: 2c7f068bcd8461949be243e8b44aaef1, type: 3}
+    - {fileID: 8300000, guid: 1681c25e4bd7f7e489498f4420fd3be1, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 5ffaf1f3009debe4e86687d12c190e2b, type: 3}
+    - {fileID: 8300000, guid: d4c31b233382da04eb15aff89ab7690b, type: 3}
+    - {fileID: 8300000, guid: f55c61570ace3514db6f55f6a61ba735, type: 3}
+    - {fileID: 8300000, guid: 4666b7f37eca2f641b5402991b08a8dd, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: 84e4420b7d3894a46b8d0b7bb2e81505, type: 3}
+    - {fileID: 8300000, guid: 6ef6bff2b7e0e9848bb64270c0f2f2d9, type: 3}
+    - {fileID: 8300000, guid: 097a7483d94ff8146bc0ed99e5f82b60, type: 3}
+    - {fileID: 8300000, guid: bfce7d32989840b4f85cb54543e6741c, type: 3}
+    spanishMale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitSelectGroupLargeVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 3165b06ee4e4ed24db3c5fd46c0aa4a5, type: 3}
+    - {fileID: 8300000, guid: f95737ca62e90a1469aee2e165a2df0f, type: 3}
+    - {fileID: 8300000, guid: fdaece62a8a7bd643bec35439e017d58, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 336648d02fa787d488e7269676a3cd2a, type: 3}
+    - {fileID: 8300000, guid: c85f6195ccc9b874c88e892190757e22, type: 3}
+    - {fileID: 8300000, guid: fa12db2b6c7eec14d95ea78852831af2, type: 3}
+    - {fileID: 8300000, guid: fc4e04f3b2b463947b72922390b0b038, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: a735b34ad78045549bc4fcddd5139134, type: 3}
+    - {fileID: 8300000, guid: 1c3b0135927142d4c8e8ee82f581cac0, type: 3}
+    - {fileID: 8300000, guid: 2cc570f7215b9c146948b01b2afd62e5, type: 3}
+    - {fileID: 8300000, guid: aa3609de65a6bba418e34953e96e724b, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: 788e6952c2cbe0449a9ef8cf3a1022e6, type: 3}
+    - {fileID: 8300000, guid: 5f5fa7a6ceb4a1c418f86b5419fcca6d, type: 3}
+    - {fileID: 8300000, guid: 0c93d2acb6c794a429dc2b37ebef4111, type: 3}
+    - {fileID: 8300000, guid: 48249f0c65a960b4fb6131f51ba42196, type: 3}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitMoveVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 91e46739d0f9e9049aca0ddd729ed57d, type: 3}
+    - {fileID: 8300000, guid: 880140c04058412458d694b04388644e, type: 3}
+    - {fileID: 8300000, guid: bf366049961159a439ae169c8cedb3ec, type: 3}
+    - {fileID: 8300000, guid: 7263b284b78a84e4594b30285bf03e61, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 38be66d81c8eab848b30f220fcfa5d1b, type: 3}
+    - {fileID: 8300000, guid: 4e7fe3b7b49c7384db0b9d116dcf189a, type: 3}
+    - {fileID: 8300000, guid: 703768d46f596074599071f73a4eda04, type: 3}
+    - {fileID: 8300000, guid: 54566b3037185914e9b0dac9a478093c, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 3c338103d78d93940871f604f8e00dac, type: 3}
+    - {fileID: 8300000, guid: d233b1e164c15b64a9d5600620c3eefd, type: 3}
+    - {fileID: 8300000, guid: f5e7325c820f30e4aaae70e10c551236, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: ffc8e2fa0b3d71145b0336de7801d6d5, type: 3}
+    - {fileID: 8300000, guid: f2f7ebf284a2a274680ec15897cf201f, type: 3}
+    - {fileID: 8300000, guid: c81513b8c9e7ade408c447c59ea82b45, type: 3}
+    - {fileID: 8300000, guid: 89620a1b25123d04d94c8550f61e4bec, type: 3}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitAttackVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 322dafadf5700bc4f9e2638555f22804, type: 3}
+    - {fileID: 8300000, guid: 667c6e623cf3b6e42ac7806acc8d870d, type: 3}
+    - {fileID: 8300000, guid: 77f90c69bf9fde3449343605baaa2d87, type: 3}
+    - {fileID: 8300000, guid: 8fda82eee201dc34da72236081a5df8e, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: a122a77dddd85c04b9aca0c135cfa558, type: 3}
+    - {fileID: 8300000, guid: 02f1baa0c14cc2443a62e35607777423, type: 3}
+    - {fileID: 8300000, guid: ef09de925202c9542b13b11397f09644, type: 3}
+    - {fileID: 8300000, guid: 3a94178133a55eb488dca58a22084873, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: a2ed352a64f6f75408323f43988fb2e4, type: 3}
+    - {fileID: 8300000, guid: 473a0c012a8b5ff48a3a94d8633966a7, type: 3}
+    - {fileID: 8300000, guid: 58631b3ddffafb6469aa13453a15654d, type: 3}
+    - {fileID: 8300000, guid: a918518f0f3ef754dbcea0232b05729d, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: 963467d263f98d74fbc79db26ab4503b, type: 3}
+    - {fileID: 8300000, guid: 5791a40c3513aae4aa7a5516875d570a, type: 3}
+    - {fileID: 8300000, guid: 08bee5a908f7b2341813da22cfacd9f1, type: 3}
+    - {fileID: 8300000, guid: 80ad85d2578429b44ad1e9dde7709046, type: 3}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitDeathVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 6ec64c346261e2848b620aa005e15ee6, type: 3}
+    - {fileID: 8300000, guid: 1ac185e2d9785b443a1ee457415bf14a, type: 3}
+    - {fileID: 8300000, guid: e8c61f5159a991147bc6c0650b52353c, type: 3}
+    - {fileID: 8300000, guid: 7b8efda38feb3924e9627b3c08365603, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 0e5595bcf211858499e69be006edda0e, type: 3}
+    - {fileID: 8300000, guid: 2aa6a5348981d4545bf8dceec655f1e9, type: 3}
+    - {fileID: 8300000, guid: 0b2e82de45f3d0f4389740cdb4815b2b, type: 3}
+    - {fileID: 8300000, guid: ed2361993e85f69439da416d85dc8f3f, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 3f513de40aab5c545b2fe341bd3ccd1e, type: 3}
+    - {fileID: 8300000, guid: b0f3a9760c638b748aeeb92da6db888c, type: 3}
+    - {fileID: 8300000, guid: bf1d67826c9f3714c8a54136f4ac211b, type: 3}
+    - {fileID: 8300000, guid: 29cf324d2266f3b489231d5fe06d8784, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: 2cdeb919769489043a5e68e8ade6c3aa, type: 3}
+    - {fileID: 8300000, guid: b608a705fc02bea4494a8d1db481a6ec, type: 3}
+    - {fileID: 8300000, guid: 763fab82d1a288e40a6f36507b4feb38, type: 3}
+    - {fileID: 8300000, guid: b915417421fef9146953dc2c5db5d0e5, type: 3}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitEasterEggVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: f51f4086c790b8346aebdaded93dfd89, type: 3}
+    - {fileID: 8300000, guid: 7dc92d4f511afe0499a82968bc9d2c47, type: 3}
+    - {fileID: 8300000, guid: 3b30ae0f68cec4a48977bdde4d544d84, type: 3}
+    - {fileID: 8300000, guid: eb743e4a549c2ad46bc71225af964fb2, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 439890023015c05428dd2db2cc28bbf3, type: 3}
+    - {fileID: 8300000, guid: b16786620b445914aa4340dfe74885ab, type: 3}
+    - {fileID: 8300000, guid: 5f58d617e0583174ab8cacec6b351e36, type: 3}
+    - {fileID: 8300000, guid: b5e2bea9ee886c04b87faae99c5666df, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: a40810c42a04f6745a7e335760dd6577, type: 3}
+    - {fileID: 8300000, guid: 72d74bdb69e14f440951b374dab97727, type: 3}
+    - {fileID: 8300000, guid: fa4ab23fd03bc154cade97fcae7c3bce, type: 3}
+    - {fileID: 8300000, guid: f7c4f7f0b6043ff42a5abb826ac1b75e, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: 439890023015c05428dd2db2cc28bbf3, type: 3}
+    - {fileID: 8300000, guid: b16786620b445914aa4340dfe74885ab, type: 3}
+    - {fileID: 8300000, guid: 5f58d617e0583174ab8cacec6b351e36, type: 3}
+    - {fileID: 8300000, guid: b5e2bea9ee886c04b87faae99c5666df, type: 3}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  tankSelectSingleVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  tankSelectGroupSmallVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  tankSelectGroupLargeVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  tankMoveVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  tankAttackVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  tankDeathVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  mixedSelectGroupSmallVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  mixedSelectGroupLargeVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  mixedMoveVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  mixedAttackVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  baseUnderAttackVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: adc33389b74948840b5a2461b25cd8ed, type: 3}
+    - {fileID: 8300000, guid: 7d26165863e756540beda83e67f61c1a, type: 3}
+    - {fileID: 8300000, guid: 5267a09c31ae3954580e3330ed354546, type: 3}
+    - {fileID: 8300000, guid: 95fb2e0ab3d4d314582f4e0cda3815e8, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: b3e59108dddbe0b41a6e74bd6be827aa, type: 3}
+    - {fileID: 8300000, guid: 2280ea8af5b1559408ce6c30b2940597, type: 3}
+    - {fileID: 8300000, guid: 9de037bb1be114946994e6b9e1f308de, type: 3}
+    - {fileID: 8300000, guid: ca6bf3d528087b442b3f01e34ae5df9f, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 47d232b97a9cc7940b6c04dc9cb8a64e, type: 3}
+    - {fileID: 8300000, guid: 944a2c634c3c1694289fb9740464b714, type: 3}
+    - {fileID: 8300000, guid: 849953b3665e6894ab43e88761dd96b9, type: 3}
+    - {fileID: 8300000, guid: 018a851c1b320d5489f11b353da9e731, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: a5261a679457d2e489d18ba145dbea93, type: 3}
+    - {fileID: 8300000, guid: 4081501f69761c74da2841fcc9262427, type: 3}
+    - {fileID: 8300000, guid: 8e9fa3661735d5b4898819c108ccee15, type: 3}
+    - {fileID: 8300000, guid: 669057c54eb666e498f13b06ad227ce5, type: 3}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  lowResourcesAlertVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 08083b6c6c037d84c8f1654ab4d3d79e, type: 3}
+    - {fileID: 8300000, guid: f76cf816d2bd64745836d6482081518d, type: 3}
+    - {fileID: 8300000, guid: 18c106f21ba2e8a4fba9e21eb5239de7, type: 3}
+    - {fileID: 8300000, guid: ae830713bb4766d41bc018963f73e301, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: ca83842c99855e741971169a3cce157b, type: 3}
+    - {fileID: 8300000, guid: fab8c6007bb6c3043a7c08a51567de2a, type: 3}
+    - {fileID: 8300000, guid: 110892176ddda9840a0933e08cfe7723, type: 3}
+    - {fileID: 8300000, guid: df390f93eb8b00f4d9f9cc5eb53dc86d, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: ebed2919d1e0022458c1c74b1b0d3cca, type: 3}
+    - {fileID: 8300000, guid: 057d067f899396b409a082c5b57bbb9a, type: 3}
+    - {fileID: 8300000, guid: 0f138b28bc90dee41aa119c582a320be, type: 3}
+    - {fileID: 8300000, guid: a43489eb44d5bc94d80da35d3f3c2c04, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: 927fabfcbee5a6646bc245f865c0966b, type: 3}
+    - {fileID: 8300000, guid: bcab42e3b117c1d4aa9213032e474f4e, type: 3}
+    - {fileID: 8300000, guid: 6bc62b7d02961c94eb15910f82669709, type: 3}
+    - {fileID: 8300000, guid: 86864fa1f672f8c44a2f92a5135c73e4, type: 3}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  lowPowerAlertVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitUnderAttackAlertVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 68aa572325c39f74d8bbcd0c026128b9, type: 3}
+    - {fileID: 8300000, guid: cfae16e054f132b41a6f5bdac17c2230, type: 3}
+    - {fileID: 8300000, guid: abf43eb8fe07d0b4d87eeb76d4d56785, type: 3}
+    - {fileID: 8300000, guid: fd8ea1a1eb5127448b9eb61fbc79d0a2, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 1991d04a01cab704585ad4977d91ab00, type: 3}
+    - {fileID: 8300000, guid: 08c2e73117d7e164fa4bfbd795f44d5e, type: 3}
+    - {fileID: 8300000, guid: b12eddb220942d341b5c14bd3925eee8, type: 3}
+    - {fileID: 8300000, guid: afb4022763b257d43903b803e29dd1be, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 4c9df8b7a987465458ce67d867ad2910, type: 3}
+    - {fileID: 8300000, guid: 3e21d24d17a42a74783621f8f0e13349, type: 3}
+    - {fileID: 8300000, guid: 6fe83d927f8244d419f730550ad333a1, type: 3}
+    - {fileID: 8300000, guid: f5bdea85626cc48488d139a34fcc08d0, type: 3}
+    englishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  buildingCapturedVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 10fde03adc7787e4dad5793a9570047f, type: 3}
+    - {fileID: 8300000, guid: ab59adeea1ca2614aafe0a4adb0bd9c7, type: 3}
+    - {fileID: 8300000, guid: 0eafaa0880ddba74687d14316576a007, type: 3}
+    - {fileID: 8300000, guid: 719e7afbae5b5d6429834215605b8c65, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 6f1f9d766fdee574b8f69d58c1cb7a98, type: 3}
+    - {fileID: 8300000, guid: 20d32e6ce9dfdd64ebfe0d32f076442f, type: 3}
+    - {fileID: 8300000, guid: 7089b1a1f16ebf04690d3d708167762c, type: 3}
+    - {fileID: 8300000, guid: 29be99ae7d28e404693cd00068ff2c6a, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 34fb2b407efaf464092f1da191af441f, type: 3}
+    - {fileID: 8300000, guid: e60028db288671a43971bfc7fe494ef0, type: 3}
+    - {fileID: 8300000, guid: b6398fa524e059849a5d2eec3a91fab6, type: 3}
+    - {fileID: 8300000, guid: 5cca680a0ff23f840a1e56dbc1c82488, type: 3}
+    englishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  buildingLostVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: c5919b1b2d81f664f93207a5ddee1f47, type: 3}
+    - {fileID: 8300000, guid: 21d4f55a417bd5e42b2b4afd75145e91, type: 3}
+    - {fileID: 8300000, guid: 6e2171890cc69e54f8c2647a2a67726b, type: 3}
+    - {fileID: 8300000, guid: 1d4bc28e9c18ec34eba7a964c57427b6, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 6a98448e9cc846443944acd4729bea36, type: 3}
+    - {fileID: 8300000, guid: 787de1516d0f2f7438d9c32dd8f3b6f0, type: 3}
+    - {fileID: 8300000, guid: 480ac1ad7ec248e4da0cd0470a0c0c66, type: 3}
+    - {fileID: 8300000, guid: 1e06c4624ff35cd4fad5913109822aef, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 58d19bbddd2bc1f4d96657c6c3368d15, type: 3}
+    - {fileID: 8300000, guid: 2cb34bd9abc2a5c4eac3fc8649d67d96, type: 3}
+    - {fileID: 8300000, guid: c4a04f60236733d44ac7666a778920b9, type: 3}
+    - {fileID: 8300000, guid: 8d01f8537860ba942be2181d78e23e9f, type: 3}
+    englishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  techLevelUpVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: 62d032963406f97419d9a092cc938931, type: 3}
+    - {fileID: 8300000, guid: 04037f6719a0a6045b930bc9c82ba8aa, type: 3}
+    - {fileID: 8300000, guid: cea45858365c82947a24a333a359a480, type: 3}
+    - {fileID: 8300000, guid: 81bdce36c08db77429731c2f760681e4, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 0e4d9d33aa46923438a7319d23fd008e, type: 3}
+    - {fileID: 8300000, guid: 1979c055bd9c7604e957e459e456dc85, type: 3}
+    - {fileID: 8300000, guid: 44aba455f80a19246bea6c040b13d355, type: 3}
+    - {fileID: 8300000, guid: e98ff4fe526795644b2c44716472c519, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: a7864dacf7b58c44281847889067a5e0, type: 3}
+    - {fileID: 8300000, guid: 9b8d6b46f5f8cc546a156ed29e385f12, type: 3}
+    - {fileID: 8300000, guid: 5e6d19ad5f100bf4bb935e81f5dee519, type: 3}
+    - {fileID: 8300000, guid: 654c69131aeae8746ad9675a637d56b8, type: 3}
+    englishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  medikitPickupVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitUpgradeVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: f0b4850df5b809e4a870a5ccee6715a7, type: 3}
+    - {fileID: 8300000, guid: 28e0e398c028454489e986e4c43d9121, type: 3}
+    - {fileID: 8300000, guid: 63bfbf107495e4b4ba792b8ccfe3702f, type: 3}
+    - {fileID: 8300000, guid: 69efc296e0e5a384e887956239080d18, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 4d1af213e4c5ef048bac082587ed5dd6, type: 3}
+    - {fileID: 8300000, guid: 32a4f625808b71d418bd1558a192bc56, type: 3}
+    - {fileID: 8300000, guid: 719150768b1422540b386aa764ef5bef, type: 3}
+    - {fileID: 8300000, guid: 8e9b8b6d19e179541b766eeb26c8693c, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: c060d96633205c54cbb61c4ef45e18eb, type: 3}
+    - {fileID: 8300000, guid: d582ebaa4cfb55243a2b8811351b2e85, type: 3}
+    - {fileID: 8300000, guid: c75eb4fe67572ac4abdb58c1835515c3, type: 3}
+    - {fileID: 8300000, guid: f06647ea92184db4b9f91473ed84e3d6, type: 3}
+    englishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  buildingCaptureStartVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  buildingCaptureCompleteVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  buildingCaptureFailVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  insufficientResourcesVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: aeadf4098c79ca14fa092fe2cc338c7c, type: 3}
+    - {fileID: 8300000, guid: ae3e70fc1f1ce4e41b308b283d5b8f8c, type: 3}
+    - {fileID: 8300000, guid: b5ac1d97fc90fe944a919b735b9312a0, type: 3}
+    - {fileID: 8300000, guid: d5bc8a913e828814aa997c1105702688, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: ccf3d86821431154fac63a4f5e75aa10, type: 3}
+    - {fileID: 8300000, guid: 1c645e3ffa84b5549b7ed626ae938ef8, type: 3}
+    - {fileID: 8300000, guid: 5cc36c726990c4a449b3fd55213de5c9, type: 3}
+    - {fileID: 8300000, guid: 81be3ac41dc144848b3033ef707949fb, type: 3}
+    englishMale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    englishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  invalidCommandVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: f82713f1ea8ab34498bfc53aff40be26, type: 3}
+    - {fileID: 8300000, guid: 22292ddd85a082e469e1d9c66013324c, type: 3}
+    - {fileID: 8300000, guid: 2e18fa6df152ac74388f4520a62828df, type: 3}
+    - {fileID: 8300000, guid: 7c6e3caaf780b2c4ea33bbb99baf2e1d, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 7beb67a636c9ac24184163cbc0272f14, type: 3}
+    - {fileID: 8300000, guid: a8f57865709bcd14e853580d496d47cd, type: 3}
+    - {fileID: 8300000, guid: 281bd2e4a48344246a7e2bb76c7a7bea, type: 3}
+    - {fileID: 8300000, guid: 076f533937729164ea471dea87863154, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 21c11847d96f94147b05500787c8fd71, type: 3}
+    - {fileID: 8300000, guid: 7ac48bfa67fc3bb4ca4953e846a616fe, type: 3}
+    - {fileID: 8300000, guid: cff59621f02c8e14b93c1a471fb75366, type: 3}
+    - {fileID: 8300000, guid: 765412fb2d005b54a969cf24bef473e0, type: 3}
+    englishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitSelectionConfig:
+    cooldown: 0.3
+    priority: 0
+    lastPlayTime: -999
+  unitMoveConfig:
+    cooldown: 0.7
+    priority: 1
+    lastPlayTime: -999
+  unitAttackConfig:
+    cooldown: 1
+    priority: 1
+    lastPlayTime: -999
+  unitDeathVoiceConfig:
+    cooldown: 2
+    priority: 1
+    lastPlayTime: -999
+  unitEasterEggConfig:
+    cooldown: 3
+    priority: 0
+    lastPlayTime: -999
+  baseUnderAttackConfig:
+    cooldown: 10
+    priority: 2
+    lastPlayTime: -999
+  lowResourcesConfig:
+    cooldown: 20
+    priority: 1
+    lastPlayTime: -999
+  lowPowerConfig:
+    cooldown: 20
+    priority: 2
+    lastPlayTime: -999
+  unitUnderAttackConfig:
+    cooldown: 6
+    priority: 1
+    lastPlayTime: -999
+  buildingCapturedConfig:
+    cooldown: 4
+    priority: 1
+    lastPlayTime: -999
+  buildingLostConfig:
+    cooldown: 4
+    priority: 2
+    lastPlayTime: -999
+  techLevelUpConfig:
+    cooldown: 4
+    priority: 2
+    lastPlayTime: -999
+  insufficientResourcesConfig:
+    cooldown: 3
+    priority: 0
+    lastPlayTime: -999
+  invalidCommandConfig:
+    cooldown: 1.5
+    priority: 0
+    lastPlayTime: -999
+  unitSelectionVoiceChance: 0.9
+  unitMoveVoiceChance: 0.6
+  unitAttackVoiceChance: 0.5
+  unitDeathVoiceChance: 0.4
+  unitMoveSpecialVoices:
+    portugueseMale:
+    - {fileID: 8300000, guid: ad06b683d971e3e4abb7b54429b8a6f1, type: 3}
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  unitAttackSpecialVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  moveSpecialMinGeneralCount: 10
+  attackSpecialMinGeneralCount: 10
+  moveSpecialChanceWhenReady: 0.3
+  attackSpecialChanceWhenReady: 0.3
+  largeGroupMinUnits: 5
+  unitUnderAttackInitialDelay: 1.2
+  lowResourcesInitialDelay: 1.5
+  lowPowerInitialDelay: 1.5
+  infantryShotClips:
+  - {fileID: 8300000, guid: 50f2831e2ba869c47826e3f06fdbd829, type: 3}
+  - {fileID: 8300000, guid: d1a50ee50c1a41f4b8bfa11de4722d4f, type: 3}
+  - {fileID: 8300000, guid: a731224b96c208442a086fa367a61950, type: 3}
+  - {fileID: 8300000, guid: 607176a7892260d45bbf74f2e9ee2dee, type: 3}
+  infantryDeathClips: []
+  tankShotClips:
+  - {fileID: 8300000, guid: 44a301010c7ff2741aea057a547fc738, type: 3}
+  - {fileID: 8300000, guid: ef4a89e132d4fd04fb3cc31f0615193d, type: 3}
+  tankDeathClips: []
+  enemyInfantryDeathClips: []
+  enemyTankDeathClips: []
+  buildingSelectClips: []
+  buildingCaptureStartSfx: {fileID: 0}
+  buildingCaptureCompleteSfx: {fileID: 0}
+  buildingCaptureFailSfx: {fileID: 0}
+  uiClickClip: {fileID: 0}
+  uiPanelOpenClip: {fileID: 0}
+  randomizeSfxPitch: 1
+  minSfxPitch: 0.95
+  maxSfxPitch: 1.05
+  debugLogs: 0
+--- !u!4 &1640619538
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640619536}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1326.0244, y: 219.24277, z: -7.979728}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1711191024
 GameObject:
   m_ObjectHideFlags: 0
@@ -1631,3 +2486,4 @@ SceneRoots:
   - {fileID: 1342060533}
   - {fileID: 1711191027}
   - {fileID: 1436052022}
+  - {fileID: 1640619538}

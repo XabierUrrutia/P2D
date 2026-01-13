@@ -183,9 +183,11 @@ public class PlayerHealth : MonoBehaviour, IHealth
         Debug.Log("Soldado muerto!");
 
         // 🔊 SONIDO DE MUERTE
-        if (SoundColector.Instance != null)
+        //if (SoundColector.Instance != null)
         {
             // Si tiene tag "Tank" → sonido de muerte de tanque
+            
+            /*
             if (CompareTag("Tank"))
             {
                 SoundColector.Instance.PlayTankDeath();
@@ -194,7 +196,7 @@ public class PlayerHealth : MonoBehaviour, IHealth
             {
                 // Cualquier otro -> infantería
                 SoundColector.Instance.PlayInfantryDeath();
-            }
+            }*/
         }
 
         // Notificar al GameManager que esta unidad ha muerto

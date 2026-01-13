@@ -82,7 +82,7 @@ public class UnitSelectionManager : MonoBehaviour
                     bool eraNueva = !unidadesSeleccionadas.Contains(unidad);
                     SeleccionarUnidad(unidad);
 
-                    if (eraNueva) PlaySelectionSoundFor(unidad);
+                    //if (eraNueva) PlaySelectionSoundFor(unidad);
                 }
             }
             else
@@ -139,18 +139,18 @@ public class UnitSelectionManager : MonoBehaviour
                 }
             }
 
-            // Audio de movimiento
+            /* Audio de movimiento
             if (SoundColector.Instance != null &&
                 Time.time - ultimoSomMovimientoTime >= intervaloMinSomMovimiento)
             {
                 // Si hay algún tanque seleccionado, suena sonido pesado
                 bool hayTanque = unidadesSeleccionadas.Any(u => u.tag == "Tank" || u.gameObject.CompareTag("Tank"));
 
-                if (hayTanque) SoundColector.Instance.PlayTankMove();
-                else SoundColector.Instance.PlayInfantryMove();
+               // if (hayTanque) SoundColector.Instance.PlayTankMove();
+                // else SoundColector.Instance.PlayInfantryMove();
 
                 ultimoSomMovimientoTime = Time.time;
-            }
+            }*/
         }
     }
 
@@ -220,7 +220,7 @@ public class UnitSelectionManager : MonoBehaviour
             }
         }
 
-        if (primeraNueva != null) PlaySelectionSoundFor(primeraNueva);
+        //if (primeraNueva != null) PlaySelectionSoundFor(primeraNueva);
     }
 
     // ---------------------------------------------------------
@@ -291,13 +291,16 @@ public class UnitSelectionManager : MonoBehaviour
         cuadroObj.SetActive(false);
     }
 
+    /*
+
     void PlaySelectionSoundFor(ISelectableUnit unidad)
     {
         if (SoundColector.Instance == null || unidad == null) return;
 
+        
         if (unidad.tag == "Tank" || unidad.gameObject.CompareTag("Tank"))
             SoundColector.Instance.PlayTankSelect();
         else
             SoundColector.Instance.PlayInfantrySelect();
-    }
+    }*/
 }

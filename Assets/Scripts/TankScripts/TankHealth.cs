@@ -111,11 +111,11 @@ public class TankHealth : MonoBehaviour, IHealth
         if (isDead) return;
         isDead = true;
 
-        // 1. Sonido (Usando tu sistema SoundColector)
+        /* 1. Sonido (Usando tu sistema SoundColector)
         if (SoundColector.Instance != null)
         {
             SoundColector.Instance.PlayTankDeath();
-        }
+        }*/
 
         // 2. Efecto visual (Tu explosión original)
         if (explosionPrefab != null)
