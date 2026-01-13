@@ -79,7 +79,7 @@ public class SoundColector : MonoBehaviour
         if (backstageVoiceVolumeMode)
             v *= backstageVoiceVolumeMultiplier;
 
-        return Mathf.Clamp01(v);
+        return Mathf.Clamp(v, 0f, 3f);
     }
 
     private float GetEffectiveVoiceSpeed()
@@ -520,7 +520,7 @@ public class SoundColector : MonoBehaviour
                 masterMixer.SetFloat(sfxVolumeParameter, Mathf.Log10(Mathf.Clamp(sfxVolume, 0.0001f, 1f)) * 20f);
 
             if (!string.IsNullOrEmpty(voiceVolumeParameter))
-                masterMixer.SetFloat(voiceVolumeParameter, Mathf.Log10(Mathf.Clamp(GetEffectiveVoiceVolume(), 0.0001f, 1f)) * 20f);
+                masterMixer.SetFloat(voiceVolumeParameter,Mathf.Log10(Mathf.Clamp(GetEffectiveVoiceVolume(), 0.0001f, 3f)) * 20f);
 
         }
 
