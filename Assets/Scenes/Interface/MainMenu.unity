@@ -1331,6 +1331,17 @@ MonoBehaviour:
   musicVolume: 0.7
   sfxVolume: 1
   voiceVolume: 1
+  voiceSpeed: 1
+  useVoiceVolumeByLanguage: 1
+  voiceVolumeByLanguage:
+  - language: 1
+    volume: 1
+  - language: 2
+    volume: 1
+  - language: 3
+    volume: 1
+  backstageVoiceVolumeMode: 0
+  backstageVoiceVolumeMultiplier: 1
   enableMusicDucking: 1
   musicDuckFactor: 0.3
   musicDuckLerpSpeed: 3
@@ -1375,8 +1386,18 @@ MonoBehaviour:
     - {fileID: 8300000, guid: cacc70266c5236040b4099eec8018634, type: 3}
     - {fileID: 8300000, guid: de42b22952eead74c92e15a5f4a0a336, type: 3}
     - {fileID: 8300000, guid: bd4cda9a6865d60478b4c7001188e852, type: 3}
-    spanishMale: []
-    spanishFemale: []
+    spanishMale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    spanishFemale:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
     usagePTMale: 
     usagePTFemale: 
     usageENMale: 
@@ -1404,16 +1425,8 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 6ef6bff2b7e0e9848bb64270c0f2f2d9, type: 3}
     - {fileID: 8300000, guid: 097a7483d94ff8146bc0ed99e5f82b60, type: 3}
     - {fileID: 8300000, guid: bfce7d32989840b4f85cb54543e6741c, type: 3}
-    spanishMale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    spanishFemale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    spanishMale: []
+    spanishFemale: []
     usagePTMale: 
     usagePTFemale: 
     usageENMale: 
@@ -1551,10 +1564,10 @@ MonoBehaviour:
     - {fileID: 8300000, guid: fa4ab23fd03bc154cade97fcae7c3bce, type: 3}
     - {fileID: 8300000, guid: f7c4f7f0b6043ff42a5abb826ac1b75e, type: 3}
     englishFemale:
-    - {fileID: 8300000, guid: 439890023015c05428dd2db2cc28bbf3, type: 3}
-    - {fileID: 8300000, guid: b16786620b445914aa4340dfe74885ab, type: 3}
-    - {fileID: 8300000, guid: 5f58d617e0583174ab8cacec6b351e36, type: 3}
-    - {fileID: 8300000, guid: b5e2bea9ee886c04b87faae99c5666df, type: 3}
+    - {fileID: 8300000, guid: d612d12785124d04180fd505d1b316e4, type: 3}
+    - {fileID: 8300000, guid: 47dab45f243505943b4879b3162eed44, type: 3}
+    - {fileID: 8300000, guid: e484fc441fc129c41815169865533a16, type: 3}
+    - {fileID: 8300000, guid: e984f261bd7300744bcdd720d83779f1, type: 3}
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -1739,10 +1752,10 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 0f138b28bc90dee41aa119c582a320be, type: 3}
     - {fileID: 8300000, guid: a43489eb44d5bc94d80da35d3f3c2c04, type: 3}
     englishFemale:
-    - {fileID: 8300000, guid: 927fabfcbee5a6646bc245f865c0966b, type: 3}
-    - {fileID: 8300000, guid: bcab42e3b117c1d4aa9213032e474f4e, type: 3}
-    - {fileID: 8300000, guid: 6bc62b7d02961c94eb15910f82669709, type: 3}
-    - {fileID: 8300000, guid: 86864fa1f672f8c44a2f92a5135c73e4, type: 3}
+    - {fileID: 8300000, guid: fa538d17d2bbd75449351d9d0cbeb3a3, type: 3}
+    - {fileID: 8300000, guid: b555e1e72e81f6844bd6e742caaee16b, type: 3}
+    - {fileID: 8300000, guid: 21fed8f028bd1db4aa3ee78130595ea2, type: 3}
+    - {fileID: 8300000, guid: e1d3084492bec92449cf69d916c621f7, type: 3}
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -1754,7 +1767,11 @@ MonoBehaviour:
   lowPowerAlertVoices:
     portugueseMale: []
     portugueseFemale: []
-    englishMale: []
+    englishMale:
+    - {fileID: 8300000, guid: ebed2919d1e0022458c1c74b1b0d3cca, type: 3}
+    - {fileID: 8300000, guid: 057d067f899396b409a082c5b57bbb9a, type: 3}
+    - {fileID: 8300000, guid: 0f138b28bc90dee41aa119c582a320be, type: 3}
+    - {fileID: 8300000, guid: a43489eb44d5bc94d80da35d3f3c2c04, type: 3}
     englishFemale: []
     spanishMale: []
     spanishFemale: []
@@ -1781,10 +1798,10 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 6fe83d927f8244d419f730550ad333a1, type: 3}
     - {fileID: 8300000, guid: f5bdea85626cc48488d139a34fcc08d0, type: 3}
     englishFemale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 088bedbe8f5ac6746a56fe02d53b2409, type: 3}
+    - {fileID: 8300000, guid: 47756a71dd2fbea49911f6dfd50bfe3f, type: 3}
+    - {fileID: 8300000, guid: c4358d8a65ae20f4dacb8754d861984b, type: 3}
+    - {fileID: 8300000, guid: 3180114507585534c8106f600f57e919, type: 3}
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -1810,10 +1827,10 @@ MonoBehaviour:
     - {fileID: 8300000, guid: b6398fa524e059849a5d2eec3a91fab6, type: 3}
     - {fileID: 8300000, guid: 5cca680a0ff23f840a1e56dbc1c82488, type: 3}
     englishFemale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 2565290209e423043bbbd0c1ffbf923a, type: 3}
+    - {fileID: 8300000, guid: 3d98c6e5a1c37f548a7b17933124fcae, type: 3}
+    - {fileID: 8300000, guid: 0f6982dd31cdf9c4a821d8288c0537b3, type: 3}
+    - {fileID: 8300000, guid: 1411ef7430bf4fa4ab9ef4f832873ed9, type: 3}
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -1839,10 +1856,10 @@ MonoBehaviour:
     - {fileID: 8300000, guid: c4a04f60236733d44ac7666a778920b9, type: 3}
     - {fileID: 8300000, guid: 8d01f8537860ba942be2181d78e23e9f, type: 3}
     englishFemale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 8689856ee2127124497d0a6714099d6d, type: 3}
+    - {fileID: 8300000, guid: 614589e40ad6a3941afbd7871875f751, type: 3}
+    - {fileID: 8300000, guid: 2f9b4159825c04d4c898ae5e35c44809, type: 3}
+    - {fileID: 8300000, guid: f71f6782081d6ab4ea56e3bb46f52cbf, type: 3}
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -1857,21 +1874,13 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 04037f6719a0a6045b930bc9c82ba8aa, type: 3}
     - {fileID: 8300000, guid: cea45858365c82947a24a333a359a480, type: 3}
     - {fileID: 8300000, guid: 81bdce36c08db77429731c2f760681e4, type: 3}
-    portugueseFemale:
-    - {fileID: 8300000, guid: 0e4d9d33aa46923438a7319d23fd008e, type: 3}
-    - {fileID: 8300000, guid: 1979c055bd9c7604e957e459e456dc85, type: 3}
-    - {fileID: 8300000, guid: 44aba455f80a19246bea6c040b13d355, type: 3}
-    - {fileID: 8300000, guid: e98ff4fe526795644b2c44716472c519, type: 3}
+    portugueseFemale: []
     englishMale:
     - {fileID: 8300000, guid: a7864dacf7b58c44281847889067a5e0, type: 3}
     - {fileID: 8300000, guid: 9b8d6b46f5f8cc546a156ed29e385f12, type: 3}
     - {fileID: 8300000, guid: 5e6d19ad5f100bf4bb935e81f5dee519, type: 3}
     - {fileID: 8300000, guid: 654c69131aeae8746ad9675a637d56b8, type: 3}
-    englishFemale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    englishFemale: []
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -1910,10 +1919,10 @@ MonoBehaviour:
     - {fileID: 8300000, guid: c75eb4fe67572ac4abdb58c1835515c3, type: 3}
     - {fileID: 8300000, guid: f06647ea92184db4b9f91473ed84e3d6, type: 3}
     englishFemale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 40d853f51a3f25840a8dbe6dd611299b, type: 3}
+    - {fileID: 8300000, guid: 505c6a86282aed548a739b5eca1985b6, type: 3}
+    - {fileID: 8300000, guid: 33d17c11201ec6d498711c48a8c75f2c, type: 3}
+    - {fileID: 8300000, guid: 21431914dd2b17149a37f08442f0337a, type: 3}
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -1972,16 +1981,12 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 1c645e3ffa84b5549b7ed626ae938ef8, type: 3}
     - {fileID: 8300000, guid: 5cc36c726990c4a449b3fd55213de5c9, type: 3}
     - {fileID: 8300000, guid: 81be3ac41dc144848b3033ef707949fb, type: 3}
-    englishMale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    englishMale: []
     englishFemale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 8b3a22c3a47b4e542ad9e865fe3aa1fd, type: 3}
+    - {fileID: 8300000, guid: b32c97b7b4cabd44782504b6603cf226, type: 3}
+    - {fileID: 8300000, guid: 86d32124af3dadd4093cefd385c25943, type: 3}
+    - {fileID: 8300000, guid: 5538fc951ffa70d4fb8e6044bd8ac4a3, type: 3}
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -2007,10 +2012,10 @@ MonoBehaviour:
     - {fileID: 8300000, guid: cff59621f02c8e14b93c1a471fb75366, type: 3}
     - {fileID: 8300000, guid: 765412fb2d005b54a969cf24bef473e0, type: 3}
     englishFemale:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 104fb6680dc0c9e4382b86d7b75fad7e, type: 3}
+    - {fileID: 8300000, guid: b332419f999ccd949a42736a94009eb2, type: 3}
+    - {fileID: 8300000, guid: e46877855d3441d438ad9ceb8c8fcdc1, type: 3}
+    - {fileID: 8300000, guid: 62823aa7691663d498801aca122a79b3, type: 3}
     spanishMale: []
     spanishFemale: []
     usagePTMale: 
@@ -2080,8 +2085,7 @@ MonoBehaviour:
   unitAttackVoiceChance: 0.5
   unitDeathVoiceChance: 0.4
   unitMoveSpecialVoices:
-    portugueseMale:
-    - {fileID: 8300000, guid: ad06b683d971e3e4abb7b54429b8a6f1, type: 3}
+    portugueseMale: []
     portugueseFemale: []
     englishMale: []
     englishFemale: []
@@ -2130,6 +2134,7 @@ MonoBehaviour:
   buildingCaptureStartSfx: {fileID: 0}
   buildingCaptureCompleteSfx: {fileID: 0}
   buildingCaptureFailSfx: {fileID: 0}
+  buildingDestroyedClips: []
   uiClickClip: {fileID: 0}
   uiPanelOpenClip: {fileID: 0}
   randomizeSfxPitch: 1

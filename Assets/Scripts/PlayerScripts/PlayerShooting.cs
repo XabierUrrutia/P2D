@@ -576,7 +576,7 @@ public class PlayerShooting : MonoBehaviour
         int shotsFired = 0;
         while (shotsFired < burstCount && currentAmmo > 0)
         {
-            bool playSound = (shotsFired == 0);
+            bool playSound = true;
             if (shootingCoroutine != null) StopCoroutine(shootingCoroutine);
 
             shootingCoroutine = StartCoroutine(ShootingAnimation(targetPosition, playSound));

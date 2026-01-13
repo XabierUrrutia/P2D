@@ -58,6 +58,9 @@ public class SoundColector : MonoBehaviour
     public bool backstageVoiceVolumeMode = false;
     [Range(0f, 3f)] public float backstageVoiceVolumeMultiplier = 1.0f;
 
+    private int menuEnterCount = 0;
+    private AudioClip lastMenuClip = null;
+
     // ---- Helpers (VOICE only) ----
     private float GetVoiceVolumeForLanguage(VoiceLanguage lang)
     {
@@ -123,6 +126,7 @@ public class SoundColector : MonoBehaviour
         [Range(0f, 1f)] public float volume;
     }
 
+    [System.Serializable]
     public class LocalizedBalancedVoiceSet
     {
         public AudioClip[] portugueseMale;
@@ -552,6 +556,62 @@ public class SoundColector : MonoBehaviour
         if (backstageVoiceVolumeMode) ApplyMixerVolumes();
     }
     // -----------------------------------------------
+
+    private void StartMenuTrackState(AudioClip[] clips, bool loop)
+    {
+        isPlaylistPlaying = false;
+        currentPlaylist = null;
+
+        if (clips == null || clips.Length == 0) { StopMusic(); return; }
+
+        AudioClip clip;
+
+        // 1º menu: fixa na primeira faixa válida do array (não random)
+        if (menuEnterCount == 0)
+        {
+            clip = FirstNonNull(clips);
+            if (clip == null) clip = clips[Random.Range(0, clips.Length)];
+        }
+        // a partir do 2º menu: random, evitando repetir a anterior
+        else
+        {
+            clip = RandomNonNullExcluding(clips, lastMenuClip);
+        }
+
+        if (musicSource == null || clip == null) return;
+
+        musicSource.Stop();
+        musicSource.clip = clip;
+        musicSource.loop = loop;
+        musicSource.volume = musicVolume * targetMusicVolumeFactor;
+        musicSource.Play();
+
+        lastMenuClip = clip;
+        menuEnterCount++;
+    }
+
+    private AudioClip FirstNonNull(AudioClip[] clips)
+    {
+        for (int i = 0; i < clips.Length; i++)
+            if (clips[i] != null) return clips[i];
+        return null;
+    }
+
+    private AudioClip RandomNonNullExcluding(AudioClip[] clips, AudioClip exclude)
+    {
+        if (clips == null || clips.Length == 0) return null;
+
+        AudioClip candidate = null;
+        int safety = 30;
+
+        while (safety-- > 0)
+        {
+            candidate = clips[Random.Range(0, clips.Length)];
+            if (candidate != null && candidate != exclude) return candidate;
+        }
+
+        return FirstNonNull(clips);
+    }
 
     private VoiceLanguage GetEffectiveLanguage()
     {
