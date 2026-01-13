@@ -108,6 +108,18 @@ public class EnemyShooting : MonoBehaviour
 
         GameObject bullet = Instantiate(bulletPrefab, weaponPoint.position, Quaternion.identity);
 
+        if (SoundColector.Instance != null)
+        {
+            bool isTankShooter =
+                GetComponentInParent<TankVisuals>() != null ||
+                GetComponentInParent<TankShooting>() != null;
+
+            if (isTankShooter)
+                SoundColector.Instance.PlayTankShotAt(weaponPoint.position);
+            else
+                SoundColector.Instance.PlayInfantryShotAt(weaponPoint.position);
+        }
+
         Bullet b = bullet.GetComponent<Bullet>();
         if (b != null)
         {

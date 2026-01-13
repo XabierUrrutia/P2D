@@ -165,10 +165,14 @@ public class EnemyHealth : MonoBehaviour
         {
             Vector3 pos = transform.position;
 
-            if (CompareTag("Tank"))
-                SoundColector.Instance.PlayEnemyTankDeathAt(pos);
-            else
-                SoundColector.Instance.PlayEnemyInfantryDeathAt(pos);
+        bool isTankEnemy =
+            GetComponentInParent<TankShooting>() != null ||
+            GetComponentInParent<TankVisuals>() != null;
+
+        if (isTankEnemy)
+            SoundColector.Instance.PlayEnemyTankDeathAt(pos);
+        else
+            SoundColector.Instance.PlayEnemyInfantryDeathAt(pos);
         }
 
         Destroy(gameObject);

@@ -143,7 +143,7 @@ public class UnitSelectionManager : MonoBehaviour
             if (SoundColector.Instance != null &&
                 Time.time - ultimoSomMovimientoTime >= intervaloMinSomMovimiento)
                 {
-                    int tankCount = unidadesSeleccionadas.Count(u => u != null && u.gameObject != null && u.gameObject.CompareTag("Tank"));
+                    int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
                     int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
 
                     SoundColector.Instance.PlayUnitMoveVoice(infantryCount, tankCount);
@@ -289,11 +289,17 @@ public class UnitSelectionManager : MonoBehaviour
         cuadroObj.SetActive(false);
     }
 
+    bool IsTank(ISelectableUnit u)
+    {
+        if (u == null || u.gameObject == null) return false;
+        return u.gameObject.GetComponentInParent<TankShooting>() != null;
+    }
+
     void PlaySelectionSoundFor(ISelectableUnit unidad)
     {
         if (SoundColector.Instance == null) return;
 
-        int tankCount = unidadesSeleccionadas.Count(u => u != null && u.gameObject != null && u.gameObject.CompareTag("Tank"));
+        int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
         int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
 
 

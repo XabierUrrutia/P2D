@@ -560,7 +560,11 @@ public class PlayerShooting : MonoBehaviour
         {
             Vector3 pos = transform.position;
 
-            if (CompareTag("Tank"))
+            bool isTankShooter =
+            GetComponentInParent<TankShooting>() != null ||
+            GetComponentInParent<TankVisuals>() != null;
+
+            if (isTankShooter)
                 SoundColector.Instance.PlayTankShotAt(pos);
             else
                 SoundColector.Instance.PlayInfantryShotAt(pos);

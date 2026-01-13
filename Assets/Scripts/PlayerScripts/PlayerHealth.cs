@@ -191,10 +191,14 @@ public class PlayerHealth : MonoBehaviour, IHealth
 
             Vector3 pos = transform.position;
 
-            if (CompareTag("Tank"))
-                SoundColector.Instance.PlayTankDeathAt(pos);
-            else
-                SoundColector.Instance.PlayInfantryDeathAt(pos);
+        bool isTankEnemy =
+            GetComponentInParent<TankShooting>() != null ||
+            GetComponentInParent<TankVisuals>() != null;
+
+        if (isTankEnemy)
+            SoundColector.Instance.PlayEnemyTankDeathAt(pos);
+        else
+            SoundColector.Instance.PlayEnemyInfantryDeathAt(pos);
         }
 
         // Notificar al GameManager que esta unidad ha muerto
