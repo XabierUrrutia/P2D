@@ -114,6 +114,5 @@ public class PanelTanquesUI : MonoBehaviour
     {
         if (panelRoot != null) panelRoot.SetActive(false);
         currentBuilding = null;
-        Time.timeScale = 1f;
     }
 }
