@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7397011688693234355}
   - component: {fileID: 985762989120680998}
   - component: {fileID: 5399125916257665607}
+  - component: {fileID: 2380290247045457095}
   m_Layer: 0
   m_Name: CubeFactory
   m_TagString: Hangar
@@ -204,6 +205,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf9033b1cde14f4bb9a562a28418d31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tipoDeEdificio: 0
   panelSoldadosUI: {fileID: 0}
-  requiredBuildingName: Hangar
-  requiredBuildingTag: Hangar
+  panelTanquesUI: {fileID: 0}
+--- !u!114 &2380290247045457095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3259702835758711629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8566eb02d64881e4d9a253d6f5cd6fb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visionRadius: 2.5
+  alwaysActive: 1
+  isInitialized: 0

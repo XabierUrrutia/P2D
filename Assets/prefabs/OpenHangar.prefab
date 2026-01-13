@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6127988914857812050}
   - component: {fileID: 6204514252691574344}
   - component: {fileID: -7727986324150505330}
+  - component: {fileID: -555527694902505769}
   m_Layer: 0
   m_Name: OpenHangar
   m_TagString: Untagged
@@ -206,3 +207,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tipoQueAumenta: 1
   cantidadQueSuma: 1
+--- !u!114 &-555527694902505769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2057124343739751168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8566eb02d64881e4d9a253d6f5cd6fb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visionRadius: 2.5
+  alwaysActive: 1
+  isInitialized: 0

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1985582467215484355}
   - component: {fileID: 4616876740040509511}
   - component: {fileID: 6162933711921993116}
+  - component: {fileID: 8529884923756450633}
   m_Layer: 0
   m_Name: TankFactory
   m_TagString: Untagged
@@ -207,3 +208,18 @@ MonoBehaviour:
   tipoDeEdificio: 1
   panelSoldadosUI: {fileID: 0}
   panelTanquesUI: {fileID: 0}
+--- !u!114 &8529884923756450633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6708317264880824817}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8566eb02d64881e4d9a253d6f5cd6fb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visionRadius: 2.5
+  alwaysActive: 1
+  isInitialized: 0

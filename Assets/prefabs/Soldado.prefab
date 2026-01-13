@@ -1072,7 +1072,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   costeBase: 5
   costePorNivel: 2
-  divisorDeCoste: 4
+  divisorDeCoste: 10
   retratoCara: {fileID: 21300000, guid: 02cf8883b6861d245bf6f3065e230fed, type: 3}
   nivel: 1
   xpActual: 0

@@ -3,14 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-/// <summary>
-/// BuildingManager completo e funcional:
-/// - SelectBuilding(BuildingData) inicia modo one-shot de colocação.
-/// - Segura o botão configurado (por defeito mouse direito) para ver preview; ao soltar tenta colocar.
-/// - Valida: raio da base, FogOfWar (não permite colocar em fog preta), overlap com blockingLayers.
-/// - Preview azul (válido) / vermelho (inválido). Suporta sprites e meshes.
-/// - Custo e tempo de construção com coroutine; durante a construção scripts ficam desativados e animação do estado é aplicada.
-/// </summary>
 public class BuildingManager : MonoBehaviour
 {
     public static BuildingManager Instance { get; private set; }
@@ -42,7 +34,6 @@ public class BuildingManager : MonoBehaviour
 
     [Header("Recursos")]
     public bool requireResources = true;
-    // OBS: O saldo agora é gerido pelo MoneyManager central. Não usar playerResources local.
 
     [Header("Fog of War")]
     [Tooltip("Referencia ao FogOfWar (se vazio tenta encontrar na cena)")]
@@ -103,8 +94,7 @@ public class BuildingManager : MonoBehaviour
             return;
         }
 
-        Vector3 mouseWorld = mainCam.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorld.z = placeZ;
+        Vector3 mouseWorld = GetMouseWorldPosition(); // <--- AHORA YA EXISTE
 
         // mostrar preview ao pressionar o botão
         if (Input.GetMouseButtonDown(placementMouseButton))
@@ -151,6 +141,8 @@ public class BuildingManager : MonoBehaviour
                         {
                             GameObject placed = Instantiate(currentPrefab, placePos, Quaternion.identity);
                             placed.name = currentPrefab.name;
+
+                            // AQUÍ ESTABA EL ERROR: Llamas con 2 argumentos, así que la función debe aceptar 2.
                             StartCoroutine(ConstructBuildingRoutine(placed, selectedBuildingData.buildTime));
                         }
                     }
@@ -172,7 +164,18 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    // UI chama isto
+    // --- CORRECCIÓN: FUNCIÓN QUE FALTABA ---
+    Vector3 GetMouseWorldPosition()
+    {
+        if (mainCam == null) mainCam = Camera.main;
+        Vector3 mousePoint = Input.mousePosition;
+        mousePoint.z = -mainCam.transform.position.z; // Distancia para que el ScreenToWorldPoint funcione bien
+        Vector3 worldPos = mainCam.ScreenToWorldPoint(mousePoint);
+        worldPos.z = placeZ; // Forzamos la Z de construcción
+        return worldPos;
+    }
+    // ---------------------------------------
+
     public void SelectBuilding(BuildingData buildingData)
     {
         if (buildingData == null)
@@ -226,7 +229,6 @@ public class BuildingManager : MonoBehaviour
         previewOriginalColors.Clear();
     }
 
-    // Substitui o sistema local por consumo via MoneyManager
     public bool TrySpendResources(int amount)
     {
         if (amount <= 0) return true;
@@ -234,7 +236,6 @@ public class BuildingManager : MonoBehaviour
 
         if (MoneyManager.Instance != null)
         {
-            // MoneyManager.SpendMoney retorna true se conseguiu gastar
             return MoneyManager.Instance.SpendMoney(amount);
         }
         else
@@ -244,63 +245,33 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    IEnumerator ConstructBuildingRoutine(GameObject placed, float buildTime)
+    // --- CORRECCIÓN: ESTA FUNCIÓN AHORA ACEPTA TIEMPO Y GESTIONA LA CONSTRUCCIÓN ---
+    IEnumerator ConstructBuildingRoutine(GameObject building, float timeToBuild)
     {
-        if (placed == null) yield break;
+        // 1. Desactivamos componentes mientras se construye
+        DisableRuntimeComponents(building);
 
-        // cache
-        var constructionOriginalColors = new Dictionary<Renderer, Color>();
-        var constructionInstMaterials = new List<Material>();
-        CacheRendererColors(placed, constructionOriginalColors);
+        // Efecto visual de construcción
+        Coroutine pulse = StartCoroutine(ConstructionPulseRoutine(building.transform));
 
-        // garantir colliders ativos (ocupar espaço)
-        var cols = placed.GetComponentsInChildren<Collider2D>(true);
-        foreach (var c in cols) c.enabled = true;
+        Debug.Log($"Construyendo {building.name}... Tiempo: {timeToBuild}s");
 
-        // desativa logic scripts
-        var behaviours = placed.GetComponentsInChildren<MonoBehaviour>(true);
-        var toDisable = new List<MonoBehaviour>();
-        foreach (var b in behaviours)
-        {
-            if (b == this) continue;
-            toDisable.Add(b);
-            b.enabled = false;
-        }
+        // 2. Esperamos el tiempo necesario
+        yield return new WaitForSeconds(timeToBuild);
 
-        // aplicar cor de construção
-        ApplyColorToRenderers(placed, constructionColor, constructionInstMaterials);
-
-        // tentar animator
-        Animator anim = placed.GetComponentInChildren<Animator>();
-        bool animatorParamSet = false;
-        if (anim != null && AnimatorHasBoolParameter(anim, animatorUnderConstructionBool))
-        {
-            anim.SetBool(animatorUnderConstructionBool, true);
-            animatorParamSet = true;
-        }
-
-        // fallback pulse
-        Coroutine pulse = null;
-        if (!animatorParamSet)
-            pulse = StartCoroutine(ConstructionPulseRoutine(placed.transform));
-
-        float t = 0f;
-        while (t < buildTime)
-        {
-            t += Time.deltaTime;
-            yield return null;
-        }
-
-        // terminar animação
-        if (animatorParamSet && anim != null) anim.SetBool(animatorUnderConstructionBool, false);
+        // 3. Limpieza y activación
         if (pulse != null) StopCoroutine(pulse);
 
-        // restaurar e ativar scripts
-        RestoreRendererColors(constructionOriginalColors);
-        foreach (var b in toDisable) if (b != null) b.enabled = true;
-        foreach (var m in constructionInstMaterials) if (m != null) Destroy(m);
+        if (building != null)
+        {
+            building.transform.localScale = Vector3.one; // Resetear escala
 
-        Debug.Log($"[BuildingManager] Construção concluída: {placed.name}");    }
+            // Volvemos a activar los scripts del edificio real
+            EnableRuntimeComponents(building);
+
+            Debug.Log($"{building.name} completado!");
+        }
+    }
 
     IEnumerator ConstructionPulseRoutine(Transform target)
     {
@@ -309,6 +280,8 @@ public class BuildingManager : MonoBehaviour
         float elapsed = 0f;
         while (true)
         {
+            if (target == null) yield break; // Protección extra
+
             elapsed += Time.deltaTime * constructionPulseSpeed;
             float s = 1f + Mathf.Sin(elapsed) * constructionPulseScale;
             target.localScale = baseScale * s;
@@ -328,10 +301,9 @@ public class BuildingManager : MonoBehaviour
             if (d > buildRadius) return false;
         }
 
-        // Fog of War: não permitir em black fog (não visitado)
+        // Fog of War
         if (fogOfWar != null)
         {
-            // usa o método combinado público para evitar chamadas ambíguas
             if (!fogOfWar.IsPositionVisitedOrVisible(worldPos))
             {
                 return false;
@@ -435,35 +407,6 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    void ApplyColorToRenderers(GameObject obj, Color target, List<Material> outInstantiated)
-    {
-        if (obj == null) return;
-
-        var spriteRends = obj.GetComponentsInChildren<SpriteRenderer>(true);
-        foreach (var r in spriteRends)
-        {
-            r.color = new Color(target.r, target.g, target.b, target.a * r.color.a);
-        }
-
-        var meshRends = obj.GetComponentsInChildren<MeshRenderer>(true);
-        foreach (var mr in meshRends)
-        {
-            Material[] mats = mr.materials;
-            for (int i = 0; i < mats.Length; i++)
-            {
-                var mat = mats[i];
-                if (mat != null && mat.HasProperty("_Color"))
-                {
-                    Material inst = new Material(mat);
-                    inst.color = new Color(target.r, target.g, target.b, target.a * mat.color.a);
-                    mats[i] = inst;
-                    outInstantiated.Add(inst);
-                }
-            }
-            mr.materials = mats;
-        }
-    }
-
     void DisableRuntimeComponents(GameObject obj)
     {
         var cols = obj.GetComponentsInChildren<Collider2D>(true);
@@ -480,6 +423,24 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
+    // --- NUEVA FUNCIÓN NECESARIA ---
+    void EnableRuntimeComponents(GameObject obj)
+    {
+        var cols = obj.GetComponentsInChildren<Collider2D>(true);
+        foreach (var c in cols) c.enabled = true;
+
+        var rbs = obj.GetComponentsInChildren<Rigidbody2D>(true);
+        foreach (var r in rbs) r.simulated = true;
+
+        var behaviours = obj.GetComponentsInChildren<MonoBehaviour>(true);
+        foreach (var b in behaviours)
+        {
+            if (b == this) continue;
+            b.enabled = true;
+        }
+    }
+    // -------------------------------
+
     Vector3 ApplyGridSnap(Vector3 pos, Vector2 grid)
     {
         if (grid.x <= 0f) grid.x = 1f;
@@ -487,17 +448,6 @@ public class BuildingManager : MonoBehaviour
         float x = Mathf.Round(pos.x / grid.x) * grid.x;
         float y = Mathf.Round(pos.y / grid.y) * grid.y;
         return new Vector3(x, y, pos.z);
-    }
-
-    bool AnimatorHasBoolParameter(Animator animator, string paramName)
-    {
-        if (animator == null || string.IsNullOrEmpty(paramName)) return false;
-        foreach (var p in animator.parameters)
-        {
-            if (p.type == UnityEngine.AnimatorControllerParameterType.Bool && p.name == paramName)
-                return true;
-        }
-        return false;
     }
 
     public bool IsPlacing() => isPlacing;

@@ -24,7 +24,7 @@ public class EnemyBaseFactory : MonoBehaviour
 
     [Header("Generación de Dinero")]
     public int moneyPerInterval = 25;
-    public float moneyInterval = 5f;
+    public float moneyInterval = 1.2f;
 
     [Header("UI Elements")]
     public Slider conquestSlider;

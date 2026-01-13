@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4756105021906686319}
   - component: {fileID: 4891453762006624973}
   - component: {fileID: 5198062612122413592}
+  - component: {fileID: -6175118008639356997}
   m_Layer: 4
   m_Name: Hangar
   m_TagString: Hangar
@@ -259,3 +260,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tipoQueAumenta: 0
   cantidadQueSuma: 10
+--- !u!114 &-6175118008639356997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3956915481108066332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8566eb02d64881e4d9a253d6f5cd6fb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visionRadius: 2.5
+  alwaysActive: 1
+  isInitialized: 0
