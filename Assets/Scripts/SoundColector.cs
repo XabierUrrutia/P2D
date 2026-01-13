@@ -320,6 +320,9 @@ public class SoundColector : MonoBehaviour
     public AudioClip buildingCaptureCompleteSfx;
     public AudioClip buildingCaptureFailSfx;
 
+    public AudioClip[] buildingDestroyedClips;
+    private int[] buildingDestroyedUsage;
+
     [Header("SFX – UI")]
     public AudioClip uiClickClip;
     public AudioClip uiPanelOpenClip;
@@ -1137,6 +1140,12 @@ public class SoundColector : MonoBehaviour
     public void PlayBuildingCaptureFailVoice()
     {
         PlayVoiceWithConfig(buildingCaptureFailVoices, null);
+    }
+
+    public void PlayBuildingDestroyedAt(Vector3 pos)
+    {
+        AudioClip c = GetBalancedClip(buildingDestroyedClips, ref buildingDestroyedUsage);
+        PlayWorldSfx3D(c, pos);
     }
 
     public void PlayBuildingSelect()

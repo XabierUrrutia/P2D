@@ -49,6 +49,8 @@ public class LevelButton : MonoBehaviour
 
     void OnClick()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         // Carrega o nível (poderias mostrar um painel de confirmação aqui)
         LevelManager.Instance.LoadLevel(levelIndex);
     }

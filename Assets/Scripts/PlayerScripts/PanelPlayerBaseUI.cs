@@ -89,6 +89,8 @@ public class PanelPlayerBaseUI : MonoBehaviour
 
         if (panelRoot != null)
             panelRoot.SetActive(true);
+            SoundColector.Instance?.PlayUiPanelOpen();
+
 
         UpdateCostText();
         UpdateHpUI();
@@ -104,6 +106,8 @@ public class PanelPlayerBaseUI : MonoBehaviour
     public void OnHealClicked()
     {
         TryHealBase();
+        SoundColector.Instance?.PlayUiClick();
+
     }
 
     private void TryHealBase()

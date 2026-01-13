@@ -14,18 +14,6 @@ public static class GameEvents
     public static event Action OnBaseUnderAttack;
     public static void RaiseBaseUnderAttack() => OnBaseUnderAttack?.Invoke();
 
-    public static event Action OnLowResources;
-    public static void RaiseLowResources() => OnLowResources?.Invoke();
-
-    public static event Action OnLowPower;
-    public static void RaiseLowPower() => OnLowPower?.Invoke();
-
-    public static event Action OnInsufficientResources;
-    public static void RaiseInsufficientResources() => OnInsufficientResources?.Invoke();
-
-    public static event Action OnInvalidCommand;
-    public static void RaiseInvalidCommand() => OnInvalidCommand?.Invoke();
-
     public static event Action OnBuildingSelected;
     public static void RaiseBuildingSelected() => OnBuildingSelected?.Invoke();
 
@@ -34,6 +22,18 @@ public static class GameEvents
 
     public static event Action OnBuildingLost;
     public static void RaiseBuildingLost() => OnBuildingLost?.Invoke();
+
+    public static event Action OnInsufficientResources;
+    public static void RaiseInsufficientResources() => OnInsufficientResources?.Invoke();
+
+    public static event Action OnInvalidCommand;
+    public static void RaiseInvalidCommand() => OnInvalidCommand?.Invoke();
+
+    public static event Action OnLowResources;
+    public static void RaiseLowResources() => OnLowResources?.Invoke();
+
+    public static event Action OnLowPower;
+    public static void RaiseLowPower() => OnLowPower?.Invoke();
 
     public static event Action OnBuildingCaptureStarted;
     public static void RaiseBuildingCaptureStarted() => OnBuildingCaptureStarted?.Invoke();
@@ -50,4 +50,3 @@ public static class GameEvents
     public static event Action OnTechLevelUp;
     public static void RaiseTechLevelUp() => OnTechLevelUp?.Invoke();
 }
-

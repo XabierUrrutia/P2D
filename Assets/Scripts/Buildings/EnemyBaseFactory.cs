@@ -220,6 +220,8 @@ public class EnemyBaseFactory : MonoBehaviour
 
             if (conquestProgress <= 0 && conquestSlider != null)
             {
+                GameEvents.RaiseBuildingCaptureFailed();
+
                 conquestSlider.gameObject.SetActive(false);
                 // Aseguramos que esté neutral por si acaso, aunque no debería haber cambiado
                 spriteRenderer.color = neutralColor;
@@ -237,7 +239,12 @@ public class EnemyBaseFactory : MonoBehaviour
     {
         if (other == null || isConquered) return;
         if (other.CompareTag("Player") && !conqueringPlayers.Contains(other.gameObject))
+        {
+            if (conqueringPlayers.Count == 0)
+                GameEvents.RaiseBuildingCaptureStarted();
+
             conqueringPlayers.Add(other.gameObject);
+        }
     }
 
     void OnTriggerExit2D(Collider2D other)
@@ -250,6 +257,9 @@ public class EnemyBaseFactory : MonoBehaviour
     private void CompleteConquest()
     {
         isConquered = true;
+
+        GameEvents.RaiseBuildingCaptureCompleted();
+        GameEvents.RaiseBuildingCaptured();
 
         // Cambio de Sprite y Color final
         if (spriteRenderer != null)

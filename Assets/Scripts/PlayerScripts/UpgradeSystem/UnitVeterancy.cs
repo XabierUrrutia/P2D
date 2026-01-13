@@ -65,6 +65,8 @@ public class UnitVeterancy : MonoBehaviour
         if (shootingScript != null) shootingScript.bulletDamage += bonusDaño;
         if (healthScript != null) { healthScript.maxHealth += bonusSalud; healthScript.Revive(); }
 
+        GameEvents.RaiseUnitUpgraded();
+
         Debug.Log($"{name} subió a nivel {nivel}");
     }
 

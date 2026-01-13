@@ -82,6 +82,8 @@ public class PlayerHealth : MonoBehaviour, IHealth
         // Mostrar la barra de vida cuando recibe daño
         ShowHealthBar();
         UpdateHealthBar();
+        GameEvents.RaiseUnitUnderAttack();
+
 
         if (currentHealth <= 0)
         {
@@ -183,20 +185,16 @@ public class PlayerHealth : MonoBehaviour, IHealth
         Debug.Log("Soldado muerto!");
 
         // 🔊 SONIDO DE MUERTE
-        //if (SoundColector.Instance != null)
+        if (SoundColector.Instance != null)
         {
             // Si tiene tag "Tank" → sonido de muerte de tanque
-            
-            /*
+
+            Vector3 pos = transform.position;
+
             if (CompareTag("Tank"))
-            {
-                SoundColector.Instance.PlayTankDeath();
-            }
+                SoundColector.Instance.PlayTankDeathAt(pos);
             else
-            {
-                // Cualquier otro -> infantería
-                SoundColector.Instance.PlayInfantryDeath();
-            }*/
+                SoundColector.Instance.PlayInfantryDeathAt(pos);
         }
 
         // Notificar al GameManager que esta unidad ha muerto

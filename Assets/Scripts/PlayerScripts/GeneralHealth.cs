@@ -188,6 +188,9 @@ public class GeneralHealth : MonoBehaviour, IHealth
         // Debug para ver estado actual
         Debug.Log($"[GeneralHealth] {name}: Estado después del daño - Escudo: {currentShield}/{maxShield}, Vida: {currentHealth}/{maxHealth}, Escudo roto: {isShieldBroken}");
 
+        GameEvents.RaiseUnitUnderAttack();
+
+
         if (currentHealth <= 0)
         {
             Die();
@@ -367,10 +370,10 @@ public class GeneralHealth : MonoBehaviour, IHealth
         Debug.Log($"[GeneralHealth] {name}: ¡General muerto!");
 
         // Sonido de muerte específico para generales
-        /*if (SoundColector.Instance != null)
+        if (SoundColector.Instance != null)
         {
-            SoundColector.Instance.PlayInfantryDeath();
-        }*/
+            SoundColector.Instance.PlayInfantryDeathAt(transform.position);
+        }
 
         // Notificar al GameManager que esta unidad ha muerto
         if (isRegistered && GameManager.Instance != null)

@@ -139,18 +139,15 @@ public class UnitSelectionManager : MonoBehaviour
                 }
             }
 
-            /* Audio de movimiento
+            //Audio de movimiento
             if (SoundColector.Instance != null &&
                 Time.time - ultimoSomMovimientoTime >= intervaloMinSomMovimiento)
-            {
-                // Si hay algún tanque seleccionado, suena sonido pesado
-                bool hayTanque = unidadesSeleccionadas.Any(u => u.tag == "Tank" || u.gameObject.CompareTag("Tank"));
-
-               // if (hayTanque) SoundColector.Instance.PlayTankMove();
-                // else SoundColector.Instance.PlayInfantryMove();
-
-                ultimoSomMovimientoTime = Time.time;
-            }*/
+                {
+                    int tankCount = unidadesSeleccionadas.Count(u => u != null && (u.tag == "Tank" || u.gameObject.CompareTag("Tank")));
+                    int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
+                    SoundColector.Instance.PlayUnitMoveVoice(infantryCount, tankCount);
+                    ultimoSomMovimientoTime = Time.time;
+                }
         }
     }
 
@@ -291,16 +288,13 @@ public class UnitSelectionManager : MonoBehaviour
         cuadroObj.SetActive(false);
     }
 
-    /*
-
     void PlaySelectionSoundFor(ISelectableUnit unidad)
     {
-        if (SoundColector.Instance == null || unidad == null) return;
+        if (SoundColector.Instance == null) return;
 
-        
-        if (unidad.tag == "Tank" || unidad.gameObject.CompareTag("Tank"))
-            SoundColector.Instance.PlayTankSelect();
-        else
-            SoundColector.Instance.PlayInfantrySelect();
-    }*/
+        int tankCount = unidadesSeleccionadas.Count(u => u != null && (u.tag == "Tank" || u.gameObject.CompareTag("Tank")));
+        int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
+
+        SoundColector.Instance.PlayUnitSelectionVoice(infantryCount, tankCount);
+    }
 }

@@ -105,6 +105,8 @@ public class GoToBaseButton : MonoBehaviour
 
     void OnGoToBaseClicked()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         if (mainCamera == null || playerBaseTransform == null || isMoving)
             return;
 

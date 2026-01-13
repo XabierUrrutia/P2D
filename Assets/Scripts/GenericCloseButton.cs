@@ -32,6 +32,8 @@ public class GenericCloseButton : MonoBehaviour
 
     void OnCloseClicked()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         if (panelsToClose != null)
         {
             for (int i = 0; i < panelsToClose.Length; i++)

@@ -555,15 +555,17 @@ public class PlayerShooting : MonoBehaviour
                 rb.velocity = direction * bulletSpeed;
             }
         }
-        /*
+        
         if (playSound && SoundColector.Instance != null)
         {
+            Vector3 pos = transform.position;
+
             if (CompareTag("Tank"))
-                SoundColector.Instance.PlayTankShot();
+                SoundColector.Instance.PlayTankShotAt(pos);
             else
-                SoundColector.Instance.PlayInfantryShot();
+                SoundColector.Instance.PlayInfantryShotAt(pos);
         }
-        */
+
         currentAmmo--;
         UpdateUI();
     }

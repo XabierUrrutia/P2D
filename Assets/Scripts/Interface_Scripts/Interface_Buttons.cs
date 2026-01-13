@@ -26,6 +26,8 @@ public class Interface_Buttons : MonoBehaviour
 
     private void LoadSceneAndSave(int sceneIndex)
     {
+        SoundColector.Instance?.PlayUiClick();
+
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
 
         // Salva a cena atual antes de mudar (no histórico)
@@ -58,6 +60,8 @@ public class Interface_Buttons : MonoBehaviour
     // Abre as Options em modo aditivo para preservar a cena de jogo
     public void GoToOptionsFromGame()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         // salva posição do jogador (já fazes isto no PauseMenu, mas deixo aqui por segurança)
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
@@ -84,40 +88,58 @@ public class Interface_Buttons : MonoBehaviour
 
     public void GoToMainMenu()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(0);
     }
 
     public void GotoGame()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(2);
     }
 
     public void GoToMap()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(2);
     }
     public void SecondLevel()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(3);
     }
     public void GotoSettingsMenu()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(11);
     }
     public void GotoControlsMenu()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(10);
     }
     public void GoInGameSettings()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(2);
     }
     public void GoTutorial1()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(6);
     }
     public void GoToLevel1()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         if (MoneyManager.Instance != null)
             MoneyManager.Instance.ResetMoney(); // reseta antes de entrar no nível
 
@@ -125,14 +147,20 @@ public class Interface_Buttons : MonoBehaviour
     }
     public void GoToLevel2()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(3);
     }
     public void GoToLevel3()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         LoadSceneAndSave(5);
     }
     public void GoBack()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         // Se as Options foram abertas em modo aditivo, fecha-as em vez de recarregar a cena anterior
         if (optionsOpen)
         {
@@ -181,6 +209,8 @@ public class Interface_Buttons : MonoBehaviour
 
     public void QuitGame()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         Debug.Log("QUIT");
         Application.Quit();
     }

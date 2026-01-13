@@ -40,6 +40,8 @@ public class Medkit : MonoBehaviour
 
         // Efectos
         PlayHealEffects();
+        GameEvents.RaiseMedikitPickedUp();
+
 
         // Destruir o desactivar el medkit
         if (destroyOnUse)

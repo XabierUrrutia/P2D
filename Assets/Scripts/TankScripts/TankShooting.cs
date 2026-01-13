@@ -137,7 +137,7 @@ public class TankShooting : MonoBehaviour
             if (myVeterancy != null) b.ownerVeterancy = myVeterancy;
         }
 
-        //if (SoundColector.Instance != null) SoundColector.Instance.PlayTankShot();
+        if (SoundColector.Instance != null) SoundColector.Instance.PlayTankShotAt(firePoint.position);
 
         currentAmmo--;
     }

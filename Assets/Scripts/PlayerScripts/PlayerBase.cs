@@ -98,6 +98,9 @@ public class PlayerBase : MonoBehaviour, IHealth
 
         currentHealth -= amount;
         currentHealth = Mathf.Max(0, currentHealth);
+        
+        GameEvents.RaiseBaseUnderAttack();
+
 
         if (healthBar != null)
         {
@@ -133,6 +136,8 @@ public class PlayerBase : MonoBehaviour, IHealth
 
     void OnDestroyed()
     {
+        SoundColector.Instance?.PlayBuildingDestroyedAt(transform.position);
+
         if (isDestroyed) return;
         isDestroyed = true;
 

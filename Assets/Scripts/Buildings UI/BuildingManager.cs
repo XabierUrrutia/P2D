@@ -156,6 +156,8 @@ public class BuildingManager : MonoBehaviour
                 else
                 {
                     Debug.Log("[BuildingManager] Local inválido para construir (raio, fog ou overlap).");
+                    GameEvents.RaiseInvalidCommand();
+
                 }
             }
 
@@ -187,6 +189,7 @@ public class BuildingManager : MonoBehaviour
         if (buildingData.buildingPrefab == null)
         {
             Debug.LogWarning($"BuildingManager: prefab não definido no BuildingData '{buildingData.buildingName}'.");
+            GameEvents.RaiseBuildingSelected();
             return;
         }
 

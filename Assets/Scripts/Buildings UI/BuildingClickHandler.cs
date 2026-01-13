@@ -39,7 +39,11 @@ public class EdificioClick : MonoBehaviour
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
         clickWasOnThisBuilding = true;
+        GameEvents.RaiseBuildingSelected();
+
         TogglePanel();
+        SoundColector.Instance?.PlayUiPanelOpen();
+
         clickWasOnThisBuilding = false;
     }
 

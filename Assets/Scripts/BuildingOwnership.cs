@@ -39,6 +39,14 @@ public class BuildingOwnership : MonoBehaviour
         if (owner == Owner.Player)
             MoneyManager.Instance?.UnregisterIncomeSource(this);
 
+        Owner oldOwner = owner;
+
+        if (oldOwner != Owner.Player && newOwner == Owner.Player)
+    GameEvents.RaiseBuildingCaptured();
+
+if (oldOwner == Owner.Player && newOwner != Owner.Player)
+    GameEvents.RaiseBuildingLost();
+
         owner = newOwner;
 
         if (owner == Owner.Player)
@@ -66,6 +74,7 @@ public class BuildingOwnership : MonoBehaviour
 
     void OnDestroy()
     {
+        SoundColector.Instance?.PlayBuildingDestroyedAt(transform.position);
         // limpar registro se necessário
         if (owner == Owner.Player)
             MoneyManager.Instance?.UnregisterIncomeSource(this);

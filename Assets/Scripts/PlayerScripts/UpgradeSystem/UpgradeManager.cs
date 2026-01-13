@@ -31,6 +31,8 @@ public class UpgradeManager : MonoBehaviour
     public void UpgradeDamage()
     {
         // Aquí podrías comprobar si tienes dinero/recursos antes
+        SoundColector.Instance?.PlayUiClick();
+
         currentDamageLevel++;
         NotifyUnits();
         Debug.Log("¡Daño mejorado al nivel " + currentDamageLevel + "!");
@@ -38,6 +40,8 @@ public class UpgradeManager : MonoBehaviour
 
     public void UpgradeSpeed()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         currentSpeedLevel++;
         NotifyUnits();
         Debug.Log("¡Velocidad mejorada al nivel " + currentSpeedLevel + "!");
@@ -45,6 +49,8 @@ public class UpgradeManager : MonoBehaviour
 
     public void UpgradeHealth()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         currentHealthLevel++;
         NotifyUnits();
         Debug.Log("¡Salud mejorada al nivel " + currentHealthLevel + "!");
@@ -52,6 +58,8 @@ public class UpgradeManager : MonoBehaviour
 
     public void UpgradeVision()
     {
+        SoundColector.Instance?.PlayUiClick();
+
         currentVisionLevel++;
         NotifyUnits();
         Debug.Log("¡Visión mejorada al nivel " + currentVisionLevel + "!");
@@ -60,6 +68,7 @@ public class UpgradeManager : MonoBehaviour
     private void NotifyUnits()
     {
         // Dispara el evento para que todas las unidades vivas se actualicen
+        GameEvents.RaiseTechLevelUp();
         OnUpgradesChanged?.Invoke();
     }
 

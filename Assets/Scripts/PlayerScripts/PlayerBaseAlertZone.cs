@@ -186,14 +186,12 @@ public class PlayerBaseAlertZone : MonoBehaviour
         {
             Debug.LogWarning("[PlayerBaseAlertZone] warningPanel não está atribuído nem encontrado por nome.");
         }
-        /*
-        if (playSoundOnFirstEnter &&
-            Time.time - lastAlertSoundTime >= alertSoundCooldown &&
-            SoundColector.Instance != null)
+
+        if (Time.time - lastAlertSoundTime >= alertSoundCooldown)
         {
-            SoundColector.Instance.PlayInfantrySelect();
+            GameEvents.RaiseBaseUnderAttack();
             lastAlertSoundTime = Time.time;
-        }*/
+        }
 
         Debug.Log("[PlayerBaseAlertZone] Inimigos DETECTADOS perto da base!");
     }

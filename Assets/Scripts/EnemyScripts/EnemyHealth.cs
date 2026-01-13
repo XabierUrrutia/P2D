@@ -161,6 +161,16 @@ public class EnemyHealth : MonoBehaviour
         if (healthBarCanvas != null)
             Destroy(healthBarCanvas.gameObject);
 
+        if (SoundColector.Instance != null)
+        {
+            Vector3 pos = transform.position;
+
+            if (CompareTag("Tank"))
+                SoundColector.Instance.PlayEnemyTankDeathAt(pos);
+            else
+                SoundColector.Instance.PlayEnemyInfantryDeathAt(pos);
+        }
+
         Destroy(gameObject);
     }
 

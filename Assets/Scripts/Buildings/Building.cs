@@ -169,6 +169,8 @@ public class Building : MonoBehaviour
                 // Ocultar slider si el progreso llega a 0
                 if (conquestProgress <= 0 && conquestSlider != null && conquestSlider.gameObject.activeInHierarchy)
                 {
+                    GameEvents.RaiseBuildingCaptureFailed();
+
                     conquestSlider.gameObject.SetActive(false);
                     spriteRenderer.color = neutralColor;
                 }
@@ -220,6 +222,7 @@ public class Building : MonoBehaviour
     {
         if (!conqueringPlayers.Contains(player))
         {
+            GameEvents.RaiseBuildingCaptureStarted();
             conqueringPlayers.Add(player);
             Debug.Log($"[{gameObject.name}] Jugador registrado. Total: {conqueringPlayers.Count}");
         }
@@ -237,6 +240,8 @@ public class Building : MonoBehaviour
 
     private void CompleteConquest()
     {
+        GameEvents.RaiseBuildingCaptureCompleted();
+        GameEvents.RaiseBuildingCaptured();
         isConquered = true;
         spriteRenderer.color = conqueredColor;
 

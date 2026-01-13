@@ -11,6 +11,8 @@ public class BuildingButtons : MonoBehaviour
     {
         button = GetComponent<Button>();
         button.onClick.AddListener(OnButtonClick);
+        SoundColector.Instance?.PlayUiClick();
+
 
         // Opcional: Definir ícone do botão
         if (buildingData.buildingSprite != null)

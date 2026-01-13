@@ -75,6 +75,7 @@ public class MoneyManager : MonoBehaviour
             NotifyHUD();
             return true;
         }
+        GameEvents.RaiseInsufficientResources();
         return false;
     }
 

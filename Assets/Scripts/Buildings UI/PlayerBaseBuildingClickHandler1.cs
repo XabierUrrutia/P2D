@@ -137,6 +137,7 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
 
     void OnHealButtonClicked()
     {
+        SoundColector.Instance?.PlayUiClick();
         if (playerBase == null)
             return;
 

@@ -42,6 +42,8 @@ public class BuildingScreen : MonoBehaviour
 
         if (buildPanelUI != null)
             buildPanelUI.SetActive(true);
+            SoundColector.Instance?.PlayUiPanelOpen();
+
 
         if (pauseOnOpen)
         {
@@ -70,6 +72,7 @@ public class BuildingScreen : MonoBehaviour
     // Alterna estado (o mesmo botão abre e fecha)
     public void ToggleBuild()
     {
+        SoundColector.Instance?.PlayUiClick();
         if (_shown) HideBuild();
         else ShowBuild();
     }

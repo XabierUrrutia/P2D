@@ -192,6 +192,8 @@ public class EnemyBase : MonoBehaviour
 
             if (conquestProgress <= 0 && conquestSlider != null && conquestSlider.gameObject.activeInHierarchy)
             {
+                GameEvents.RaiseBuildingCaptureFailed();
+
                 conquestSlider.gameObject.SetActive(false);
             }
         }
@@ -212,6 +214,8 @@ public class EnemyBase : MonoBehaviour
     {
         if (!conqueringPlayers.Contains(player))
         {
+            GameEvents.RaiseBuildingCaptureStarted();
+
             conqueringPlayers.Add(player);
         }
     }
@@ -226,7 +230,10 @@ public class EnemyBase : MonoBehaviour
 
     private void CompleteConquest()
     {
+        
         isConquered = true;
+        GameEvents.RaiseBuildingCaptureCompleted();
+        GameEvents.RaiseBuildingCaptured();
 
         if (conquestSlider != null)
         {
