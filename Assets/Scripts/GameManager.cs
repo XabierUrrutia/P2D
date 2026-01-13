@@ -94,7 +94,7 @@ public class GameManager : MonoBehaviour
     {
         SoundColector.Instance?.PlayDefeatMusic();
 
-        SceneManager.LoadScene("Game Over");
+        SceneManager.LoadScene(9);
     }
 
     // Resetear el juego

@@ -6,84 +6,104 @@ using TMPro;
 public class OptionsMenuUI : MonoBehaviour
 {
     [Header("Áudio")]
-    public Slider masterVolumeSlider;
-    public Toggle muteToggle;
+    public Slider musicVolumeSlider;
+    public Slider sfxVolumeSlider;
+    public Slider voiceVolumeSlider;
 
-    [Header("Vídeo")]
-    public TMP_Dropdown resolutionDropdown;
-    public Toggle fullscreenToggle;
+    [Tooltip("Quando ligado, o jogo fica totalmente sem som (música, SFX e voz).")]
+    public Toggle muteAllToggle;
 
-    void Start()
+    private void Start()
     {
-        if (SettingsManager.Instance == null)
+        if (SoundColector.Instance == null)
         {
-            Debug.LogWarning("[OptionsMenuUI] SettingsManager.Instance é null. Certifica-te que existe um SettingsManager numa cena anterior.");
+            Debug.LogWarning("[OptionsMenuUI] SoundColector.Instance é null. Verifica se o objeto SoundColector existe na primeira cena.");
             return;
         }
 
         InitAudioUI();
-        InitResolutionUI();
     }
 
-    void InitAudioUI()
+    private void InitAudioUI()
     {
-        masterVolumeSlider.onValueChanged.RemoveAllListeners();
-        muteToggle.onValueChanged.RemoveAllListeners();
-
-        masterVolumeSlider.value = SettingsManager.Instance.masterVolume;
-        muteToggle.isOn = SettingsManager.Instance.isMuted;
-
-        masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
-        muteToggle.onValueChanged.AddListener(OnMuteChanged);
-    }
-
-    void InitResolutionUI()
-    {
-        resolutionDropdown.onValueChanged.RemoveAllListeners();
-        fullscreenToggle.onValueChanged.RemoveAllListeners();
-
-        var resolutions = SettingsManager.Instance.availableResolutions;
-        resolutionDropdown.ClearOptions();
-
-        var options = new System.Collections.Generic.List<string>();
-        for (int i = 0; i < resolutions.Length; i++)
+        if (musicVolumeSlider != null)
         {
-            Resolution r = resolutions[i];
-            options.Add($"{r.width} x {r.height} @ {r.refreshRate}Hz");
+            musicVolumeSlider.onValueChanged.RemoveAllListeners();
+            musicVolumeSlider.value = SoundColector.Instance.musicVolume;
+            musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
         }
 
-        resolutionDropdown.AddOptions(options);
+        if (sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.onValueChanged.RemoveAllListeners();
+            sfxVolumeSlider.value = SoundColector.Instance.sfxVolume;
+            sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
+        }
 
-        resolutionDropdown.value = SettingsManager.Instance.currentResolutionIndex;
-        resolutionDropdown.RefreshShownValue();
+        if (voiceVolumeSlider != null)
+        {
+            voiceVolumeSlider.onValueChanged.RemoveAllListeners();
+            voiceVolumeSlider.value = SoundColector.Instance.voiceVolume;
+            voiceVolumeSlider.onValueChanged.AddListener(OnVoiceVolumeChanged);
+        }
 
-        fullscreenToggle.isOn = SettingsManager.Instance.isFullscreen;
+        if (muteAllToggle != null)
+        {
+            muteAllToggle.onValueChanged.RemoveAllListeners();
 
-        resolutionDropdown.onValueChanged.AddListener(OnResolutionChanged);
-        fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
+            // Estado inicial do toggle baseado no SoundColector
+            bool isMuted = SoundColector.Instance.muteAll;
+            muteAllToggle.isOn = isMuted;
+            muteAllToggle.onValueChanged.AddListener(OnMuteAllChanged);
+        }
     }
 
-    void OnMasterVolumeChanged(float value)
+    private void OnMusicVolumeChanged(float value)
     {
-        if (SettingsManager.Instance == null) return;
-        SettingsManager.Instance.SetMasterVolume(value);
+        if (SoundColector.Instance == null) return;
+        SoundColector.Instance.SetMusicVolume01(value);
+
+        if (muteAllToggle != null && value > 0f && muteAllToggle.isOn)
+            muteAllToggle.isOn = false;
     }
 
-    void OnMuteChanged(bool muted)
+    private void OnSfxVolumeChanged(float value)
     {
-        if (SettingsManager.Instance == null) return;
-        SettingsManager.Instance.SetMuted(muted);
+        if (SoundColector.Instance == null) return;
+        SoundColector.Instance.SetSfxVolume01(value);
+
+        if (muteAllToggle != null && value > 0f && muteAllToggle.isOn)
+            muteAllToggle.isOn = false;
     }
 
-    void OnResolutionChanged(int index)
+    private void OnVoiceVolumeChanged(float value)
     {
-        if (SettingsManager.Instance == null) return;
-        SettingsManager.Instance.SetResolution(index, SettingsManager.Instance.isFullscreen);
+        if (SoundColector.Instance == null) return;
+        SoundColector.Instance.SetVoiceVolume01(value);
+
+        if (muteAllToggle != null && value > 0f && muteAllToggle.isOn)
+            muteAllToggle.isOn = false;
     }
 
-    void OnFullscreenChanged(bool fullscreen)
+    private void OnMuteAllChanged(bool muted)
     {
-        if (SettingsManager.Instance == null) return;
-        SettingsManager.Instance.SetFullscreen(fullscreen);
+        if (SoundColector.Instance == null) return;
+
+        SoundColector.Instance.SetMuteAll(muted);
+
+        // Opcional: sincronizar sliders com 0 quando mutado
+        if (muted)
+        {
+            if (musicVolumeSlider != null) musicVolumeSlider.value = 0f;
+            if (sfxVolumeSlider != null) sfxVolumeSlider.value = 0f;
+            if (voiceVolumeSlider != null) voiceVolumeSlider.value = 0f;
+        }
+        else
+        {
+            // Sliders refletem os valores atuais do SoundColector (carregados de prefs)
+            if (musicVolumeSlider != null) musicVolumeSlider.value = SoundColector.Instance.musicVolume;
+            if (sfxVolumeSlider != null) sfxVolumeSlider.value = SoundColector.Instance.sfxVolume;
+            if (voiceVolumeSlider != null) voiceVolumeSlider.value = SoundColector.Instance.voiceVolume;
+        }
     }
 }

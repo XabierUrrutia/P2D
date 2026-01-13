@@ -39,6 +39,14 @@ public class SoundColector : MonoBehaviour
     [Range(0f, 1f)] public float musicVolume = 0.7f;
     [Range(0f, 1f)] public float sfxVolume = 1.0f;
     [Range(0f, 1f)] public float voiceVolume = 1.0f;
+    
+    [Header("Mute Global")]
+    public bool muteAll = false;
+
+    private const string PrefKey_MusicVolume = "audio_musicVolume";
+    private const string PrefKey_SfxVolume = "audio_sfxVolume";
+    private const string PrefKey_VoiceVolume = "audio_voiceVolume";
+    private const string PrefKey_MuteAll = "audio_muteAll";
 
     [Header("Voz - Speed (só VOZ)")]
     [Range(0.5f, 2f)] public float voiceSpeed = 1.0f;
@@ -402,7 +410,8 @@ public class SoundColector : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-
+        
+        LoadAudioSettings();
         SetupAudioSources();
         ApplyAIGenderRule();
         ApplyMixerVolumes();
@@ -515,28 +524,104 @@ public class SoundColector : MonoBehaviour
 
     private void ApplyMixerVolumes()
     {
+        float musicVol = muteAll ? 0f : musicVolume;
+        float sfxVol = muteAll ? 0f : sfxVolume;
+        float voiceVolLin = muteAll ? 0f : GetEffectiveVoiceVolume();
+
         if (masterMixer != null)
         {
             if (!string.IsNullOrEmpty(musicVolumeParameter))
-                masterMixer.SetFloat(musicVolumeParameter, Mathf.Log10(Mathf.Clamp(musicVolume, 0.0001f, 1f)) * 20f);
+                masterMixer.SetFloat(musicVolumeParameter,
+                    Mathf.Log10(Mathf.Clamp(musicVol <= 0f ? 0.0001f : musicVol, 0.0001f, 1f)) * 20f);
 
             if (!string.IsNullOrEmpty(sfxVolumeParameter))
-                masterMixer.SetFloat(sfxVolumeParameter, Mathf.Log10(Mathf.Clamp(sfxVolume, 0.0001f, 1f)) * 20f);
+                masterMixer.SetFloat(sfxVolumeParameter,
+                    Mathf.Log10(Mathf.Clamp(sfxVol <= 0f ? 0.0001f : sfxVol, 0.0001f, 1f)) * 20f);
 
             if (!string.IsNullOrEmpty(voiceVolumeParameter))
-                masterMixer.SetFloat(voiceVolumeParameter,Mathf.Log10(Mathf.Clamp(GetEffectiveVoiceVolume(), 0.0001f, 3f)) * 20f);
-
+                masterMixer.SetFloat(voiceVolumeParameter,
+                    Mathf.Log10(Mathf.Clamp(voiceVolLin <= 0f ? 0.0001f : voiceVolLin, 0.0001f, 3f)) * 20f);
         }
 
-        if (musicSource != null) musicSource.volume = musicVolume * targetMusicVolumeFactor;
-        if (sfx2DSource != null) sfx2DSource.volume = sfxVolume;
+        if (musicSource != null) musicSource.volume = musicVol * targetMusicVolumeFactor;
+        if (sfx2DSource != null) sfx2DSource.volume = sfxVol;
         if (voiceSource != null)
         {
-            voiceSource.volume = GetEffectiveVoiceVolume();
+            voiceSource.volume = voiceVolLin;
             voiceSource.pitch = GetEffectiveVoiceSpeed();
         }
+
+        SaveAudioSettings();
     }
 
+    // -------- Integração com menu de opções (sliders) --------
+    /// <summary>
+    /// Define o volume da música (0-1) e aplica no AudioMixer.
+    /// Pode ser chamado a partir de sliders de opções.
+    /// </summary>
+    public void SetMusicVolume01(float value)
+    {
+        musicVolume = Mathf.Clamp01(value);
+        ApplyMixerVolumes();
+    }
+
+    /// <summary>
+    /// Define o volume de SFX (0-1) e aplica no AudioMixer.
+    /// </summary>
+    public void SetSfxVolume01(float value)
+    {
+        sfxVolume = Mathf.Clamp01(value);
+        ApplyMixerVolumes();
+    }
+
+    /// <summary>
+    /// Define o volume de voz (0-1) e aplica no AudioMixer.
+    /// </summary>
+    public void SetVoiceVolume01(float value)
+    {
+        voiceVolume = Mathf.Clamp01(value);
+        ApplyMixerVolumes();
+    }
+    public void SetMuteAll(bool muted)
+    {
+        muteAll = muted;
+        ApplyMixerVolumes();
+    }
+    /// <summary>
+    /// Define um volume global simples (0-1) para música e SFX ao mesmo tempo.
+    /// Útil se tiveres só um slider de volume geral nas opções.
+    /// </summary>
+    public void SetMasterLikeVolume01(float value)
+    {
+        float v = Mathf.Clamp01(value);
+        musicVolume = v;
+        sfxVolume = v;
+        // se quiseres também afetar voz, descomenta:
+        // voiceVolume = v;
+        ApplyMixerVolumes();
+    }
+    private void LoadAudioSettings()
+    {
+        if (PlayerPrefs.HasKey(PrefKey_MusicVolume))
+            musicVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefKey_MusicVolume, musicVolume));
+
+        if (PlayerPrefs.HasKey(PrefKey_SfxVolume))
+            sfxVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefKey_SfxVolume, sfxVolume));
+
+        if (PlayerPrefs.HasKey(PrefKey_VoiceVolume))
+            voiceVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefKey_VoiceVolume, voiceVolume));
+
+        muteAll = PlayerPrefs.GetInt(PrefKey_MuteAll, 0) == 1;
+    }
+
+    private void SaveAudioSettings()
+    {
+        PlayerPrefs.SetFloat(PrefKey_MusicVolume, musicVolume);
+        PlayerPrefs.SetFloat(PrefKey_SfxVolume, sfxVolume);
+        PlayerPrefs.SetFloat(PrefKey_VoiceVolume, voiceVolume);
+        PlayerPrefs.SetInt(PrefKey_MuteAll, muteAll ? 1 : 0);
+        PlayerPrefs.Save();
+    }
     // -------- Backstage controls (code-only) --------
     public void SetVoiceSpeed(float speed)
     {
