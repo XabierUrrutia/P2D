@@ -40,6 +40,53 @@ public class SoundColector : MonoBehaviour
     [Range(0f, 1f)] public float sfxVolume = 1.0f;
     [Range(0f, 1f)] public float voiceVolume = 1.0f;
 
+    [Header("Voz - Speed (só VOZ)")]
+    [Range(0.5f, 2f)] public float voiceSpeed = 1.0f;
+
+    [Header("Voz - Volume por Língua (só VOZ)")]
+    public bool useVoiceVolumeByLanguage = true;
+
+    // Preenche no Inspector (PT/EN/ES). O "Auto" é resolvido para a língua efetiva.
+    public VoiceLanguageVolume[] voiceVolumeByLanguage = new VoiceLanguageVolume[]
+    {
+    new VoiceLanguageVolume { language = VoiceLanguage.Portuguese, volume = 1.0f },
+    new VoiceLanguageVolume { language = VoiceLanguage.English,    volume = 1.0f },
+    new VoiceLanguageVolume { language = VoiceLanguage.Spanish,    volume = 1.0f },
+    };
+
+    [Header("Voz - Backstage (Debug)")]
+    public bool backstageVoiceVolumeMode = false;
+    [Range(0f, 3f)] public float backstageVoiceVolumeMultiplier = 1.0f;
+
+    // ---- Helpers (VOICE only) ----
+    private float GetVoiceVolumeForLanguage(VoiceLanguage lang)
+    {
+        if (!useVoiceVolumeByLanguage || voiceVolumeByLanguage == null || voiceVolumeByLanguage.Length == 0)
+            return voiceVolume;
+
+        for (int i = 0; i < voiceVolumeByLanguage.Length; i++)
+            if (voiceVolumeByLanguage[i].language == lang)
+                return voiceVolumeByLanguage[i].volume;
+
+        return voiceVolume;
+    }
+
+    private float GetEffectiveVoiceVolume()
+    {
+        VoiceLanguage lang = GetEffectiveLanguage();
+        float v = GetVoiceVolumeForLanguage(lang);
+
+        if (backstageVoiceVolumeMode)
+            v *= backstageVoiceVolumeMultiplier;
+
+        return Mathf.Clamp01(v);
+    }
+
+    private float GetEffectiveVoiceSpeed()
+    {
+        return Mathf.Clamp(voiceSpeed, 0.5f, 2f);
+    }
+
     [Header("Music Ducking (quando há VO)")]
     public bool enableMusicDucking = true;
     [Range(0f, 0.8f)] public float musicDuckFactor = 0.3f;
@@ -70,6 +117,12 @@ public class SoundColector : MonoBehaviour
     public float globalMinVoiceInterval = 0.35f;
 
     [System.Serializable]
+    public struct VoiceLanguageVolume
+    {
+        public VoiceLanguage language;
+        [Range(0f, 1f)] public float volume;
+    }
+
     public class LocalizedBalancedVoiceSet
     {
         public AudioClip[] portugueseMale;
@@ -451,6 +504,8 @@ public class SoundColector : MonoBehaviour
             voiceSource.spatialBlend = 0f;
             voiceSource.playOnAwake = false;
             voiceSource.loop = false;
+            voiceSource.pitch = GetEffectiveVoiceSpeed();
+            voiceSource.volume = GetEffectiveVoiceVolume();
         }
     }
 
@@ -465,13 +520,38 @@ public class SoundColector : MonoBehaviour
                 masterMixer.SetFloat(sfxVolumeParameter, Mathf.Log10(Mathf.Clamp(sfxVolume, 0.0001f, 1f)) * 20f);
 
             if (!string.IsNullOrEmpty(voiceVolumeParameter))
-                masterMixer.SetFloat(voiceVolumeParameter, Mathf.Log10(Mathf.Clamp(voiceVolume, 0.0001f, 1f)) * 20f);
+                masterMixer.SetFloat(voiceVolumeParameter, Mathf.Log10(Mathf.Clamp(GetEffectiveVoiceVolume(), 0.0001f, 1f)) * 20f);
+
         }
 
         if (musicSource != null) musicSource.volume = musicVolume * targetMusicVolumeFactor;
         if (sfx2DSource != null) sfx2DSource.volume = sfxVolume;
-        if (voiceSource != null) voiceSource.volume = voiceVolume;
+        if (voiceSource != null)
+        {
+            voiceSource.volume = GetEffectiveVoiceVolume();
+            voiceSource.pitch = GetEffectiveVoiceSpeed();
+        }
     }
+
+    // -------- Backstage controls (code-only) --------
+    public void SetVoiceSpeed(float speed)
+    {
+        voiceSpeed = Mathf.Clamp(speed, 0.5f, 2f);
+        if (voiceSource != null) voiceSource.pitch = GetEffectiveVoiceSpeed();
+    }
+
+    public void EnableBackstageVoiceVolumeMode(bool enabled)
+    {
+        backstageVoiceVolumeMode = enabled;
+        ApplyMixerVolumes();
+    }
+
+    public void SetBackstageVoiceVolumeMultiplier(float multiplier)
+    {
+        backstageVoiceVolumeMultiplier = Mathf.Clamp(multiplier, 0f, 3f);
+        if (backstageVoiceVolumeMode) ApplyMixerVolumes();
+    }
+    // -----------------------------------------------
 
     private VoiceLanguage GetEffectiveLanguage()
     {
@@ -708,9 +788,9 @@ public class SoundColector : MonoBehaviour
 
         currentVoicePriority = priority;
 
-        voiceSource.pitch = 1f;
+        voiceSource.pitch = GetEffectiveVoiceSpeed();
         voiceSource.clip = clip;
-        voiceSource.volume = voiceVolume;
+        voiceSource.volume = GetEffectiveVoiceVolume();
         voiceSource.Play();
 
         lastAnyVoiceTime = now;
