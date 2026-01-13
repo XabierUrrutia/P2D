@@ -92,6 +92,8 @@ public class GameManager : MonoBehaviour
     // Cargar escena de Game Over
     private void LoadGameOverScene()
     {
+        SoundColector.Instance?.PlayDefeatMusic();
+
         SceneManager.LoadScene("Game Over");
     }
 

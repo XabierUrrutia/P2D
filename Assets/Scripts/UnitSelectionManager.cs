@@ -82,7 +82,7 @@ public class UnitSelectionManager : MonoBehaviour
                     bool eraNueva = !unidadesSeleccionadas.Contains(unidad);
                     SeleccionarUnidad(unidad);
 
-                    //if (eraNueva) PlaySelectionSoundFor(unidad);
+                    if (eraNueva) PlaySelectionSoundFor(unidad);
                 }
             }
             else
@@ -217,7 +217,7 @@ public class UnitSelectionManager : MonoBehaviour
             }
         }
 
-        //if (primeraNueva != null) PlaySelectionSoundFor(primeraNueva);
+        if (primeraNueva != null) PlaySelectionSoundFor(primeraNueva);
     }
 
     // ---------------------------------------------------------

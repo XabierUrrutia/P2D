@@ -158,6 +158,8 @@ public class PlayerBase : MonoBehaviour, IHealth
         }
 
         // Carregar cena de Game Over (nome deve corresponder ao build settings)
+        SoundColector.Instance?.PlayBuildingDestroyedAt(transform.position);
+        SoundColector.Instance?.PlayDefeatMusic();
         SceneManager.LoadScene("Game Over");
     }
 

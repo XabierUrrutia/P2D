@@ -24,6 +24,9 @@ public class PauseMenu : MonoBehaviour
 
     public void PauseGame()
     {
+        SoundColector.Instance?.PlayPauseMusic();
+
+
         Time.timeScale = 0f;
 
         GameObject player = GameObject.FindWithTag("Player");
@@ -37,6 +40,8 @@ public class PauseMenu : MonoBehaviour
 
     public void ResumeGame()
     {
+        SoundColector.Instance?.PlayGameplayMusic();
+
         pauseMenuUI.SetActive(false);
         Time.timeScale = 1f;  // retoma o jogo
         isPaused = false;
@@ -44,6 +49,8 @@ public class PauseMenu : MonoBehaviour
 
     public void GoToMainMenu()
     {
+        SoundColector.Instance?.PlayMenuMusic();
+
         Time.timeScale = 1f; // volta ao normal antes de trocar de cena
         SceneManager.LoadScene(0); // exemplo: menu principal
     }

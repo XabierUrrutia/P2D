@@ -73,6 +73,7 @@ public class Interface_Buttons : MonoBehaviour
         if (optionsOpen) return;
 
         gameSceneBeforeOptions = SceneManager.GetActiveScene().buildIndex;
+        SoundColector.Instance?.PlayPauseMusic();
         StartCoroutine(LoadOptionsAdditive());
     }
 
@@ -89,7 +90,7 @@ public class Interface_Buttons : MonoBehaviour
     public void GoToMainMenu()
     {
         SoundColector.Instance?.PlayUiClick();
-
+        SoundColector.Instance?.PlayMenuMusic();
         LoadSceneAndSave(0);
     }
 

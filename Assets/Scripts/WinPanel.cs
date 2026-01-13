@@ -17,6 +17,8 @@ public class WinPanel : MonoBehaviour
     public void ShowWin()
     {
         SoundColector.Instance?.PlayUiPanelOpen();
+        SoundColector.Instance?.PlayVictoryMusic();
+
 
         if (_shown) return;
         _shown = true;

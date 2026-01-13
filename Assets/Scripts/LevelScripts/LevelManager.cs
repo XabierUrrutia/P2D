@@ -50,6 +50,12 @@ public class LevelManager : MonoBehaviour
     void Start()
     {
         UpdateCurrentLevel(SceneManager.GetActiveScene());
+
+    if (SoundColector.Instance != null)
+    {
+        if (CurrentLevel > 0) SoundColector.Instance.PlayGameplayMusic();
+        else SoundColector.Instance.PlayMenuMusic();
+    }
     }
 
     void OnDestroy()
@@ -59,7 +65,15 @@ public class LevelManager : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        if (mode == LoadSceneMode.Additive) return;
+
         UpdateCurrentLevel(scene);
+
+        if (SoundColector.Instance != null)
+        {
+            if (CurrentLevel > 0) SoundColector.Instance.PlayGameplayMusic();
+            else SoundColector.Instance.PlayMenuMusic();
+        }
     }
 
     void UpdateCurrentLevel(Scene scene)
