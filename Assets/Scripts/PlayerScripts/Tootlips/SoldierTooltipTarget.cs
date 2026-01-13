@@ -8,7 +8,7 @@ public class SoldierTooltipTarget : MonoBehaviour
     public GameObject infoPanel;
     public TextMeshProUGUI infoNameText;
     public TextMeshProUGUI infoHpText;
-    public TextMeshProUGUI infoAmmoText;
+    public TextMeshProUGUI infoXpText; // antes era Ammo
 
     [Header("Posicionamento relativo ao soldado")]
     public Vector3 worldOffset = new Vector3(0f, 1.5f, 0f);
@@ -21,9 +21,21 @@ public class SoldierTooltipTarget : MonoBehaviour
     private Camera mainCamera;
     private RectTransform infoRect;
 
+    // Referência à câmara para saber o nível de zoom
+    private cameraFollow cameraFollow;
+
+    // Apenas um painel ativo de cada vez
+    private static SoldierTooltipTarget currentActive;
+
+    // Referência à veterania/XP do soldado (mesmo tipo usado no HUD)
+    public UnitVeterancy unitVeterancy; // arrasta o mesmo componente que o HUD usa
+
     void Awake()
     {
         mainCamera = Camera.main;
+
+        if (mainCamera != null)
+            cameraFollow = mainCamera.GetComponent<cameraFollow>();
 
         if (healthComponent == null)
             healthComponent = GetComponent<MonoBehaviour>();
@@ -36,6 +48,15 @@ public class SoldierTooltipTarget : MonoBehaviour
         if (health == null)
         {
             Debug.LogWarning($"[SoldierTooltipTarget] Nenhum IHealth encontrado em '{gameObject.name}'. Painel vai mostrar só o tipo.");
+        }
+
+        // Tentar encontrar UnitVeterancy automaticamente se não for atribuída
+        if (unitVeterancy == null)
+            unitVeterancy = GetComponent<UnitVeterancy>();
+
+        if (unitVeterancy == null)
+        {
+            Debug.LogWarning($"[SoldierTooltipTarget] Nenhum UnitVeterancy encontrado em '{gameObject.name}'. XP/Nível vão mostrar valores vazios.");
         }
 
         if (infoPanel == null)
@@ -63,11 +84,11 @@ public class SoldierTooltipTarget : MonoBehaviour
                     infoHpText = t.GetComponent<TextMeshProUGUI>();
             }
 
-            if (infoAmmoText == null)
+            if (infoXpText == null)
             {
-                var t = infoPanel.transform.Find("SoldierAmmoText");
+                var t = infoPanel.transform.Find("SoldierXPText");
                 if (t != null)
-                    infoAmmoText = t.GetComponent<TextMeshProUGUI>();
+                    infoXpText = t.GetComponent<TextMeshProUGUI>();
             }
 
             infoPanel.SetActive(false);
@@ -80,7 +101,21 @@ public class SoldierTooltipTarget : MonoBehaviour
 
     void Update()
     {
-        if (infoPanel == null || !infoPanel.activeSelf || infoRect == null || mainCamera == null)
+        if (infoPanel == null || infoRect == null || mainCamera == null)
+            return;
+
+        // Se o painel estiver ativo mas a câmara já não estiver no zoom mais perto, esconde.
+        if (infoPanel.activeSelf && cameraFollow != null && !cameraFollow.IsAtClosestZoom())
+        {
+            infoPanel.SetActive(false);
+
+            if (currentActive == this)
+                currentActive = null;
+
+            return;
+        }
+
+        if (!infoPanel.activeSelf)
             return;
 
         Vector3 screenPos = mainCamera.WorldToScreenPoint(transform.position + worldOffset);
@@ -96,13 +131,34 @@ public class SoldierTooltipTarget : MonoBehaviour
 
         if (show)
         {
+            // Só mostra se o zoom estiver no nível mais perto
+            if (cameraFollow != null && !cameraFollow.IsAtClosestZoom())
+            {
+                infoPanel.SetActive(false);
+                return;
+            }
+
+            // Garante que só um painel está ativo
+            if (currentActive != null && currentActive != this)
+                currentActive.InternalHide();
+
             UpdateInfoPanel();
             infoPanel.SetActive(true);
+            currentActive = this;
         }
         else
         {
-            infoPanel.SetActive(false);
+            InternalHide();
         }
+    }
+
+    private void InternalHide()
+    {
+        if (infoPanel != null)
+            infoPanel.SetActive(false);
+
+        if (currentActive == this)
+            currentActive = null;
     }
 
     private void UpdateInfoPanel()
@@ -122,14 +178,26 @@ public class SoldierTooltipTarget : MonoBehaviour
             }
 
             if (maxHp > 0)
-                infoHpText.text = $"HP: {currentHp} / {maxHp}";
+                infoHpText.text = $"HP: {currentHp}/{maxHp}";
             else
                 infoHpText.text = $"HP: {currentHp}";
         }
 
-        if (infoAmmoText != null)
+        // XP + Nível: usar os mesmos dados que o HUD (UnitVeterancy)
+        if (infoXpText != null)
         {
-            infoAmmoText.text = "Ammo: -";
+            if (unitVeterancy != null)
+            {
+                float atual = unitVeterancy.xpActual;
+                float necessario = unitVeterancy.xpParaSiguienteNivel;
+                int nivel = unitVeterancy.nivel;
+
+                infoXpText.text = $"LV {nivel}  XP: {atual}/{necessario}";
+            }
+            else
+            {
+                infoXpText.text = "LV -  XP: -";
+            }
         }
     }
 }

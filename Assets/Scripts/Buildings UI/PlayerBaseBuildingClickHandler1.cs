@@ -64,6 +64,9 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
 
     void Start()
     {
+        // REMOVER blocos que mexem no box.offset e box.size
+        // Apenas deixamos a lógica de UI.
+
         // tentar encontrar painel automaticamente se não foi ligado no Inspector
         if (panelPlayerBaseUI == null)
         {
@@ -78,11 +81,8 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
         if (panelPlayerBaseUI != null)
             panelPlayerBaseUI.SetActive(false);
 
-        // Ligar botão de cura, se possível
         if (healButton == null && panelPlayerBaseUI != null)
         {
-            // aqui é importante: certifica-te que este é o botão de HEAL do painel,
-            // senão arrasta manualmente no Inspector
             healButton = panelPlayerBaseUI.GetComponentInChildren<Button>(true);
         }
 
@@ -95,10 +95,6 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
         UpdateUI();
     }
 
-    /// <summary>
-    /// Chamado automaticamente pelo Unity quando clicas neste GameObject (no Collider2D dele).
-    /// Igual ao padrão usado em EdificioClick.
-    /// </summary>
     void OnMouseDown()
     {
         Debug.Log($"[PlayerBaseBuildingClickHandler1] OnMouseDown em '{gameObject.name}'");
@@ -107,6 +103,24 @@ public class PlayerBaseBuildingClickHandler1 : MonoBehaviour
         {
             Debug.Log("[PlayerBaseBuildingClickHandler1] Clique ignorado: está sobre UI.");
             return;
+        }
+
+        // DEBUG: ver qual collider está a ser atingido pelo rato
+        var cam = Camera.main;
+        if (cam != null)
+        {
+            Vector3 worldPos = cam.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 point = new Vector2(worldPos.x, worldPos.y);
+            RaycastHit2D hit = Physics2D.Raycast(point, Vector2.zero);
+
+            if (hit.collider != null)
+            {
+                Debug.Log($"[PlayerBaseBuildingClickHandler1] Raycast atingiu '{hit.collider.name}' na posição {point}");
+            }
+            else
+            {
+                Debug.Log($"[PlayerBaseBuildingClickHandler1] Raycast NÃO atingiu nada na posição {point}");
+            }
         }
 
         TogglePanel();

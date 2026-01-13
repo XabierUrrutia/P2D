@@ -169,7 +169,6 @@ public class PanelPlayerBaseUI : MonoBehaviour
             panelRoot.SetActive(false);
 
         currentBase = null;
-        Time.timeScale = 1f; // Descongela o jogo ao fechar
         Debug.Log("[PanelPlayerBaseUI] Painel fechado. Jogo descongelado.");
     }
 }

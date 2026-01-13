@@ -1,14 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Script genérico para botões de "Close".
-/// - Fecha um ou mais painéis/menus quando clicado.
-/// - Pode ser usado para:
-///   * fechar o UI da Player Base,
-///   * fechar o Building Panel,
-///   * fechar o Units/Soldiers Panel, etc.
-/// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Button))]
 public class GenericCloseButton : MonoBehaviour
@@ -19,7 +11,7 @@ public class GenericCloseButton : MonoBehaviour
 
     [Header("Opções")]
     [Tooltip("Se true, reativa Time.timeScale = 1 ao fechar (útil se algum menu tiver pausado o jogo).")]
-    public bool resumeTimeOnClose = false;
+    public bool resumeTimeOnClose = true;
 
     private Button closeButton;
 
@@ -46,6 +38,7 @@ public class GenericCloseButton : MonoBehaviour
         if (resumeTimeOnClose)
         {
             Time.timeScale = 1f;
+            Debug.Log("[GenericCloseButton] Painéis fechados. Time.timeScale = 1.");
         }
     }
 }
