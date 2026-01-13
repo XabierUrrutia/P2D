@@ -13,6 +13,11 @@ public class OptionsMenuUI : MonoBehaviour
     [Tooltip("Quando ligado, o jogo fica totalmente sem som (música, SFX e voz).")]
     public Toggle muteAllToggle;
 
+    private bool suppressUiEvents;
+    private float prevMusic = 1f;
+    private float prevSfx = 1f;
+    private float prevVoice = 1f;
+
     private void Start()
     {
         if (SoundColector.Instance == null)
@@ -60,6 +65,7 @@ public class OptionsMenuUI : MonoBehaviour
 
     private void OnMusicVolumeChanged(float value)
     {
+        if (suppressUiEvents) return;
         if (SoundColector.Instance == null) return;
         SoundColector.Instance.SetMusicVolume01(value);
 
@@ -69,6 +75,7 @@ public class OptionsMenuUI : MonoBehaviour
 
     private void OnSfxVolumeChanged(float value)
     {
+        if (suppressUiEvents) return;
         if (SoundColector.Instance == null) return;
         SoundColector.Instance.SetSfxVolume01(value);
 
@@ -78,6 +85,7 @@ public class OptionsMenuUI : MonoBehaviour
 
     private void OnVoiceVolumeChanged(float value)
     {
+        if (suppressUiEvents) return;
         if (SoundColector.Instance == null) return;
         SoundColector.Instance.SetVoiceVolume01(value);
 
@@ -85,25 +93,42 @@ public class OptionsMenuUI : MonoBehaviour
             muteAllToggle.isOn = false;
     }
 
-    private void OnMuteAllChanged(bool muted)
+public void OnMuteAllChanged(bool muted)
+{
+    if (SoundColector.Instance == null) return;
+
+    suppressUiEvents = true;
+
+    if (muted)
     {
-        if (SoundColector.Instance == null) return;
+        // guardar valores atuais
+        prevMusic = musicVolumeSlider.value;
+        prevSfx   = sfxVolumeSlider.value;
+        prevVoice = voiceVolumeSlider.value;
 
-        SoundColector.Instance.SetMuteAll(muted);
+        // colocar sliders a 0 sem disparar callbacks
+        musicVolumeSlider.value = 0f;
+        sfxVolumeSlider.value   = 0f;
+        voiceVolumeSlider.value = 0f;
 
-        // Opcional: sincronizar sliders com 0 quando mutado
-        if (muted)
-        {
-            if (musicVolumeSlider != null) musicVolumeSlider.value = 0f;
-            if (sfxVolumeSlider != null) sfxVolumeSlider.value = 0f;
-            if (voiceVolumeSlider != null) voiceVolumeSlider.value = 0f;
-        }
-        else
-        {
-            // Sliders refletem os valores atuais do SoundColector (carregados de prefs)
-            if (musicVolumeSlider != null) musicVolumeSlider.value = SoundColector.Instance.musicVolume;
-            if (sfxVolumeSlider != null) sfxVolumeSlider.value = SoundColector.Instance.sfxVolume;
-            if (voiceVolumeSlider != null) voiceVolumeSlider.value = SoundColector.Instance.voiceVolume;
-        }
+        SoundColector.Instance.SetMuteAll(true);
     }
+    else
+    {
+        // restaurar sliders sem disparar callbacks
+        musicVolumeSlider.value = prevMusic;
+        sfxVolumeSlider.value   = prevSfx;
+        voiceVolumeSlider.value = prevVoice;
+
+        SoundColector.Instance.SetMuteAll(false);
+
+        // aplicar volumes restaurados
+        SoundColector.Instance.SetMusicVolume01(prevMusic);
+        SoundColector.Instance.SetSfxVolume01(prevSfx);
+        SoundColector.Instance.SetVoiceVolume01(prevVoice);
+    }
+
+    suppressUiEvents = false;
+}
+
 }

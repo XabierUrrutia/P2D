@@ -66,8 +66,8 @@ public class SoundColector : MonoBehaviour
     public bool backstageVoiceVolumeMode = false;
     [Range(0f, 3f)] public float backstageVoiceVolumeMultiplier = 1.0f;
 
-    private int menuEnterCount = 0;
-    private AudioClip lastMenuClip = null;
+    //private int menuEnterCount = 0;
+    //private AudioClip lastMenuClip = null;
 
     // ---- Helpers (VOICE only) ----
     private float GetVoiceVolumeForLanguage(VoiceLanguage lang)
@@ -121,8 +121,17 @@ public class SoundColector : MonoBehaviour
     private bool playlistLoop = true;
     private bool isPlaylistPlaying = false;
 
+    private bool hasGameplayResume = false;
+    private AudioClip resumeGameplayClip;
+    private float resumeGameplayTime;
+    private AudioClip[] resumeGameplayPlaylist;
+    private int resumeGameplayTrackIndex;
+    private bool resumeGameplayPlaylistLoop;
+    private bool resumeGameplayIsPlaylistPlaying;
+
     private float targetMusicVolumeFactor = 1f;
     private float lastAnyVoiceTime = -999f;
+    private float suppressPlaylistAdvanceUntil = 0f;
 
     [Header("Voz – Anti-caos global")]
     public float globalMinVoiceInterval = 0.35f;
@@ -417,13 +426,23 @@ public class SoundColector : MonoBehaviour
         ApplyMixerVolumes();
     }
 
-#if UNITY_EDITOR
-    private void OnValidate()
+    #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            ApplyAIGenderRule();
+        }
+    #endif
+    
+    private void Start()
     {
-        ApplyAIGenderRule();
-    }
-#endif
+        if (currentMusicState != MusicState.None) return;
 
+        if (menuMusicClips != null && menuMusicClips.Length > 0)
+            PlayMenuMusic();
+        else if (gameplayMusicClips != null && gameplayMusicClips.Length > 0)
+            PlayGameplayMusic();
+    }
+    
     private void OnEnable()
     {
         GameEvents.OnUnitsSelected += HandleUnitsSelected;
@@ -483,8 +502,26 @@ public class SoundColector : MonoBehaviour
     {
         UpdateMusicDucking();
 
-        if (isPlaylistPlaying && musicSource != null && !musicSource.isPlaying)
-            PlayNextTrackInPlaylist();
+        if (isPlaylistPlaying && musicSource != null && musicSource.clip != null)
+        {
+            if (Time.unscaledTime < suppressPlaylistAdvanceUntil) return;
+
+            // Só considera "acabou" se chegou ao fim do clip (e não por foco/pause)
+            bool ended = !musicSource.isPlaying && musicSource.time >= Mathf.Max(0f, musicSource.clip.length - 0.05f);
+            if (ended) PlayNextTrackInPlaylist();
+        }
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (hasFocus)
+            suppressPlaylistAdvanceUntil = Time.unscaledTime + 0.25f;
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (!pause) // a voltar do pause
+            suppressPlaylistAdvanceUntil = Time.unscaledTime + 0.25f;
     }
 
     private void SetupAudioSources()
@@ -649,19 +686,9 @@ public class SoundColector : MonoBehaviour
 
         if (clips == null || clips.Length == 0) { StopMusic(); return; }
 
-        AudioClip clip;
+        AudioClip clip = FindClipByName(clips, "Main Menu");
+        if (clip == null) clip = FirstNonNull(clips);
 
-        // 1º menu: fixa na primeira faixa válida do array (não random)
-        if (menuEnterCount == 0)
-        {
-            clip = FirstNonNull(clips);
-            if (clip == null) clip = clips[Random.Range(0, clips.Length)];
-        }
-        // a partir do 2º menu: random, evitando repetir a anterior
-        else
-        {
-            clip = RandomNonNullExcluding(clips, lastMenuClip);
-        }
 
         if (musicSource == null || clip == null) return;
 
@@ -671,8 +698,8 @@ public class SoundColector : MonoBehaviour
         musicSource.volume = musicVolume * targetMusicVolumeFactor;
         musicSource.Play();
 
-        lastMenuClip = clip;
-        menuEnterCount++;
+        //lastMenuClip = clip;
+        //menuEnterCount++;
     }
 
     private AudioClip FirstNonNull(AudioClip[] clips)
@@ -681,6 +708,19 @@ public class SoundColector : MonoBehaviour
             if (clips[i] != null) return clips[i];
         return null;
     }
+
+    private AudioClip FindClipByName(AudioClip[] clips, string clipName)
+{
+    if (clips == null || clips.Length == 0 || string.IsNullOrEmpty(clipName)) return null;
+
+    for (int i = 0; i < clips.Length; i++)
+    {
+        AudioClip c = clips[i];
+        if (c != null && string.Equals(c.name, clipName, System.StringComparison.OrdinalIgnoreCase))
+            return c;
+    }
+    return null;
+}
 
     private AudioClip RandomNonNullExcluding(AudioClip[] clips, AudioClip exclude)
     {
@@ -756,29 +796,85 @@ public class SoundColector : MonoBehaviour
 
     private void SetMusicState(MusicState newState)
     {
+        MusicState prevState = currentMusicState;
+        if (prevState == newState) return;
+
+        // Se estou em gameplay e vou para pause, guarda para retomar
+        if (prevState == MusicState.Gameplay && newState == MusicState.Pause)
+            CaptureGameplayMusicForResume();
+
         currentMusicState = newState;
 
         switch (newState)
         {
+           
             case MusicState.Menu:
                 StartMenuTrackState(menuMusicClips, true);
                 break;
+
             case MusicState.Gameplay:
-                StartPlaylist(gameplayMusicClips, true);
+                if (prevState == MusicState.Pause && hasGameplayResume)
+                    RestoreGameplayMusicFromResume();
+                else
+                    StartPlaylist(gameplayMusicClips, true);
                 break;
+
             case MusicState.Pause:
                 StartSingleTrackState(pauseMusicClips, true);
                 break;
+
             case MusicState.Victory:
                 StartSingleTrackState(victoryMusicClips, false);
                 break;
+
             case MusicState.Defeat:
                 StartSingleTrackState(defeatMusicClips, false);
                 break;
+
             default:
                 StopMusic();
                 break;
         }
+    }
+
+    private void CaptureGameplayMusicForResume()
+    {
+        if (musicSource == null || musicSource.clip == null)
+        {
+            hasGameplayResume = false;
+            return;
+        }
+
+        resumeGameplayClip = musicSource.clip;
+        resumeGameplayTime = musicSource.time;
+
+        resumeGameplayPlaylist = (currentPlaylist != null && currentPlaylist.Length > 0) ? currentPlaylist : gameplayMusicClips;
+        resumeGameplayTrackIndex = currentTrackIndex;
+        resumeGameplayPlaylistLoop = playlistLoop;
+        resumeGameplayIsPlaylistPlaying = isPlaylistPlaying;
+
+        hasGameplayResume = true;
+    }
+
+    private void RestoreGameplayMusicFromResume()
+    {
+        if (!hasGameplayResume || musicSource == null || resumeGameplayClip == null)
+        {
+            StartPlaylist(gameplayMusicClips, true);
+            return;
+        }
+
+        currentPlaylist = (resumeGameplayPlaylist != null && resumeGameplayPlaylist.Length > 0) ? resumeGameplayPlaylist : gameplayMusicClips;
+        currentTrackIndex = resumeGameplayTrackIndex;
+        playlistLoop = resumeGameplayPlaylistLoop;
+        isPlaylistPlaying = resumeGameplayIsPlaylistPlaying;
+
+        musicSource.Stop();
+        musicSource.clip = resumeGameplayClip;
+        musicSource.loop = false;
+        musicSource.time = Mathf.Clamp(resumeGameplayTime, 0f, Mathf.Max(0f, resumeGameplayClip.length - 0.05f));
+        musicSource.volume = musicVolume * targetMusicVolumeFactor;
+        musicSource.Play();
     }
 
     private void StartSingleTrackState(AudioClip[] clips, bool loop)
@@ -790,6 +886,7 @@ public class SoundColector : MonoBehaviour
 
         AudioClip clip = clips[Random.Range(0, clips.Length)];
         if (musicSource == null || clip == null) return;
+        if (musicSource.isPlaying && musicSource.clip == clip) return;
 
         musicSource.Stop();
         musicSource.clip = clip;
@@ -815,18 +912,35 @@ public class SoundColector : MonoBehaviour
         if (currentPlaylist == null || currentPlaylist.Length == 0 || musicSource == null)
             return;
 
+        // Se for loop (Gameplay), toca random evitando repetir a anterior
+        if (playlistLoop)
+        {
+            AudioClip clip = RandomNonNullExcluding(currentPlaylist, musicSource.clip);
+            if (clip == null) { isPlaylistPlaying = false; return; }
+
+            currentTrackIndex = System.Array.IndexOf(currentPlaylist, clip);
+
+            musicSource.Stop();
+            musicSource.clip = clip;
+            musicSource.loop = false;
+            musicSource.volume = musicVolume * targetMusicVolumeFactor;
+            musicSource.Play();
+            return;
+        }
+
+        // Caso raro: playlist sem loop mantém o comportamento antigo (sequencial)
         currentTrackIndex++;
         if (currentTrackIndex >= currentPlaylist.Length)
         {
-            if (playlistLoop) currentTrackIndex = 0;
-            else { isPlaylistPlaying = false; return; }
+            isPlaylistPlaying = false;
+            return;
         }
 
-        AudioClip clip = currentPlaylist[currentTrackIndex];
-        if (clip == null) return;
+        AudioClip seq = currentPlaylist[currentTrackIndex];
+        if (seq == null) { isPlaylistPlaying = false; return; }
 
         musicSource.Stop();
-        musicSource.clip = clip;
+        musicSource.clip = seq;
         musicSource.loop = false;
         musicSource.volume = musicVolume * targetMusicVolumeFactor;
         musicSource.Play();
@@ -853,12 +967,15 @@ public class SoundColector : MonoBehaviour
         if (clip == null || sfx2DSource == null) return;
 
         sfx2DSource.pitch = randomizeSfxPitch ? Random.Range(minSfxPitch, maxSfxPitch) : 1f;
-        sfx2DSource.PlayOneShot(clip, sfxVolume * volumeMul);
+        sfx2DSource.PlayOneShot(clip, volumeMul);
     }
 
     private void PlayWorldSfx3D(AudioClip clip, Vector3 worldPos, float volumeMul = 1f)
     {
         if (clip == null) return;
+
+        float finalVol = (muteAll ? 0f : sfxVolume) * volumeMul;
+        if (finalVol <= 0f) return;
 
         GameObject go = new GameObject("SFX3D_" + clip.name);
         go.transform.position = worldPos;
@@ -871,7 +988,7 @@ public class SoundColector : MonoBehaviour
         src.maxDistance = 35f;
         src.playOnAwake = false;
         src.loop = false;
-        src.volume = sfxVolume * volumeMul;
+        src.volume = finalVol;
 
         if (randomizeSfxPitch)
             src.pitch = Random.Range(minSfxPitch, maxSfxPitch);
