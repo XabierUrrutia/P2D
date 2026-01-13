@@ -123,7 +123,7 @@ public class SoundColector : MonoBehaviour
     public struct VoiceLanguageVolume
     {
         public VoiceLanguage language;
-        [Range(0f, 1f)] public float volume;
+        [Range(0f, 3f)] public float volume;
     }
 
     [System.Serializable]
@@ -676,7 +676,7 @@ public class SoundColector : MonoBehaviour
         switch (newState)
         {
             case MusicState.Menu:
-                StartSingleTrackState(menuMusicClips, true);
+                StartMenuTrackState(menuMusicClips, true);
                 break;
             case MusicState.Gameplay:
                 StartPlaylist(gameplayMusicClips, true);
