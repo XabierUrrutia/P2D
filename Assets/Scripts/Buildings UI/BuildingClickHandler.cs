@@ -2,9 +2,9 @@
 using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Collider2D))]
+// [RequireComponent(typeof(BuildingProducer))] // Descomenta esto si quieres forzar que siempre tenga el producer
 public class EdificioClick : MonoBehaviour
 {
-    // Seleccionas en el inspector qué es este edificio
     public enum TipoEdificio
     {
         CuartelSoldados,
@@ -21,10 +21,16 @@ public class EdificioClick : MonoBehaviour
     // Referencias internas
     private PanelSoldadosUI scriptPanelSoldados;
     private PanelTanquesUI scriptPanelTanques;
+
+    // Referencia al productor de ESTE edificio
+    private BuildingProducer myProducer;
     private bool clickWasOnThisBuilding = false;
 
     void Start()
     {
+        // Obtener mi propio componente de producción
+        myProducer = GetComponent<BuildingProducer>();
+
         // Buscar referencias automáticamente si están vacías
         if (panelSoldadosUI == null) panelSoldadosUI = FindObjectOfType<PanelSoldadosUI>(true)?.gameObject;
         if (panelSoldadosUI != null) scriptPanelSoldados = panelSoldadosUI.GetComponent<PanelSoldadosUI>();
@@ -39,10 +45,10 @@ public class EdificioClick : MonoBehaviour
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
         clickWasOnThisBuilding = true;
-        GameEvents.RaiseBuildingSelected();
+        // GameEvents.RaiseBuildingSelected(); // Descomenta si usas tu sistema de eventos
 
         TogglePanel();
-        SoundColector.Instance?.PlayUiPanelOpen();
+        // SoundColector.Instance?.PlayUiPanelOpen(); // Descomenta si tienes sonido
 
         clickWasOnThisBuilding = false;
     }
@@ -51,7 +57,6 @@ public class EdificioClick : MonoBehaviour
     {
         if (!clickWasOnThisBuilding) return;
 
-        // Lógica según el tipo de edificio
         if (tipoDeEdificio == TipoEdificio.CuartelSoldados)
         {
             AbrirSoldados();
@@ -66,16 +71,20 @@ public class EdificioClick : MonoBehaviour
     {
         if (scriptPanelSoldados == null) return;
 
-        // Si ya está abierto este mismo, cerramos
-        if (panelSoldadosUI.activeSelf && scriptPanelSoldados.GetCurrentBuilding() == this)
+        // LÓGICA CORREGIDA:
+        // Comparamos si el panel está activo Y si el "Producer" que está mirando el panel es EL MÍO.
+        if (panelSoldadosUI.activeSelf && scriptPanelSoldados.GetCurrentProducer() == myProducer)
         {
             scriptPanelSoldados.HidePanel();
         }
         else
         {
-            // Cerramos el otro por si acaso y abrimos este
+            // Cerramos el otro panel si está abierto
             if (scriptPanelTanques != null) scriptPanelTanques.HidePanel();
-            Time.timeScale = 0f;
+
+            // IMPORTANTE: NO PAUSAR EL TIEMPO (Time.timeScale = 0) 
+            // PORQUE SI NO EL SLIDER DE CONSTRUCCIÓN NO AVANZA.
+
             scriptPanelSoldados.ConfigurarPanel(this);
         }
     }
@@ -84,29 +93,18 @@ public class EdificioClick : MonoBehaviour
     {
         if (scriptPanelTanques == null) return;
 
-        if (panelTanquesUI.activeSelf && scriptPanelTanques.GetCurrentBuilding() == this)
+        // LÓGICA CORREGIDA:
+        if (panelTanquesUI.activeSelf && scriptPanelTanques.GetCurrentProducer() == myProducer)
         {
             scriptPanelTanques.HidePanel();
         }
         else
         {
             if (scriptPanelSoldados != null) scriptPanelSoldados.HidePanel();
-            Time.timeScale = 0f;
-            scriptPanelTanques.ConfigurarPanel(this); // Aquí es donde daba el error antes
+
+            // IMPORTANTE: NO PAUSAR EL TIEMPO
+
+            scriptPanelTanques.ConfigurarPanel(this);
         }
     }
-
-    // --- FUNCIONES QUE LLAMAN LOS PANELES ---
-
-    public void ReclutarSoldado(TipoSoldado tipo)
-    {
-        Debug.Log($"Reclutando Soldado: {tipo}");
-    }
-
-    public void ReclutarTanque()
-    {
-        Debug.Log($"Reclutando Tanque en {gameObject.name}");
-    }
-
-    public enum TipoSoldado { Infanteria, Arquero, Caballeria }
 }

@@ -11,14 +11,14 @@ public class PanelTanquesUI : MonoBehaviour
     public TextMeshProUGUI costText;
 
     [Header("Datos del Tanque")]
-    // ARRASTRA AQUÍ EL SCRIPTABLE OBJECT DEL TANQUE
     public BuildingData datosDelTanque;
 
     [Header("Costes")]
     public int costTanque = 200;
     private int pobCosteTanque = 1;
 
-    private EdificioClick currentBuilding = null;
+    // Referencia al script productor del edificio seleccionado
+    private BuildingProducer currentProducer = null;
 
     void Awake()
     {
@@ -33,7 +33,6 @@ public class PanelTanquesUI : MonoBehaviour
     {
         if (PopulationManager.Instance != null)
             PopulationManager.Instance.OnPopulationChanged += UpdateUI;
-
         UpdateUI();
     }
 
@@ -43,9 +42,16 @@ public class PanelTanquesUI : MonoBehaviour
             PopulationManager.Instance.OnPopulationChanged -= UpdateUI;
     }
 
+    void Update()
+    {
+        if (panelRoot.activeSelf) UpdateUI();
+    }
+
     void UpdateUI()
     {
         if (costText != null) costText.text = $"Coste: {costTanque}$";
+
+        bool isBusy = (currentProducer != null && currentProducer.isBusy);
 
         if (tanqueButton != null)
         {
@@ -58,61 +64,66 @@ public class PanelTanquesUI : MonoBehaviour
             if (PopulationManager.Instance != null)
                 tieneSitio = PopulationManager.Instance.HayEspacio(PopulationManager.TipoUnidad.Tanque, pobCosteTanque);
 
-            tanqueButton.interactable = tieneDinero && tieneSitio;
+            // Se desactiva si no hay recursos O si el edificio está ocupado
+            tanqueButton.interactable = tieneDinero && tieneSitio && !isBusy;
         }
     }
 
     public void ConfigurarPanel(EdificioClick edificio)
     {
-        currentBuilding = edificio;
+        currentProducer = edificio.GetComponent<BuildingProducer>();
+
+        if (currentProducer == null)
+        {
+            Debug.LogError("El edificio Tanques no tiene el script 'BuildingProducer'.");
+            return;
+        }
+
         if (panelRoot != null) panelRoot.SetActive(true);
         UpdateUI();
     }
 
-    public EdificioClick GetCurrentBuilding() { return currentBuilding; }
-
     public void OnRecruitTanque()
     {
+        if (currentProducer == null || currentProducer.isBusy) return;
+
         // 1. CHEQUEO DE POBLACIÓN
-        if (PopulationManager.Instance != null)
+        if (!PopulationManager.Instance.HayEspacio(PopulationManager.TipoUnidad.Tanque, pobCosteTanque))
         {
-            if (!PopulationManager.Instance.HayEspacio(PopulationManager.TipoUnidad.Tanque, pobCosteTanque))
-            {
-                Debug.Log("¡Necesitas construir más Garajes!");
-                return;
-            }
+            Debug.Log("¡Necesitas construir más Garajes!");
+            return;
         }
 
         // 2. CHEQUEO DE DINERO
-        if (MoneyManager.Instance != null)
+        if (MoneyManager.Instance.CurrentMoney < costTanque)
         {
-            if (MoneyManager.Instance.CurrentMoney < costTanque)
-            {
-                Debug.Log("No tienes dinero suficiente.");
-                return;
-            }
+            Debug.Log("No tienes dinero suficiente.");
+            return;
         }
 
-        // 3. ÉXITO
+        // 3. PAGAR
+        MoneyManager.Instance.SpendMoney(costTanque);
+
+        // 4. ORDENAR AL EDIFICIO QUE CONSTRUYA
         if (datosDelTanque != null)
         {
-            Debug.Log("Requisitos cumplidos. Activando fantasma del tanque...");
-
-            // --- CAMBIO AQUÍ: HE QUITADO EL HidePanel() ---
-            // HidePanel(); // Ahora está comentado, así que el panel SE QUEDA.
-
-            // Pasamos la orden al constructor
-            BuildingManager.Instance.SelectBuilding(datosDelTanque);
+            currentProducer.StartProduction(datosDelTanque);
         }
         else
         {
-            Debug.LogError("¡ERROR! Falta asignar el BuildingData en el Inspector.");
+            Debug.LogError("Falta asignar el BuildingData del tanque.");
         }
+    }
+
+    // Añade esto casi al final de la clase
+    public BuildingProducer GetCurrentProducer()
+    {
+        return currentProducer;
     }
 
     public void HidePanel()
     {
         if (panelRoot != null) panelRoot.SetActive(false);
-        currentBuilding = null;
+        currentProducer = null;
     }
 }

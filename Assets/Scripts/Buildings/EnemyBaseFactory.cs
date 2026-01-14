@@ -16,7 +16,7 @@ public class EnemyBaseFactory : MonoBehaviour
     public FactoryType factoryType;
     public float conquestTime = 10f;
     public float conquestRange = 5f;
-    public Sprite conqueredSprite; // Tu sprite de base conquistada
+    public Sprite conqueredSprite;
 
     [Header("Velocidades de Conquista")]
     public float growthSpeed = 2f;
@@ -38,6 +38,11 @@ public class EnemyBaseFactory : MonoBehaviour
     public GameObject enemyPrefab;
     public float spawnRadius = 3f;
     public float minSpawnDistance = 1.5f;
+
+    // --- NUEVO: TIEMPO DE ESPERA INICIAL ---
+    [Tooltip("Tiempo que tarda la fábrica en empezar a sacar enemigos al inicio del juego.")]
+    public float startDelay = 20f;
+    // ---------------------------------------
 
     // TIEMPOS
     public float spawnIntervalNormal = 8f;
@@ -82,7 +87,6 @@ public class EnemyBaseFactory : MonoBehaviour
     private FogStaticVision fogStaticVision;
     private bool fogVisionInitialized = false;
 
-    // Colores (Solo usados para estados finales o iniciales ahora)
     private Color neutralColor = Color.gray;
     private Color conqueredColor = Color.green;
 
@@ -197,8 +201,6 @@ public class EnemyBaseFactory : MonoBehaviour
 
     void UpdateConquestProgress()
     {
-        // CAMBIO REALIZADO: Se han eliminado las líneas de Color.Lerp
-
         if (conqueringPlayers.Count > 0)
         {
             float progressIncrement = (growthSpeed * conqueringPlayers.Count) / conquestTime;
@@ -210,7 +212,6 @@ public class EnemyBaseFactory : MonoBehaviour
                 conquestSlider.gameObject.SetActive(true);
                 UpdateSliderPosition();
             }
-            // AQUÍ ANTES CAMBIABA EL COLOR. YA NO.
         }
         else if (conquestProgress > 0)
         {
@@ -223,10 +224,8 @@ public class EnemyBaseFactory : MonoBehaviour
                 GameEvents.RaiseBuildingCaptureFailed();
 
                 conquestSlider.gameObject.SetActive(false);
-                // Aseguramos que esté neutral por si acaso, aunque no debería haber cambiado
                 spriteRenderer.color = neutralColor;
             }
-            // AQUÍ TAMPOCO CAMBIA EL COLOR MIENTRAS BAJA.
         }
 
         if (conquestSlider != null && conquestSlider.gameObject.activeInHierarchy)
@@ -261,17 +260,16 @@ public class EnemyBaseFactory : MonoBehaviour
         GameEvents.RaiseBuildingCaptureCompleted();
         GameEvents.RaiseBuildingCaptured();
 
-        // Cambio de Sprite y Color final
         if (spriteRenderer != null)
         {
             if (conqueredSprite != null)
             {
                 spriteRenderer.sprite = conqueredSprite;
-                spriteRenderer.color = Color.white; // Blanco para que se vea bien tu sprite
+                spriteRenderer.color = Color.white;
             }
             else
             {
-                spriteRenderer.color = conqueredColor; // Verde si no hay sprite
+                spriteRenderer.color = conqueredColor;
             }
         }
 
@@ -370,7 +368,12 @@ public class EnemyBaseFactory : MonoBehaviour
 
     private IEnumerator SpawnLoop()
     {
-        yield return new WaitForSeconds(1f);
+        // --- CAMBIO AQUÍ: ---
+        // En lugar de esperar 1 segundo, esperamos el tiempo definido en "startDelay" (20s)
+        // Esto solo ocurre la primera vez que se inicia la corrutina.
+        Debug.Log($"[Factory {name}] Esperando {startDelay} segundos antes de empezar a spawnear...");
+        yield return new WaitForSeconds(startDelay);
+        // --------------------
 
         while (!isConquered && enableSpawning)
         {

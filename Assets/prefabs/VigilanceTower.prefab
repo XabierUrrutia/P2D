@@ -219,7 +219,7 @@ MonoBehaviour:
   bulletPrefab: {fileID: 6354660447642033725, guid: c9abec0dc57494844b3d56109f7d1685, type: 3}
   firePoint: {fileID: 6846239869762172353}
   fireRate: 1
-  bulletDamage: 10
+  bulletDamage: 20
   bulletSpeed: 12
   aimDurationToSwitchTarget: 0.25
   turretPivot: {fileID: 6846239869762172353}
