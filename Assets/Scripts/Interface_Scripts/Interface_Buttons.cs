@@ -2,216 +2,165 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro;
 
 public class Interface_Buttons : MonoBehaviour
 {
-    private static Stack<int> sceneHistory = new Stack<int>(); // Pilha para armazenar as cenas visitadas
+    private static Stack<int> sceneHistory = new Stack<int>();
 
-    // Controle de Options em modo aditivo
+    // VARIABLES ESTÁTICAS PARA CONTROLAR EL MENÚ FLOTANTE
     private static bool optionsOpen = false;
-    private static int optionsSceneIndex = 1; // ajusta se o índice da cena Options for outro
+    private static int optionsSceneIndex = 11; // Por defecto la 11, pero cambiará dinámicamente
     private static int gameSceneBeforeOptions = -1;
 
-    void OnEnable()
+    void Start()
     {
-        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-
-        // Evita adicionar a mesma cena consecutivamente no histórico
-        if (sceneHistory.Count == 0 || sceneHistory.Peek() != currentSceneIndex)
+        // SEGURIDAD: Si iniciamos y solo hay 1 escena cargada, forzamos el reset.
+        // Esto arregla bloqueos si paraste el juego a medias en el editor.
+        if (SceneManager.sceneCount == 1)
         {
-            sceneHistory.Push(currentSceneIndex);
+            optionsOpen = false;
+            Time.timeScale = 1f;
         }
     }
 
-    private void LoadSceneAndSave(int sceneIndex)
+    // ------------------------------------------------------------------------
+    // SISTEMA DE CARGA ADITIVA (ABRIR ENCIMA)
+    // ------------------------------------------------------------------------
+
+    public void OpenAdditiveMenu(int sceneIndex)
     {
         SoundColector.Instance?.PlayUiClick();
 
-        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        if (optionsOpen) return; // Si ya está abierto, no hacer nada
 
-        // Salva a cena atual antes de mudar (no histórico)
-        if (sceneHistory.Count == 0 || sceneHistory.Peek() != currentSceneIndex)
-        {
-            sceneHistory.Push(currentSceneIndex);
-        }
-
-        // Salva posição do jogador atual (se existir) para permitir "retomar" quando voltar
+        // Guardar posición por seguridad
         GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
-        {
-            PlayerPositionManager.SavePosition(player.transform.position);
-        }
-
-        // Cancelar qualquer verificação pendente de GameOver no GameManager (evita falsos positivos durante transição)
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.ResetGame();
-        }
-
-        SceneManager.LoadScene(sceneIndex);
-    }
-
-    public void GoToChooseSettings()
-    {
-        LoadSceneAndSave(1);
-    }
-
-    // Abre as Options em modo aditivo para preservar a cena de jogo
-    public void GoToOptionsFromGame()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        // salva posição do jogador (já fazes isto no PauseMenu, mas deixo aqui por segurança)
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
-        {
-            PlayerPositionManager.SavePosition(player.transform.position);
-        }
-
-        // se já estiver aberta, não faz nada
-        if (optionsOpen) return;
+        if (player != null) PlayerPositionManager.SavePosition(player.transform.position);
 
         gameSceneBeforeOptions = SceneManager.GetActiveScene().buildIndex;
         SoundColector.Instance?.PlayPauseMusic();
-        StartCoroutine(LoadOptionsAdditive());
+
+        StartCoroutine(LoadAdditiveRoutine(sceneIndex));
     }
 
-    IEnumerator LoadOptionsAdditive()
+    IEnumerator LoadAdditiveRoutine(int index)
     {
-        var op = SceneManager.LoadSceneAsync(optionsSceneIndex, LoadSceneMode.Additive);
-        while (!op.isDone)
-            yield return null;
+        optionsOpen = true; // Bloqueamos: "Hay un menú abierto"
+        Time.timeScale = 0f; // Pausar juego
 
-        optionsOpen = true;
-        Debug.Log("Interface_Buttons: Options aberta em modo aditivo, jogo preservado.");
+        var op = SceneManager.LoadSceneAsync(index, LoadSceneMode.Additive);
+        while (!op.isDone) yield return null;
+
+        optionsSceneIndex = index; // Recordamos qué escena abrimos para poder cerrarla luego
     }
 
-    public void GoToMainMenu()
+    // ------------------------------------------------------------------------
+    // FUNCIONES DE LOS BOTONES
+    // ------------------------------------------------------------------------
+
+    public void GoToChooseSettings()
     {
-        SoundColector.Instance?.PlayUiClick();
-        SoundColector.Instance?.PlayMenuMusic();
-        LoadSceneAndSave(0);
+        // Lógica inteligente: Menú -> Normal | Juego -> Aditivo
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            LoadSceneAndSave(1);
+        }
+        else
+        {
+            OpenAdditiveMenu(1);
+        }
     }
 
-    public void GotoGame()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        LoadSceneAndSave(2);
-    }
-
-    public void GoToMap()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        LoadSceneAndSave(2);
-    }
-    public void SecondLevel()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        LoadSceneAndSave(3);
-    }
     public void GotoSettingsMenu()
     {
-        SoundColector.Instance?.PlayUiClick();
-
-        LoadSceneAndSave(11);
+        // Lógica inteligente: Menú -> Normal | Juego -> Aditivo
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            SoundColector.Instance?.PlayUiClick();
+            LoadSceneAndSave(11);
+        }
+        else
+        {
+            OpenAdditiveMenu(11);
+        }
     }
-    public void GotoControlsMenu()
-    {
-        SoundColector.Instance?.PlayUiClick();
 
-        LoadSceneAndSave(10);
-    }
-    public void GoInGameSettings()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        LoadSceneAndSave(2);
-    }
-    public void GoTutorial1()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        LoadSceneAndSave(6);
-    }
-    public void GoToLevel1()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        if (MoneyManager.Instance != null)
-            MoneyManager.Instance.ResetMoney(); // reseta antes de entrar no nível
-
-        LoadSceneAndSave(4);
-    }
-    public void GoToLevel2()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        LoadSceneAndSave(3);
-    }
-    public void GoToLevel3()
-    {
-        SoundColector.Instance?.PlayUiClick();
-
-        LoadSceneAndSave(5);
-    }
     public void GoBack()
     {
         SoundColector.Instance?.PlayUiClick();
 
-        // Se as Options foram abertas em modo aditivo, fecha-as em vez de recarregar a cena anterior
+        // CASO 1: Estamos en modo "Menú Flotante" (Jugando + Opciones abiertas)
         if (optionsOpen)
         {
-            StartCoroutine(UnloadOptionsAdditive());
+            // --- CORRECCIÓN CRÍTICA ---
+            // 1. Reactivamos el tiempo PRIMERO
+            Time.timeScale = 1f;
+
+            // 2. Marcamos como cerrado PRIMERO
+            optionsOpen = false;
+
+            // 3. Y AHORA descargamos la escena. 
+            // Hacemos esto al final porque al descargar la escena, este script 
+            // podría ser destruido si vive dentro del menú de opciones.
+            SceneManager.UnloadSceneAsync(optionsSceneIndex);
+
+            Debug.Log("Menú cerrado y variables reseteadas correctamente.");
             return;
         }
 
-        if (sceneHistory.Count > 1) // Mantém sempre pelo menos uma cena na pilha
+        // CASO 2: Navegación normal (Menú principal, historial de pantallas)
+        if (sceneHistory.Count > 1)
         {
-            sceneHistory.Pop(); // Remove a cena atual
-            int previousSceneIndex = sceneHistory.Peek(); // Obtém a cena anterior
-
+            sceneHistory.Pop();
+            int previousSceneIndex = sceneHistory.Peek();
             SceneManager.LoadScene(previousSceneIndex);
         }
         else
         {
-            Debug.Log("Nenhuma cena anterior no histórico!");
+            // Si no hay historial, volver al menú principal por defecto
+            SceneManager.LoadScene(0);
         }
     }
 
-    IEnumerator UnloadOptionsAdditive()
+    // ------------------------------------------------------------------------
+    // UTILIDADES
+    // ------------------------------------------------------------------------
+
+    private void LoadSceneAndSave(int sceneIndex)
     {
-        // Opcional: reativa o tempo (se a Options marcou Time.timeScale=0)
-        Time.timeScale = 1f;
-
-        var op = SceneManager.UnloadSceneAsync(optionsSceneIndex);
-        while (!op.isDone)
-            yield return null;
-
-        optionsOpen = false;
-        Debug.Log("Interface_Buttons: Options descarregada (volta ao jogo na cena anterior).");
-
-        // Restaura posição do jogador se houver (PlayerPositionManager guarda a posição)
-        if (PlayerPositionManager.HasSavedPosition)
+        // Guardar historial
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        if (sceneHistory.Count == 0 || sceneHistory.Peek() != currentSceneIndex)
         {
-            GameObject player = GameObject.FindWithTag("Player");
-            if (player != null)
-            {
-                Vector3 savedPos = PlayerPositionManager.GetPosition();
-                player.transform.position = savedPos;
-                PlayerPositionManager.HasSavedPosition = false;
-                Debug.Log($"Interface_Buttons: posição do jogador restaurada para {savedPos}");
-            }
+            sceneHistory.Push(currentSceneIndex);
         }
+
+        // Guardar posición
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null) PlayerPositionManager.SavePosition(player.transform.position);
+
+        SceneManager.LoadScene(sceneIndex);
     }
+
+    // Funciones "puente" para tus botones antiguos
+    public void GoToOptionsFromGame() => OpenAdditiveMenu(1);
+    public void GoToMainMenu() { SoundColector.Instance?.PlayMenuMusic(); LoadSceneAndSave(0); }
+    public void GotoGame() => LoadSceneAndSave(2);
+    public void GoToMap() => LoadSceneAndSave(2);
+    public void SecondLevel() => LoadSceneAndSave(3);
+    public void GotoControlsMenu() => LoadSceneAndSave(10);
+    public void GoInGameSettings() => LoadSceneAndSave(2);
+    public void GoTutorial1() => LoadSceneAndSave(6);
+    public void GoToLevel1()
+    {
+        if (MoneyManager.Instance != null) MoneyManager.Instance.ResetMoney();
+        LoadSceneAndSave(4);
+    }
+    public void GoToLevel2() => LoadSceneAndSave(3);
+    public void GoToLevel3() => LoadSceneAndSave(5);
 
     public void QuitGame()
     {
-        SoundColector.Instance?.PlayUiClick();
-
         Debug.Log("QUIT");
         Application.Quit();
     }
