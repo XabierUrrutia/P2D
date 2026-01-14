@@ -49,7 +49,7 @@ public class PanelTanquesUI : MonoBehaviour
 
     void UpdateUI()
     {
-        if (costText != null) costText.text = $"Coste: {costTanque}$";
+        if (costText != null) costText.text = $"{costTanque}$";
 
         bool isBusy = (currentProducer != null && currentProducer.isBusy);
 

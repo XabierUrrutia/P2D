@@ -577,7 +577,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c43e413a32b88c4ca6f211faeea612c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 500
+  maxHealth: 1000
   healthBar: {fileID: 3854363895949830367}
   runtimeTagToApply: Player
   damageFeedbackSeconds: 0.2
@@ -759,8 +759,8 @@ GameObject:
   - component: {fileID: 3854363895949830367}
   - component: {fileID: 7055839593183611737}
   m_Layer: 5
-  m_Name: HPSlider
-  m_TagString: Untagged
+  m_Name: HPSliderPlayerBase
+  m_TagString: PlayerBaseHPBar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

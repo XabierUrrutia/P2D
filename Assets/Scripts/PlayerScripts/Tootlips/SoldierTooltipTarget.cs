@@ -8,27 +8,25 @@ public class SoldierTooltipTarget : MonoBehaviour
     public GameObject infoPanel;
     public TextMeshProUGUI infoNameText;
     public TextMeshProUGUI infoHpText;
-    public TextMeshProUGUI infoXpText; // antes era Ammo
+    public TextMeshProUGUI infoXpText;
+    public TextMeshProUGUI infoShieldText;
 
     [Header("Posicionamento relativo ao soldado")]
     public Vector3 worldOffset = new Vector3(0f, 1.5f, 0f);
 
-    [Header("Dados do soldado")]
+    [Header("Dados")]
     public string soldierTypeName = "Soldier";
     public MonoBehaviour healthComponent;
+
+    [Tooltip("Marque true para tanques (mostra apenas nome e HP).")]
+    public bool isTank = false;
 
     private IHealth health;
     private Camera mainCamera;
     private RectTransform infoRect;
-
-    // Referência à câmara para saber o nível de zoom
     private cameraFollow cameraFollow;
-
-    // Apenas um painel ativo de cada vez
     private static SoldierTooltipTarget currentActive;
-
-    // Referência à veterania/XP do soldado (mesmo tipo usado no HUD)
-    public UnitVeterancy unitVeterancy; // arrasta o mesmo componente que o HUD usa
+    public UnitVeterancy unitVeterancy;
 
     void Awake()
     {
@@ -50,11 +48,10 @@ public class SoldierTooltipTarget : MonoBehaviour
             Debug.LogWarning($"[SoldierTooltipTarget] Nenhum IHealth encontrado em '{gameObject.name}'. Painel vai mostrar só o tipo.");
         }
 
-        // Tentar encontrar UnitVeterancy automaticamente se não for atribuída
         if (unitVeterancy == null)
             unitVeterancy = GetComponent<UnitVeterancy>();
 
-        if (unitVeterancy == null)
+        if (unitVeterancy == null && !isTank)
         {
             Debug.LogWarning($"[SoldierTooltipTarget] Nenhum UnitVeterancy encontrado em '{gameObject.name}'. XP/Nível vão mostrar valores vazios.");
         }
@@ -91,6 +88,13 @@ public class SoldierTooltipTarget : MonoBehaviour
                     infoXpText = t.GetComponent<TextMeshProUGUI>();
             }
 
+            if (infoShieldText == null)
+            {
+                var t = infoPanel.transform.Find("SoldierShieldText");
+                if (t != null)
+                    infoShieldText = t.GetComponent<TextMeshProUGUI>();
+            }
+
             infoPanel.SetActive(false);
         }
         else
@@ -104,7 +108,6 @@ public class SoldierTooltipTarget : MonoBehaviour
         if (infoPanel == null || infoRect == null || mainCamera == null)
             return;
 
-        // Se o painel estiver ativo mas a câmara já não estiver no zoom mais perto, esconde.
         if (infoPanel.activeSelf && cameraFollow != null && !cameraFollow.IsAtClosestZoom())
         {
             infoPanel.SetActive(false);
@@ -131,14 +134,12 @@ public class SoldierTooltipTarget : MonoBehaviour
 
         if (show)
         {
-            // Só mostra se o zoom estiver no nível mais perto
             if (cameraFollow != null && !cameraFollow.IsAtClosestZoom())
             {
                 infoPanel.SetActive(false);
                 return;
             }
 
-            // Garante que só um painel está ativo
             if (currentActive != null && currentActive != this)
                 currentActive.InternalHide();
 
@@ -178,12 +179,20 @@ public class SoldierTooltipTarget : MonoBehaviour
             }
 
             if (maxHp > 0)
-                infoHpText.text = $"HP: {currentHp}/{maxHp}";
+                infoHpText.text = $"HP:{currentHp}/{maxHp}";
             else
-                infoHpText.text = $"HP: {currentHp}";
+                infoHpText.text = $"HP:{currentHp}";
         }
 
-        // XP + Nível: usar os mesmos dados que o HUD (UnitVeterancy)
+        // Para tanque: esconder XP e Shield, mostrar só nome + HP
+        if (isTank)
+        {
+            if (infoXpText != null) infoXpText.gameObject.SetActive(false);
+            if (infoShieldText != null) infoShieldText.gameObject.SetActive(false);
+            return;
+        }
+
+        // XP + Nível (para soldados/generais)
         if (infoXpText != null)
         {
             if (unitVeterancy != null)
@@ -192,11 +201,29 @@ public class SoldierTooltipTarget : MonoBehaviour
                 float necessario = unitVeterancy.xpParaSiguienteNivel;
                 int nivel = unitVeterancy.nivel;
 
-                infoXpText.text = $"LV {nivel}  XP: {atual}/{necessario}";
+                infoXpText.gameObject.SetActive(true);
+                infoXpText.text = $"LV {nivel}  XP:{atual}/{necessario}";
             }
             else
             {
+                infoXpText.gameObject.SetActive(true);
                 infoXpText.text = "LV -  XP: -";
+            }
+        }
+
+        // ESCUDO: mostrar só se o IHealth reportar escudo > 0
+        if (infoShieldText != null)
+        {
+            if (health != null && health.GetMaxShield() > 0)
+            {
+                int curShield = health.GetCurrentShield();
+                int maxShield = health.GetMaxShield();
+                infoShieldText.gameObject.SetActive(true);
+                infoShieldText.text = $"Shield:{curShield}/{maxShield}";
+            }
+            else
+            {
+                infoShieldText.gameObject.SetActive(false);
             }
         }
     }

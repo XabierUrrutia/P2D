@@ -14,7 +14,7 @@ public class PlayerBase : MonoBehaviour, IHealth
 {
     [Header("HP")]
     [Tooltip("Vida máxima da base")]
-    public int maxHealth = 20;
+    public int maxHealth = 1000;
     [Tooltip("Slider opcional para mostrar a vida")]
     public Slider healthBar;
 
@@ -88,6 +88,17 @@ public class PlayerBase : MonoBehaviour, IHealth
         }
     }
 
+    /// <summary>
+    /// Força a reinicialização do HP (útil se maxHealth for alterado em runtime)
+    /// </summary>
+    public void ForceInitializeHealth()
+    {
+        if (currentHealth <= 0)
+        {
+            currentHealth = Mathf.Clamp(maxHealth, 1, int.MaxValue);
+            Debug.Log($"[PlayerBase] HP forçado para {currentHealth}/{maxHealth}");
+        }
+    }
     /// <summary>
     /// Aplica dano à base. Chamado por balas inimigas ou outras fontes.
     /// </summary>
