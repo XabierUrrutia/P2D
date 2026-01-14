@@ -281,6 +281,12 @@ public class UnitSelectionManager : MonoBehaviour
             int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
 
             GameEvents.RaiseUnitEasterEgg(eggIndex, infantryCount, tankCount);
+
+            // ✅ Warcraft-style loop: depois do 4º egg, volta ao início
+            if (eggIndex == EasterEggTotal)
+            {
+                easterEggClickCount = EasterEggFirstClick - 1; // fica "armado" para o próximo click ser egg #1
+            }
         }
     }
 

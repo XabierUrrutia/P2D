@@ -160,6 +160,8 @@ public class SniperTower : MonoBehaviour
         Vector3 dir = (target.position - firePoint.position).normalized;
         GameObject bgo = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
 
+        if (SoundColector.Instance != null)SoundColector.Instance.PlayTowerShotAt(firePoint.position);
+
         Bullet b = bgo.GetComponent<Bullet>();
         if (b != null)
         {

@@ -24,6 +24,7 @@ public class PauseMenu : MonoBehaviour
 
     public void PauseGame()
     {
+        SoundColector.Instance?.PlayUiClick();
         SoundColector.Instance?.PlayPauseMusic();
 
 
@@ -40,6 +41,7 @@ public class PauseMenu : MonoBehaviour
 
     public void ResumeGame()
     {
+        SoundColector.Instance?.PlayUiClick();
         SoundColector.Instance?.PlayGameplayMusic();
 
         pauseMenuUI.SetActive(false);

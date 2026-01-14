@@ -1579,6 +1579,32 @@ MonoBehaviour:
     usageENFemale: 
     usageESMale: 
     usageESFemale: 
+  tankEasterEggVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
+  mixedEasterEggVoices:
+    portugueseMale: []
+    portugueseFemale: []
+    englishMale: []
+    englishFemale: []
+    spanishMale: []
+    spanishFemale: []
+    usagePTMale: 
+    usagePTFemale: 
+    usageENMale: 
+    usageENFemale: 
+    usageESMale: 
+    usageESFemale: 
   tankSelectSingleVoices:
     portugueseMale: []
     portugueseFemale: []
@@ -2104,8 +2130,8 @@ MonoBehaviour:
   buildingCaptureCompleteSfx: {fileID: 0}
   buildingCaptureFailSfx: {fileID: 0}
   buildingDestroyedClips: []
-  uiClickClip: {fileID: 0}
-  uiPanelOpenClip: {fileID: 0}
+  uiClickClip: {fileID: 8300000, guid: 9ca55b2000f3bee43a3df2a06bd5eaed, type: 3}
+  uiPanelOpenClip: {fileID: 8300000, guid: 90a1e171f5d0f584bbe1c9e0f8a9d36e, type: 3}
   randomizeSfxPitch: 1
   minSfxPitch: 0.95
   maxSfxPitch: 1.05

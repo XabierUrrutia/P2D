@@ -388,6 +388,10 @@ public class SoundColector : MonoBehaviour
     private int[] tankShotUsage;
     private int[] tankDeathUsage;
 
+    [Header("SFX – Torres")]
+    public AudioClip[] towerShotClips;
+    private int[] towerShotUsage;
+
     [Header("SFX – Inimigos (Morte)")]
     public AudioClip[] enemyInfantryDeathClips;
     public AudioClip[] enemyTankDeathClips;
@@ -1176,6 +1180,11 @@ public class SoundColector : MonoBehaviour
     public void PlayInfantryShotAt(Vector3 pos)
     {
         AudioClip c = GetBalancedClip(infantryShotClips, ref infantryShotUsage);
+        PlayWorldSfx3D(c, pos);
+    }
+    public void PlayTowerShotAt(Vector3 pos)
+    {
+        AudioClip c = GetBalancedClip(towerShotClips, ref towerShotUsage);
         PlayWorldSfx3D(c, pos);
     }
 
