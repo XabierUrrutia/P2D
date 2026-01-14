@@ -732,7 +732,7 @@ MonoBehaviour:
   bulletSpeed: 15
   bulletDamage: 100
   visionRange: 5
-  attackRange: 4
+  attackRange: 5
   intervaloBusqueda: 1
   playerBase: {fileID: 0}
 --- !u!114 &7022322656383103944
