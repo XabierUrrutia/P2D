@@ -1333,7 +1333,7 @@ MonoBehaviour:
   sfxVolume: 1
   voiceVolume: 1
   muteAll: 0
-  voiceSpeed: 1.25
+  voiceSpeed: 1
   useVoiceVolumeByLanguage: 1
   voiceVolumeByLanguage:
   - language: 1
@@ -2123,6 +2123,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 44a301010c7ff2741aea057a547fc738, type: 3}
   - {fileID: 8300000, guid: ef4a89e132d4fd04fb3cc31f0615193d, type: 3}
   tankDeathClips: []
+  towerShotClips:
+  - {fileID: 8300000, guid: f929afb49e7aa16479af158182997825, type: 3}
   enemyInfantryDeathClips: []
   enemyTankDeathClips: []
   buildingSelectClips: []
