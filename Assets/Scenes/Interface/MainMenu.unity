@@ -1339,7 +1339,7 @@ MonoBehaviour:
   - language: 1
     volume: 1
   - language: 2
-    volume: 2
+    volume: 3
   - language: 3
     volume: 2
   backstageVoiceVolumeMode: 0
@@ -1351,6 +1351,12 @@ MonoBehaviour:
   musicSource: {fileID: 0}
   sfx2DSource: {fileID: 0}
   voiceSource: {fileID: 0}
+  ambientLoopSource: {fileID: 0}
+  ambientLoopClip: {fileID: 8300000, guid: 999b06e2273bb6943a4de32473ec1aa3, type: 3}
+  ambientLoopVolume: 0.35
+  ambientLoopEnabled: 1
+  ambientLoopStartOnGameplay: 1
+  ambientLoopStopOutsideGameplay: 1
   menuMusicClips:
   - {fileID: 8300000, guid: dc880148fd7c2664d8db48eeb68b74a4, type: 3}
   gameplayMusicClips:
@@ -2081,12 +2087,18 @@ MonoBehaviour:
   unitAttackVoiceChance: 0.5
   unitDeathVoiceChance: 0.4
   unitMoveSpecialVoices:
-    portugueseMale: []
-    portugueseFemale: []
-    englishMale: []
-    englishFemale: []
-    spanishMale: []
-    spanishFemale: []
+    portugueseMale:
+    - {fileID: 8300000, guid: 1a0c5cac044a3224fb158cf5f51de0b3, type: 3}
+    portugueseFemale:
+    - {fileID: 8300000, guid: 1a0c5cac044a3224fb158cf5f51de0b3, type: 3}
+    englishMale:
+    - {fileID: 8300000, guid: 269bcba06c7dddf4fbed3bcba6735727, type: 3}
+    englishFemale:
+    - {fileID: 8300000, guid: 1a0c5cac044a3224fb158cf5f51de0b3, type: 3}
+    spanishMale:
+    - {fileID: 8300000, guid: 1a0c5cac044a3224fb158cf5f51de0b3, type: 3}
+    spanishFemale:
+    - {fileID: 8300000, guid: 1a0c5cac044a3224fb158cf5f51de0b3, type: 3}
     usagePTMale: 
     usagePTFemale: 
     usageENMale: 

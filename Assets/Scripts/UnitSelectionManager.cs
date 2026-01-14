@@ -29,6 +29,10 @@ public class UnitSelectionManager : MonoBehaviour
     private List<ISelectableUnit> unidadesSeleccionadas = new List<ISelectableUnit>();
     private ISelectableUnit unidadVozPrincipal = null;
 
+    private bool hasGroupVoiceGender = false;
+    private SoundColector.VoiceGender cachedGroupVoiceGender = SoundColector.VoiceGender.Male;
+    private int cachedSelectionSignature = 0;
+
     // Easter Eggs (Warcraft-style clicks)
     private const int EasterEggFirstClick = 5; // 5º click -> 1º easter egg
     private const int EasterEggTotal = 4;
@@ -249,6 +253,9 @@ public class UnitSelectionManager : MonoBehaviour
             ResetEasterEggState();
         }
 
+        hasGroupVoiceGender = false;
+        cachedSelectionSignature = 0;
+
         unidadVozPrincipal = null;
 
         if (SoundColector.Instance != null)
@@ -430,6 +437,72 @@ public class UnitSelectionManager : MonoBehaviour
         return u.gameObject.GetComponentInParent<TankShooting>() != null;
     }
 
+    // --- Voz do grupo: majoritário + estável por composição ---
+    int ComputeSelectionSignature()
+    {
+        int count = (unidadesSeleccionadas != null) ? unidadesSeleccionadas.Count : 0;
+        int xor = 0;
+        int sum = 0;
+
+        for (int i = 0; i < count; i++)
+        {
+            var u = unidadesSeleccionadas[i];
+            if (u == null || u.gameObject == null) continue;
+
+            int id = u.gameObject.GetInstanceID();
+            xor ^= id;
+            sum += id;
+        }
+
+        unchecked
+        {
+            return (count * 73856093) ^ (xor * 19349663) ^ (sum * 83492791);
+        }
+    }
+
+    void RefreshGroupVoiceGenderIfSelectionChanged()
+    {
+        if (SoundColector.Instance == null || unidadesSeleccionadas == null || unidadesSeleccionadas.Count == 0)
+        {
+            hasGroupVoiceGender = false;
+            cachedSelectionSignature = 0;
+            return;
+        }
+
+        int sig = ComputeSelectionSignature();
+        if (hasGroupVoiceGender && sig == cachedSelectionSignature)
+            return;
+
+        int male = 0;
+        int female = 0;
+
+        for (int i = 0; i < unidadesSeleccionadas.Count; i++)
+        {
+            var u = unidadesSeleccionadas[i];
+            if (u == null || u.gameObject == null) continue;
+
+            int id = u.gameObject.GetInstanceID();
+            var g = SoundColector.Instance.GetOrAssignLockedGenderForUnit(id);
+
+            if (g == SoundColector.VoiceGender.Female) female++;
+            else male++;
+        }
+
+        if (female > male) cachedGroupVoiceGender = SoundColector.VoiceGender.Female;
+        else if (male > female) cachedGroupVoiceGender = SoundColector.VoiceGender.Male;
+        else
+        {
+            float pFemale = SoundColector.Instance.unitFemaleChance;
+            cachedGroupVoiceGender = (UnityEngine.Random.value < pFemale)
+                ? SoundColector.VoiceGender.Female
+                : SoundColector.VoiceGender.Male;
+        }
+
+        hasGroupVoiceGender = true;
+        cachedSelectionSignature = sig;
+    }
+
+
     void PlaySelectionSoundFor(ISelectableUnit unidad)
     {
         if (SoundColector.Instance == null) return;
@@ -437,12 +510,9 @@ public class UnitSelectionManager : MonoBehaviour
         int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
         int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
 
-        int id = (unidad != null && unidad.gameObject != null) ? unidad.gameObject.GetInstanceID() : 0;
+        RefreshGroupVoiceGenderIfSelectionChanged();
+        SoundColector.Instance.PlayUnitSelectionVoice(infantryCount, tankCount, cachedGroupVoiceGender);
 
-        SoundColector.Instance.SetVoiceContextUnit(id);
-        var gender = SoundColector.Instance.GetOrAssignLockedGenderForUnit(id);
-
-        SoundColector.Instance.PlayUnitSelectionVoice(infantryCount, tankCount, gender);
 
     }
 }

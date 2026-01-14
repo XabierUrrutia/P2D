@@ -102,7 +102,7 @@ public class SoundColector : MonoBehaviour
         if (backstageVoiceVolumeMode)
             v *= backstageVoiceVolumeMultiplier;
 
-        return Mathf.Clamp(v, 0f, 3f);
+        return Mathf.Clamp(v, 0f, 6f);
     }
 
     private float GetEffectiveVoiceSpeed()
@@ -119,6 +119,14 @@ public class SoundColector : MonoBehaviour
     public AudioSource musicSource;
     public AudioSource sfx2DSource;
     public AudioSource voiceSource;
+
+    [Header("Ambiente - Ruído de Fundo (Loop independente)")]
+    public AudioSource ambientLoopSource;              // opcional (se vazio, é criado em runtime)
+    public AudioClip ambientLoopClip;                  // mete aqui o teu “barulho de fundo”
+    [Range(0f, 1f)] public float ambientLoopVolume = 0.35f;  // só Inspector
+    public bool ambientLoopEnabled = true;
+    public bool ambientLoopStartOnGameplay = true;
+    public bool ambientLoopStopOutsideGameplay = true;
 
     [Header("Músicas")]
     public AudioClip[] menuMusicClips;
@@ -152,7 +160,7 @@ public class SoundColector : MonoBehaviour
     public struct VoiceLanguageVolume
     {
         public VoiceLanguage language;
-        [Range(0f, 3f)] public float volume;
+        [Range(0f, 6f)] public float volume;
     }
 
     [System.Serializable]
@@ -573,6 +581,28 @@ public class SoundColector : MonoBehaviour
             voiceSource.pitch = GetEffectiveVoiceSpeed();
             voiceSource.volume = GetEffectiveVoiceVolume();
         }
+
+        if (ambientLoopSource == null)
+        {
+            var go = new GameObject("AmbientLoopSource");
+            go.transform.SetParent(transform);
+            ambientLoopSource = go.AddComponent<AudioSource>();
+            ambientLoopSource.spatialBlend = 0f;
+            ambientLoopSource.playOnAwake = false;
+            ambientLoopSource.loop = true;
+
+            // não depende de listener (para não ser afetado por “mute” global via listener)
+            ambientLoopSource.ignoreListenerPause = true;
+            ambientLoopSource.ignoreListenerVolume = true;
+        }
+
+        // garantir que mantém sempre as configs do Inspector
+        if (ambientLoopSource != null)
+        {
+            ambientLoopSource.loop = true;
+            ambientLoopSource.volume = ambientLoopVolume;
+            if (ambientLoopClip != null) ambientLoopSource.clip = ambientLoopClip;
+        }
     }
 
     private void ApplyMixerVolumes()
@@ -593,7 +623,7 @@ public class SoundColector : MonoBehaviour
 
             if (!string.IsNullOrEmpty(voiceVolumeParameter))
                 masterMixer.SetFloat(voiceVolumeParameter,
-                    Mathf.Log10(Mathf.Clamp(voiceVolLin <= 0f ? 0.0001f : voiceVolLin, 0.0001f, 3f)) * 20f);
+                    Mathf.Log10(Mathf.Clamp(voiceVolLin <= 0f ? 0.0001f : voiceVolLin, 0.0001f, 6f)) * 20f);
         }
 
         if (musicSource != null) musicSource.volume = musicVol * targetMusicVolumeFactor;
@@ -888,6 +918,27 @@ public class SoundColector : MonoBehaviour
         if (musicSource != null) musicSource.Stop();
     }
 
+    public void StartAmbientLoop()
+    {
+        if (!ambientLoopEnabled) return;
+        if (ambientLoopSource == null || ambientLoopClip == null) return;
+
+        ambientLoopSource.loop = true;
+        ambientLoopSource.volume = ambientLoopVolume;
+
+        if (ambientLoopSource.clip != ambientLoopClip)
+            ambientLoopSource.clip = ambientLoopClip;
+
+        if (!ambientLoopSource.isPlaying)
+            ambientLoopSource.Play();
+    }
+
+    public void StopAmbientLoop()
+    {
+        if (ambientLoopSource != null && ambientLoopSource.isPlaying)
+            ambientLoopSource.Stop();
+    }
+
     private void SetMusicState(MusicState newState)
     {
         MusicState prevState = currentMusicState;
@@ -902,6 +953,7 @@ public class SoundColector : MonoBehaviour
         {
             case MusicState.Menu:
                 StartMenuTrackState(menuMusicClips, true);
+                if (ambientLoopStopOutsideGameplay) StopAmbientLoop();
                 break;
 
             case MusicState.Gameplay:
@@ -909,6 +961,7 @@ public class SoundColector : MonoBehaviour
                     RestoreGameplayMusicFromResume();
                 else
                     StartPlaylist(gameplayMusicClips, true);
+                if (ambientLoopStartOnGameplay) StartAmbientLoop();
                 break;
 
             case MusicState.Pause:
@@ -917,10 +970,12 @@ public class SoundColector : MonoBehaviour
 
             case MusicState.Victory:
                 StartSingleTrackState(victoryMusicClips, false);
+                if (ambientLoopStopOutsideGameplay) StopAmbientLoop();
                 break;
 
             case MusicState.Defeat:
                 StartSingleTrackState(defeatMusicClips, false);
+                if (ambientLoopStopOutsideGameplay) StopAmbientLoop();
                 break;
 
             default:
