@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// UnitSelectionManager.cs  (COM EASTER EGGS)
+
+using System.Collections.Generic;
 using UnityEngine;
 using System.Linq; // Necesario para funciones de lista (Any, etc)
 
@@ -25,6 +27,16 @@ public class UnitSelectionManager : MonoBehaviour
 
     // Usamos la Interfaz para guardar tanto Tanques como Soldados
     private List<ISelectableUnit> unidadesSeleccionadas = new List<ISelectableUnit>();
+
+    // Easter Eggs (Warcraft-style clicks)
+    private const int EasterEggFirstClick = 5; // 5º click -> 1º easter egg
+    private const int EasterEggTotal = 4;
+    private ISelectableUnit easterEggTargetUnit = null;
+    private int easterEggClickCount = 0;
+
+    // Para contar SOLO clicks reales (no arrastres)
+    private ISelectableUnit unidadClicadaMouseDown = null;
+    private bool shiftMouseDown = false;
 
     private SpriteRenderer spriteRenderer;
     private GameObject cuadroObj;
@@ -57,7 +69,11 @@ public class UnitSelectionManager : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             inicioArrastre = Input.mousePosition;
+            finArrastre = inicioArrastre;
             arrastrando = true;
+
+            unidadClicadaMouseDown = null;
+            shiftMouseDown = Input.GetKey(KeyCode.LeftShift);
 
             RaycastHit2D hit = Physics2D.Raycast(
                 cam.ScreenToWorldPoint(Input.mousePosition),
@@ -73,14 +89,30 @@ public class UnitSelectionManager : MonoBehaviour
 
                 if (unidad != null)
                 {
+                    unidadClicadaMouseDown = unidad;
+
+                    bool shift = shiftMouseDown;
+                    bool clickedSameAsSoleSelected = unidadesSeleccionadas.Count == 1 && ReferenceEquals(unidadesSeleccionadas[0], unidad);
+                    
                     // Si no pulsamos Shift, limpiamos la selección anterior
-                    if (!Input.GetKey(KeyCode.LeftShift))
+                    if (!shift)
                     {
-                        DeseleccionarTodas();
+                        if (!clickedSameAsSoleSelected)
+                            DeseleccionarTodas(resetEasterEggs: true);
+
+                        // Si estamos re-clicando la misma unidad ya seleccionada,
+                        // NO reseteamos el contador de easter eggs.
+                        DeseleccionarTodas(resetEasterEggs: !clickedSameAsSoleSelected);
+                    }
+                    else
+                    {
+                        // Cambiar selección con Shift rompe la secuencia
+                        ResetEasterEggState();
                     }
 
                     bool eraNueva = !unidadesSeleccionadas.Contains(unidad);
-                    SeleccionarUnidad(unidad);
+                    //SeleccionarUnidad(unidad);
+                    if (eraNueva) SeleccionarUnidad(unidad);
 
                     if (eraNueva) PlaySelectionSoundFor(unidad);
                 }
@@ -88,9 +120,9 @@ public class UnitSelectionManager : MonoBehaviour
             else
             {
                 // Click en el vacío: Deseleccionar todo
-                if (!Input.GetKey(KeyCode.LeftShift))
+                if (!shiftMouseDown)
                 {
-                    DeseleccionarTodas();
+                    DeseleccionarTodas(resetEasterEggs: true);
                 }
             }
         }
@@ -105,11 +137,25 @@ public class UnitSelectionManager : MonoBehaviour
         // 3. Soltar Click
         if (Input.GetMouseButtonUp(0))
         {
+            bool fueSeleccionArea = arrastrando && Vector3.Distance(inicioArrastre, finArrastre) > 10f;
+
             // Si hemos arrastrado suficiente distancia, es una selección de área
-            if (arrastrando && Vector3.Distance(inicioArrastre, finArrastre) > 10f)
+            if (fueSeleccionArea)
             {
                 SeleccionarUnidadesEnCuadro();
             }
+            else
+            {
+                // Click normal (sin arrastre): contar para easter eggs
+                if (unidadClicadaMouseDown != null)
+                {
+                    RegisterEasterEggClick(unidadClicadaMouseDown, shiftMouseDown);
+                }
+            }
+
+            unidadClicadaMouseDown = null;
+            shiftMouseDown = false;
+
             arrastrando = false;
             OcultarCuadroSeleccion();
         }
@@ -122,6 +168,11 @@ public class UnitSelectionManager : MonoBehaviour
     {
         // Limpiamos la lista por si alguna unidad murió
         unidadesSeleccionadas.RemoveAll(u => u == null || u.gameObject == null);
+
+        if (unidadesSeleccionadas.Count == 0)
+        {
+            ResetEasterEggState();
+        }
 
         if (Input.GetMouseButtonDown(1) && unidadesSeleccionadas.Count > 0)
         {
@@ -142,13 +193,13 @@ public class UnitSelectionManager : MonoBehaviour
             //Audio de movimiento
             if (SoundColector.Instance != null &&
                 Time.time - ultimoSomMovimientoTime >= intervaloMinSomMovimiento)
-                {
-                    int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
-                    int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
+            {
+                int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
+                int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
 
-                    SoundColector.Instance.PlayUnitMoveVoice(infantryCount, tankCount);
-                    ultimoSomMovimientoTime = Time.time;
-                }
+                SoundColector.Instance.PlayUnitMoveVoice(infantryCount, tankCount);
+                ultimoSomMovimientoTime = Time.time;
+            }
         }
     }
 
@@ -161,15 +212,11 @@ public class UnitSelectionManager : MonoBehaviour
         if (!unidadesSeleccionadas.Contains(unidad))
         {
             unidadesSeleccionadas.Add(unidad);
-
-            // AQUÍ ESTABA EL ERROR:
-            // En vez de buscar "indicadorSeleccion.SetActive", llamamos al método .Seleccionar()
-            // Y la unidad ya sabrá qué flecha encender internamente.
             unidad.Seleccionar();
         }
     }
 
-    void DeseleccionarTodas()
+    void DeseleccionarTodas(bool resetEasterEggs = true)
     {
         foreach (ISelectableUnit unidad in unidadesSeleccionadas)
         {
@@ -185,10 +232,62 @@ public class UnitSelectionManager : MonoBehaviour
         {
             UnitHUDManager.Instance.SeleccionarUnidad(null);
         }
+
+        if (resetEasterEggs)
+        {
+            ResetEasterEggState();
+        }
+    }
+
+    void ResetEasterEggState()
+    {
+        easterEggTargetUnit = null;
+        easterEggClickCount = 0;
+    }
+
+    void RegisterEasterEggClick(ISelectableUnit clickedUnit, bool shiftHeld)
+    {
+        if (shiftHeld)
+        {
+            ResetEasterEggState();
+            return;
+        }
+
+        if (clickedUnit == null || clickedUnit.gameObject == null)
+        {
+            ResetEasterEggState();
+            return;
+        }
+
+        // Solo para 1 unidad seleccionada
+        if (unidadesSeleccionadas.Count != 1 || !ReferenceEquals(unidadesSeleccionadas[0], clickedUnit))
+        {
+            ResetEasterEggState();
+            return;
+        }
+
+        if (!ReferenceEquals(easterEggTargetUnit, clickedUnit))
+        {
+            easterEggTargetUnit = clickedUnit;
+            easterEggClickCount = 0;
+        }
+
+        easterEggClickCount++;
+
+        int eggIndex = easterEggClickCount - (EasterEggFirstClick - 1); // 5->1, 6->2, 7->3, 8->4
+        if (eggIndex >= 1 && eggIndex <= EasterEggTotal)
+        {
+            int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
+            int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
+
+            GameEvents.RaiseUnitEasterEgg(eggIndex, infantryCount, tankCount);
+        }
     }
 
     void SeleccionarUnidadesEnCuadro()
     {
+        ResetEasterEggState();
+
         Vector2 min = cam.ScreenToWorldPoint(new Vector3(
             Mathf.Min(inicioArrastre.x, finArrastre.x),
             Mathf.Min(inicioArrastre.y, finArrastre.y), 0));
@@ -201,7 +300,7 @@ public class UnitSelectionManager : MonoBehaviour
 
         if (!Input.GetKey(KeyCode.LeftShift))
         {
-            DeseleccionarTodas();
+            DeseleccionarTodas(resetEasterEggs: true);
         }
 
         ISelectableUnit primeraNueva = null;
@@ -301,7 +400,6 @@ public class UnitSelectionManager : MonoBehaviour
 
         int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
         int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
-
 
         SoundColector.Instance.PlayUnitSelectionVoice(infantryCount, tankCount);
     }

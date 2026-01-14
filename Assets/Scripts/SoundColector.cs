@@ -287,6 +287,9 @@ public class SoundColector : MonoBehaviour
     public LocalizedBalancedVoiceSet unitDeathVoices;
     public LocalizedBalancedVoiceSet unitEasterEggVoices;
 
+    public LocalizedBalancedVoiceSet tankEasterEggVoices;
+    public LocalizedBalancedVoiceSet mixedEasterEggVoices;
+
     [Header("Vozes – Tanks")]
     public LocalizedBalancedVoiceSet tankSelectSingleVoices;
     public LocalizedBalancedVoiceSet tankSelectGroupSmallVoices;
@@ -451,6 +454,9 @@ public class SoundColector : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.OnUnitsSelected += HandleUnitsSelected;
+
+        GameEvents.OnUnitEasterEgg += HandleUnitEasterEgg;
+
         GameEvents.OnBaseUnderAttack += HandleBaseUnderAttack;
         GameEvents.OnLowResources += HandleLowResources;
         GameEvents.OnUnitUnderAttack += HandleUnitUnderAttack;
@@ -473,6 +479,10 @@ public class SoundColector : MonoBehaviour
     private void OnDisable()
     {
         GameEvents.OnUnitsSelected -= HandleUnitsSelected;
+
+        GameEvents.OnUnitEasterEgg -= HandleUnitEasterEgg;
+
+
         GameEvents.OnBaseUnderAttack -= HandleBaseUnderAttack;
         GameEvents.OnLowResources -= HandleLowResources;
         GameEvents.OnUnitUnderAttack -= HandleUnitUnderAttack;
@@ -1566,6 +1576,91 @@ public class SoundColector : MonoBehaviour
     {
         PlayUnitSelectionVoice(count);
     }
+
+    private void HandleUnitEasterEgg(int eggIndex, int infantryCount, int tankCount)
+    {
+        var gender = GetUnitGenderForThisVoice();
+
+        var group = GetVoiceGroup(infantryCount, tankCount);
+        LocalizedBalancedVoiceSet set =
+            (group == UnitVoiceGroup.Tank && tankEasterEggVoices != null) ? tankEasterEggVoices :
+            (group == UnitVoiceGroup.Mixed && mixedEasterEggVoices != null) ? mixedEasterEggVoices :
+            unitEasterEggVoices;
+
+        PlayIndexedUnitEasterEgg(set, eggIndex, gender);
+    }
+
+    private void PlayIndexedUnitEasterEgg(LocalizedBalancedVoiceSet set, int eggIndex, VoiceGender gender)
+    {
+        if (set == null || voiceSource == null) return;
+        if (muteAll || GetEffectiveVoiceVolume() <= 0.0001f) return;
+
+        var lang = GetEffectiveLanguage();
+        AudioClip clip = GetEasterEggClipByIndex(set, lang, gender, eggIndex);
+        if (clip == null) return;
+
+        // IMPORTANTE: Easter egg estilo Warcraft -> não bloqueia por cooldown/globalMin
+        VoicePriority priority = (unitEasterEggConfig != null) ? unitEasterEggConfig.priority : VoicePriority.Low;
+
+        if (voiceSource.isPlaying)
+        {
+            if (priority < currentVoicePriority) return;
+            voiceSource.Stop();
+        }
+
+        currentVoicePriority = priority;
+
+        voiceSource.pitch = GetEffectiveVoiceSpeed();
+        voiceSource.clip = clip;
+        voiceSource.volume = GetEffectiveVoiceVolume();
+        voiceSource.Play();
+
+        lastAnyVoiceTime = Time.time;
+        RegisterUnitGender(gender);
+
+        if (unitEasterEggConfig != null) unitEasterEggConfig.lastPlayTime = Time.time;
+    }
+
+    private AudioClip GetEasterEggClipByIndex(LocalizedBalancedVoiceSet set, VoiceLanguage lang, VoiceGender gender, int eggIndex)
+    {
+        if (set == null) return null;
+        if (lang == VoiceLanguage.Auto) lang = VoiceLanguage.Portuguese;
+
+        AudioClip[] pool = GetPool(set, lang, gender);
+        if (pool == null || pool.Length == 0)
+        {
+            // fallback para género oposto
+            pool = GetPool(set, lang, (gender == VoiceGender.Female) ? VoiceGender.Male : VoiceGender.Female);
+        }
+
+        if (pool == null || pool.Length == 0) return null;
+
+        int idx = Mathf.Clamp(eggIndex - 1, 0, pool.Length - 1);
+
+        if (pool[idx] != null) return pool[idx];
+
+        // fallback: primeiro não-nulo
+        for (int i = 0; i < pool.Length; i++)
+            if (pool[i] != null) return pool[i];
+
+        return null;
+    }
+
+    private AudioClip[] GetPool(LocalizedBalancedVoiceSet set, VoiceLanguage lang, VoiceGender gender)
+    {
+        switch (lang)
+        {
+            case VoiceLanguage.Portuguese:
+                return (gender == VoiceGender.Female) ? set.portugueseFemale : set.portugueseMale;
+            case VoiceLanguage.English:
+                return (gender == VoiceGender.Female) ? set.englishFemale : set.englishMale;
+            case VoiceLanguage.Spanish:
+                return (gender == VoiceGender.Female) ? set.spanishFemale : set.spanishMale;
+            default:
+                return null;
+        }
+    }
+
 
     private void HandleBaseUnderAttack()
     {

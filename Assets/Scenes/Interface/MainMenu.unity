@@ -1324,6 +1324,7 @@ MonoBehaviour:
   defaultUnitVoiceGender: 0
   unitFemaleChance: 0.35
   aiVoiceGender: 1
+  aiGenderFollowsUnits: 0
   masterMixer: {fileID: 24100000, guid: cf9b491ca6eb63545b199c816d6551c9, type: 2}
   musicVolumeParameter: MusicVolume
   sfxVolumeParameter: SfxVolume
@@ -1343,6 +1344,7 @@ MonoBehaviour:
     volume: 2
   backstageVoiceVolumeMode: 0
   backstageVoiceVolumeMultiplier: 1
+  menuExclusiveClip: {fileID: 8300000, guid: 3920e7de926614a4f9ba62a1492b7690, type: 3}
   enableMusicDucking: 1
   musicDuckFactor: 0.3
   musicDuckLerpSpeed: 3
@@ -1765,23 +1767,6 @@ MonoBehaviour:
     usageENFemale: 
     usageESMale: 
     usageESFemale: 
-  lowPowerAlertVoices:
-    portugueseMale: []
-    portugueseFemale: []
-    englishMale:
-    - {fileID: 8300000, guid: ebed2919d1e0022458c1c74b1b0d3cca, type: 3}
-    - {fileID: 8300000, guid: 057d067f899396b409a082c5b57bbb9a, type: 3}
-    - {fileID: 8300000, guid: 0f138b28bc90dee41aa119c582a320be, type: 3}
-    - {fileID: 8300000, guid: a43489eb44d5bc94d80da35d3f3c2c04, type: 3}
-    englishFemale: []
-    spanishMale: []
-    spanishFemale: []
-    usagePTMale: 
-    usagePTFemale: 
-    usageENMale: 
-    usageENFemale: 
-    usageESMale: 
-    usageESFemale: 
   unitUnderAttackAlertVoices:
     portugueseMale:
     - {fileID: 8300000, guid: 68aa572325c39f74d8bbcd0c026128b9, type: 3}
@@ -1890,19 +1875,7 @@ MonoBehaviour:
     usageENFemale: 
     usageESMale: 
     usageESFemale: 
-  medikitPickupVoices:
-    portugueseMale: []
-    portugueseFemale: []
-    englishMale: []
-    englishFemale: []
-    spanishMale: []
-    spanishFemale: []
-    usagePTMale: 
-    usagePTFemale: 
-    usageENMale: 
-    usageENFemale: 
-    usageESMale: 
-    usageESFemale: 
+  medikitPickupClip: {fileID: 0}
   unitUpgradeVoices:
     portugueseMale:
     - {fileID: 8300000, guid: f0b4850df5b809e4a870a5ccee6715a7, type: 3}
@@ -2053,10 +2026,6 @@ MonoBehaviour:
     cooldown: 20
     priority: 1
     lastPlayTime: -999
-  lowPowerConfig:
-    cooldown: 20
-    priority: 2
-    lastPlayTime: -999
   unitUnderAttackConfig:
     cooldown: 6
     priority: 1
@@ -2118,7 +2087,6 @@ MonoBehaviour:
   largeGroupMinUnits: 5
   unitUnderAttackInitialDelay: 1.2
   lowResourcesInitialDelay: 1.5
-  lowPowerInitialDelay: 1.5
   infantryShotClips:
   - {fileID: 8300000, guid: 50f2831e2ba869c47826e3f06fdbd829, type: 3}
   - {fileID: 8300000, guid: d1a50ee50c1a41f4b8bfa11de4722d4f, type: 3}
