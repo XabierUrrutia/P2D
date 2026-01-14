@@ -26,6 +26,10 @@ public class SoundColector : MonoBehaviour
     [Header("Voz – AI")]
     public VoiceGender aiVoiceGender = VoiceGender.Female;
 
+    // quando false, a AI usa este valor fixo (o escolhido no menu).
+    // quando true, mantém a regra "oposto das units".
+    public bool aiGenderFollowsUnits = false;
+
     private bool hasLastUnitGender = false;
     private VoiceGender lastUnitVoiceGenderUsed = VoiceGender.Male;
 
@@ -39,7 +43,7 @@ public class SoundColector : MonoBehaviour
     [Range(0f, 1f)] public float musicVolume = 0.7f;
     [Range(0f, 1f)] public float sfxVolume = 1.0f;
     [Range(0f, 1f)] public float voiceVolume = 1.0f;
-    
+
     [Header("Mute Global")]
     public bool muteAll = false;
 
@@ -47,6 +51,9 @@ public class SoundColector : MonoBehaviour
     private const string PrefKey_SfxVolume = "audio_sfxVolume";
     private const string PrefKey_VoiceVolume = "audio_voiceVolume";
     private const string PrefKey_MuteAll = "audio_muteAll";
+    private const string PrefKey_VoiceLanguage = "audio_voiceLanguage";
+    private const string PrefKey_AIVoiceGender = "audio_aiVoiceGender";
+    private const string PrefKey_AIGenderFollowsUnits = "audio_aiGenderFollowsUnits";
 
     [Header("Voz - Speed (só VOZ)")]
     [Range(0.5f, 2f)] public float voiceSpeed = 1.0f;
@@ -57,9 +64,9 @@ public class SoundColector : MonoBehaviour
     // Preenche no Inspector (PT/EN/ES). O "Auto" é resolvido para a língua efetiva.
     public VoiceLanguageVolume[] voiceVolumeByLanguage = new VoiceLanguageVolume[]
     {
-    new VoiceLanguageVolume { language = VoiceLanguage.Portuguese, volume = 1.0f },
-    new VoiceLanguageVolume { language = VoiceLanguage.English,    volume = 1.0f },
-    new VoiceLanguageVolume { language = VoiceLanguage.Spanish,    volume = 1.0f },
+        new VoiceLanguageVolume { language = VoiceLanguage.Portuguese, volume = 1.0f },
+        new VoiceLanguageVolume { language = VoiceLanguage.English,    volume = 1.0f },
+        new VoiceLanguageVolume { language = VoiceLanguage.Spanish,    volume = 1.0f },
     };
 
     [Header("Voz - Backstage (Debug)")]
@@ -69,20 +76,17 @@ public class SoundColector : MonoBehaviour
     [Header("Backstage - Menu Music (Debug)")]
     public AudioClip menuExclusiveClip;
 
-    //private int menuEnterCount = 0;
-    //private AudioClip lastMenuClip = null;
-
     // ---- Helpers (VOICE only) ----
     private float GetVoiceVolumeForLanguage(VoiceLanguage lang)
     {
         if (!useVoiceVolumeByLanguage || voiceVolumeByLanguage == null || voiceVolumeByLanguage.Length == 0)
             return voiceVolume;
 
-            for (int i = 0; i < voiceVolumeByLanguage.Length; i++)
-            {
-                if (voiceVolumeByLanguage[i].language == lang)
-                    return voiceVolume * voiceVolumeByLanguage[i].volume;
-            }
+        for (int i = 0; i < voiceVolumeByLanguage.Length; i++)
+        {
+            if (voiceVolumeByLanguage[i].language == lang)
+                return voiceVolume * voiceVolumeByLanguage[i].volume;
+        }
 
         return voiceVolume;
     }
@@ -324,7 +328,7 @@ public class SoundColector : MonoBehaviour
 
     public VoiceEventConfig baseUnderAttackConfig = new VoiceEventConfig { cooldown = 10f, priority = VoicePriority.High };
     public VoiceEventConfig lowResourcesConfig = new VoiceEventConfig { cooldown = 20f, priority = VoicePriority.Normal };
-    
+
     public VoiceEventConfig unitUnderAttackConfig = new VoiceEventConfig { cooldown = 6f, priority = VoicePriority.Normal };
     public VoiceEventConfig buildingCapturedConfig = new VoiceEventConfig { cooldown = 4f, priority = VoicePriority.Normal };
     public VoiceEventConfig buildingLostConfig = new VoiceEventConfig { cooldown = 4f, priority = VoicePriority.High };
@@ -363,7 +367,6 @@ public class SoundColector : MonoBehaviour
     [Header("Delayed Alerts – Initial Delays")]
     public float unitUnderAttackInitialDelay = 1.2f;
     public float lowResourcesInitialDelay = 1.5f;
-    
 
     private bool unitUnderAttackAlertPending = false;
     private Coroutine unitUnderAttackDelayCoroutine = null;
@@ -421,20 +424,20 @@ public class SoundColector : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        
+
         LoadAudioSettings();
         SetupAudioSources();
         ApplyAIGenderRule();
         ApplyMixerVolumes();
     }
 
-    #if UNITY_EDITOR
-        private void OnValidate()
-        {
-            ApplyAIGenderRule();
-        }
-    #endif
-    
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        ApplyAIGenderRule();
+    }
+#endif
+
     private void Start()
     {
         if (currentMusicState != MusicState.None) return;
@@ -444,7 +447,7 @@ public class SoundColector : MonoBehaviour
         else if (gameplayMusicClips != null && gameplayMusicClips.Length > 0)
             PlayGameplayMusic();
     }
-    
+
     private void OnEnable()
     {
         GameEvents.OnUnitsSelected += HandleUnitsSelected;
@@ -493,7 +496,6 @@ public class SoundColector : MonoBehaviour
 
         if (lowResourcesDelayCoroutine != null) { StopCoroutine(lowResourcesDelayCoroutine); lowResourcesDelayCoroutine = null; }
         lowResourcesAlertPending = false;
-
     }
 
     private void Update()
@@ -504,7 +506,6 @@ public class SoundColector : MonoBehaviour
         {
             if (Time.unscaledTime < suppressPlaylistAdvanceUntil) return;
 
-            // Só considera "acabou" se chegou ao fim do clip (e não por foco/pause)
             bool ended = !musicSource.isPlaying && musicSource.time >= Mathf.Max(0f, musicSource.clip.length - 0.05f);
             if (ended) PlayNextTrackInPlaylist();
         }
@@ -518,7 +519,7 @@ public class SoundColector : MonoBehaviour
 
     private void OnApplicationPause(bool pause)
     {
-        if (!pause) // a voltar do pause
+        if (!pause)
             suppressPlaylistAdvanceUntil = Time.unscaledTime + 0.25f;
     }
 
@@ -589,54 +590,85 @@ public class SoundColector : MonoBehaviour
         SaveAudioSettings();
     }
 
-    // -------- Integração com menu de opções (sliders) --------
-    /// <summary>
-    /// Define o volume da música (0-1) e aplica no AudioMixer.
-    /// Pode ser chamado a partir de sliders de opções.
-    /// </summary>
+    // -------- Integração com menu de opções --------
     public void SetMusicVolume01(float value)
     {
         musicVolume = Mathf.Clamp01(value);
         ApplyMixerVolumes();
     }
 
-    /// <summary>
-    /// Define o volume de SFX (0-1) e aplica no AudioMixer.
-    /// </summary>
     public void SetSfxVolume01(float value)
     {
         sfxVolume = Mathf.Clamp01(value);
         ApplyMixerVolumes();
     }
 
-    /// <summary>
-    /// Define o volume de voz (0-1) e aplica no AudioMixer.
-    /// </summary>
     public void SetVoiceVolume01(float value)
     {
         voiceVolume = Mathf.Clamp01(value);
         ApplyMixerVolumes();
     }
+
     public void SetMuteAll(bool muted)
     {
         muteAll = muted;
+
+        if (muted)
+        {
+            if (musicSource != null) musicSource.Stop();
+            if (voiceSource != null) voiceSource.Stop();
+        }
+
         ApplyMixerVolumes();
     }
-    /// <summary>
-    /// Define um volume global simples (0-1) para música e SFX ao mesmo tempo.
-    /// Útil se tiveres só um slider de volume geral nas opções.
-    /// </summary>
+
+    public void SetVoiceLanguage(VoiceLanguage lang)
+    {
+        voiceLanguage = lang;
+        ApplyMixerVolumes();
+        SaveAudioSettings();
+    }
+
+    public void SetAIVoiceGender(VoiceGender gender)
+    {
+        aiGenderFollowsUnits = false;
+        aiVoiceGender = gender;
+        SaveAudioSettings();
+    }
+
+    public void SetAIGenderFollowsUnits(bool followsUnits)
+    {
+        aiGenderFollowsUnits = followsUnits;
+        ApplyAIGenderRule();
+        SaveAudioSettings();
+    }
+
     public void SetMasterLikeVolume01(float value)
     {
         float v = Mathf.Clamp01(value);
         musicVolume = v;
         sfxVolume = v;
-        // se quiseres também afetar voz, descomenta:
-        // voiceVolume = v;
         ApplyMixerVolumes();
     }
+
     private void LoadAudioSettings()
     {
+        if (PlayerPrefs.HasKey(PrefKey_VoiceLanguage))
+        {
+            int v = PlayerPrefs.GetInt(PrefKey_VoiceLanguage, (int)voiceLanguage);
+            if (System.Enum.IsDefined(typeof(VoiceLanguage), v))
+                voiceLanguage = (VoiceLanguage)v;
+        }
+
+        if (PlayerPrefs.HasKey(PrefKey_AIVoiceGender))
+        {
+            int g = PlayerPrefs.GetInt(PrefKey_AIVoiceGender, (int)aiVoiceGender);
+            if (System.Enum.IsDefined(typeof(VoiceGender), g))
+                aiVoiceGender = (VoiceGender)g;
+        }
+
+        aiGenderFollowsUnits = PlayerPrefs.GetInt(PrefKey_AIGenderFollowsUnits, aiGenderFollowsUnits ? 1 : 0) == 1;
+
         if (PlayerPrefs.HasKey(PrefKey_MusicVolume))
             musicVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefKey_MusicVolume, musicVolume));
 
@@ -651,12 +683,18 @@ public class SoundColector : MonoBehaviour
 
     private void SaveAudioSettings()
     {
+        PlayerPrefs.SetInt(PrefKey_VoiceLanguage, (int)voiceLanguage);
+        PlayerPrefs.SetInt(PrefKey_AIVoiceGender, (int)aiVoiceGender);
+        PlayerPrefs.SetInt(PrefKey_AIGenderFollowsUnits, aiGenderFollowsUnits ? 1 : 0);
+
         PlayerPrefs.SetFloat(PrefKey_MusicVolume, musicVolume);
         PlayerPrefs.SetFloat(PrefKey_SfxVolume, sfxVolume);
         PlayerPrefs.SetFloat(PrefKey_VoiceVolume, voiceVolume);
         PlayerPrefs.SetInt(PrefKey_MuteAll, muteAll ? 1 : 0);
+
         PlayerPrefs.Save();
     }
+
     // -------- Backstage controls (code-only) --------
     public void SetVoiceSpeed(float speed)
     {
@@ -685,9 +723,7 @@ public class SoundColector : MonoBehaviour
         if (clips == null || clips.Length == 0) { StopMusic(); return; }
 
         AudioClip clip = (menuExclusiveClip != null) ? menuExclusiveClip : FindClipByName(clips, "Main Menu");
-
         if (clip == null) clip = FirstNonNull(clips);
-
 
         if (musicSource == null || clip == null) return;
 
@@ -696,9 +732,6 @@ public class SoundColector : MonoBehaviour
         musicSource.loop = loop;
         musicSource.volume = (muteAll ? 0f : musicVolume) * targetMusicVolumeFactor;
         musicSource.Play();
-
-        //lastMenuClip = clip;
-        //menuEnterCount++;
     }
 
     private AudioClip FirstNonNull(AudioClip[] clips)
@@ -709,17 +742,17 @@ public class SoundColector : MonoBehaviour
     }
 
     private AudioClip FindClipByName(AudioClip[] clips, string clipName)
-{
-    if (clips == null || clips.Length == 0 || string.IsNullOrEmpty(clipName)) return null;
-
-    for (int i = 0; i < clips.Length; i++)
     {
-        AudioClip c = clips[i];
-        if (c != null && string.Equals(c.name, clipName, System.StringComparison.OrdinalIgnoreCase))
-            return c;
+        if (clips == null || clips.Length == 0 || string.IsNullOrEmpty(clipName)) return null;
+
+        for (int i = 0; i < clips.Length; i++)
+        {
+            AudioClip c = clips[i];
+            if (c != null && string.Equals(c.name, clipName, System.StringComparison.OrdinalIgnoreCase))
+                return c;
+        }
+        return null;
     }
-    return null;
-}
 
     private AudioClip RandomNonNullExcluding(AudioClip[] clips, AudioClip exclude)
     {
@@ -764,8 +797,12 @@ public class SoundColector : MonoBehaviour
 
     private VoiceGender GetAIGenderForThisVoice()
     {
+        if (!aiGenderFollowsUnits)
+            return aiVoiceGender;
+
         if (hasLastUnitGender)
             return Opposite(lastUnitVoiceGenderUsed);
+
         return Opposite(defaultUnitVoiceGender);
     }
 
@@ -773,12 +810,15 @@ public class SoundColector : MonoBehaviour
     {
         hasLastUnitGender = true;
         lastUnitVoiceGenderUsed = g;
-        aiVoiceGender = Opposite(g);
+
+        if (aiGenderFollowsUnits)
+            aiVoiceGender = Opposite(g);
     }
 
     private void ApplyAIGenderRule()
     {
-        aiVoiceGender = Opposite(defaultUnitVoiceGender);
+        if (aiGenderFollowsUnits)
+            aiVoiceGender = Opposite(defaultUnitVoiceGender);
     }
 
     public void PlayMenuMusic() => SetMusicState(MusicState.Menu);
@@ -798,7 +838,6 @@ public class SoundColector : MonoBehaviour
         MusicState prevState = currentMusicState;
         if (prevState == newState) return;
 
-        // Se estou em gameplay e vou para pause, guarda para retomar
         if (prevState == MusicState.Gameplay && newState == MusicState.Pause)
             CaptureGameplayMusicForResume();
 
@@ -806,7 +845,6 @@ public class SoundColector : MonoBehaviour
 
         switch (newState)
         {
-           
             case MusicState.Menu:
                 StartMenuTrackState(menuMusicClips, true);
                 break;
@@ -911,7 +949,6 @@ public class SoundColector : MonoBehaviour
         if (currentPlaylist == null || currentPlaylist.Length == 0 || musicSource == null)
             return;
 
-        // Se for loop (Gameplay), toca random evitando repetir a anterior
         if (playlistLoop)
         {
             AudioClip clip = RandomNonNullExcluding(currentPlaylist, musicSource.clip);
@@ -927,7 +964,6 @@ public class SoundColector : MonoBehaviour
             return;
         }
 
-        // Caso raro: playlist sem loop mantém o comportamento antigo (sequencial)
         currentTrackIndex++;
         if (currentTrackIndex >= currentPlaylist.Length)
         {
@@ -952,7 +988,7 @@ public class SoundColector : MonoBehaviour
 
         float target = voiceSource.isPlaying ? (1f - musicDuckFactor) : 1f;
 
-            targetMusicVolumeFactor = Mathf.Lerp(
+        targetMusicVolumeFactor = Mathf.Lerp(
             targetMusicVolumeFactor,
             target,
             Time.deltaTime * musicDuckLerpSpeed
@@ -1027,7 +1063,6 @@ public class SoundColector : MonoBehaviour
     {
         if (set == null || voiceSource == null) return false;
         if (muteAll || GetEffectiveVoiceVolume() <= 0.0001f) return false;
-
 
         float now = Time.time;
 
@@ -1176,20 +1211,11 @@ public class SoundColector : MonoBehaviour
         PlayWorldSfx3D(c, pos);
     }
 
-    public void PlayUnitSelectionVoice(int count, VoiceGender gender)
-    {
-        PlayUnitSelectionVoice(count, 0, gender);
-    }
+    public void PlayUnitSelectionVoice(int count, VoiceGender gender) => PlayUnitSelectionVoice(count, 0, gender);
 
-    public void PlayUnitSelectionVoice(int count)
-    {
-        PlayUnitSelectionVoice(count, 0, GetUnitGenderForThisVoice());
-    }
+    public void PlayUnitSelectionVoice(int count) => PlayUnitSelectionVoice(count, 0, GetUnitGenderForThisVoice());
 
-    public void PlayUnitSelectionVoice(int infantryCount, int tankCount)
-    {
-        PlayUnitSelectionVoice(infantryCount, tankCount, GetUnitGenderForThisVoice());
-    }
+    public void PlayUnitSelectionVoice(int infantryCount, int tankCount) => PlayUnitSelectionVoice(infantryCount, tankCount, GetUnitGenderForThisVoice());
 
     public void PlayUnitSelectionVoice(int infantryCount, int tankCount, VoiceGender gender)
     {
@@ -1257,10 +1283,7 @@ public class SoundColector : MonoBehaviour
             PlayUnitMoveVoice(lastSelectedUnitsCountForVoices, gender);
     }
 
-    public void PlayUnitMoveVoice(int infantryCount, int tankCount)
-    {
-        PlayUnitMoveVoice(infantryCount, tankCount, GetUnitGenderForThisVoice());
-    }
+    public void PlayUnitMoveVoice(int infantryCount, int tankCount) => PlayUnitMoveVoice(infantryCount, tankCount, GetUnitGenderForThisVoice());
 
     public void PlayUnitMoveVoice(int infantryCount, int tankCount, VoiceGender gender)
     {
@@ -1333,10 +1356,7 @@ public class SoundColector : MonoBehaviour
             PlayUnitAttackVoice(lastSelectedUnitsCountForVoices, gender);
     }
 
-    public void PlayUnitAttackVoice(int infantryCount, int tankCount)
-    {
-        PlayUnitAttackVoice(infantryCount, tankCount, GetUnitGenderForThisVoice());
-    }
+    public void PlayUnitAttackVoice(int infantryCount, int tankCount) => PlayUnitAttackVoice(infantryCount, tankCount, GetUnitGenderForThisVoice());
 
     public void PlayUnitAttackVoice(int infantryCount, int tankCount, VoiceGender gender)
     {
@@ -1367,10 +1387,7 @@ public class SoundColector : MonoBehaviour
         PlayUnitVoiceWithConfig(unitDeathVoices, unitDeathVoiceConfig, gender);
     }
 
-    public void PlayUnitDeathVoice()
-    {
-        PlayUnitDeathVoice(GetUnitGenderForThisVoice());
-    }
+    public void PlayUnitDeathVoice() => PlayUnitDeathVoice(GetUnitGenderForThisVoice());
 
     public void PlayUnitDeathVoice(bool isTank, VoiceGender gender)
     {
@@ -1380,20 +1397,14 @@ public class SoundColector : MonoBehaviour
         PlayUnitVoiceWithConfig(GetDeathVoiceSet(isTank), unitDeathVoiceConfig, gender);
     }
 
-    public void PlayUnitDeathVoice(bool isTank)
-    {
-        PlayUnitDeathVoice(isTank, GetUnitGenderForThisVoice());
-    }
+    public void PlayUnitDeathVoice(bool isTank) => PlayUnitDeathVoice(isTank, GetUnitGenderForThisVoice());
 
     public void PlayUnitEasterEggVoice(VoiceGender gender)
     {
         PlayUnitVoiceWithConfig(unitEasterEggVoices, unitEasterEggConfig, gender);
     }
 
-    public void PlayUnitEasterEggVoice()
-    {
-        PlayUnitEasterEggVoice(GetUnitGenderForThisVoice());
-    }
+    public void PlayUnitEasterEggVoice() => PlayUnitEasterEggVoice(GetUnitGenderForThisVoice());
 
     public void PlayMedikitPickupVoice(VoiceGender gender)
     {
@@ -1424,40 +1435,28 @@ public class SoundColector : MonoBehaviour
         RegisterUnitGender(gender);
     }
 
-    public void PlayMedikitPickupVoice()
-    {
-        PlayMedikitPickupVoice(GetUnitGenderForThisVoice());
-    }
+    public void PlayMedikitPickupVoice() => PlayMedikitPickupVoice(GetUnitGenderForThisVoice());
 
     public void PlayUnitUpgradeVoice(VoiceGender gender)
     {
         PlayUnitVoiceWithConfig(unitUpgradeVoices, null, gender);
     }
 
-    public void PlayUnitUpgradeVoice()
-    {
-        PlayUnitUpgradeVoice(GetUnitGenderForThisVoice());
-    }
+    public void PlayUnitUpgradeVoice() => PlayUnitUpgradeVoice(GetUnitGenderForThisVoice());
 
     public void PlayInsufficientResourcesVoice(VoiceGender gender)
     {
         PlayUnitVoiceWithConfig(insufficientResourcesVoices, insufficientResourcesConfig, gender);
     }
 
-    public void PlayInsufficientResourcesVoice()
-    {
-        PlayInsufficientResourcesVoice(GetUnitGenderForThisVoice());
-    }
+    public void PlayInsufficientResourcesVoice() => PlayInsufficientResourcesVoice(GetUnitGenderForThisVoice());
 
     public void PlayInvalidCommandVoice(VoiceGender gender)
     {
         PlayUnitVoiceWithConfig(invalidCommandVoices, invalidCommandConfig, gender);
     }
 
-    public void PlayInvalidCommandVoice()
-    {
-        PlayInvalidCommandVoice(GetUnitGenderForThisVoice());
-    }
+    public void PlayInvalidCommandVoice() => PlayInvalidCommandVoice(GetUnitGenderForThisVoice());
 
     public void PlayBaseUnderAttackVoice()
     {
