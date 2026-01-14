@@ -22,6 +22,15 @@ public class OptionsMenuUI : MonoBehaviour
     [Tooltip("Quando ligado, o jogo fica totalmente sem som (música, SFX e voz).")]
     public Toggle muteAllToggle;
 
+    [Header("Voz - Idioma")]
+    public Toggle langEnToggle;
+    public Toggle langPtToggle;
+    public Toggle langSpToggle;
+
+    [Header("Voz - Género (AI)")]
+    public Toggle genderFToggle;
+    public Toggle genderMToggle;
+
     private bool suppressUiEvents;
 
     // caches para restaurar volumes
@@ -109,8 +118,163 @@ public class OptionsMenuUI : MonoBehaviour
             if (muteVoiceToggle != null) muteVoiceToggle.isOn = true;
         }
 
+        InitVoiceToggles();
         suppressUiEvents = false;
     }
+
+    private void InitVoiceToggles()
+    {
+        // listeners
+        if (langEnToggle != null) { langEnToggle.onValueChanged.RemoveAllListeners(); langEnToggle.onValueChanged.AddListener(OnLangEnChanged); }
+        if (langPtToggle != null) { langPtToggle.onValueChanged.RemoveAllListeners(); langPtToggle.onValueChanged.AddListener(OnLangPtChanged); }
+        if (langSpToggle != null) { langSpToggle.onValueChanged.RemoveAllListeners(); langSpToggle.onValueChanged.AddListener(OnLangSpChanged); }
+
+        if (genderFToggle != null) { genderFToggle.onValueChanged.RemoveAllListeners(); genderFToggle.onValueChanged.AddListener(OnGenderFChanged); }
+        if (genderMToggle != null) { genderMToggle.onValueChanged.RemoveAllListeners(); genderMToggle.onValueChanged.AddListener(OnGenderMChanged); }
+
+        // estado inicial a partir do SoundColector
+        var lang = SoundColector.Instance.voiceLanguage;
+        var g = SoundColector.Instance.aiVoiceGender;
+
+        suppressUiEvents = true;
+
+        if (langEnToggle != null) langEnToggle.isOn = (lang == SoundColector.VoiceLanguage.English);
+        if (langPtToggle != null) langPtToggle.isOn = (lang == SoundColector.VoiceLanguage.Portuguese || lang == SoundColector.VoiceLanguage.Auto);
+        if (langSpToggle != null) langSpToggle.isOn = (lang == SoundColector.VoiceLanguage.Spanish);
+
+        // garantir 1 selecionada (língua)
+        if (!AnyOn(langEnToggle, langPtToggle, langSpToggle))
+        {
+            if (langPtToggle != null) langPtToggle.isOn = true;
+            else if (langEnToggle != null) langEnToggle.isOn = true;
+            else if (langSpToggle != null) langSpToggle.isOn = true;
+        }
+
+        if (genderFToggle != null) genderFToggle.isOn = (g == SoundColector.VoiceGender.Female);
+        if (genderMToggle != null) genderMToggle.isOn = (g == SoundColector.VoiceGender.Male);
+
+        // garantir 1 selecionada (género)
+        if (!AnyOn(genderFToggle, genderMToggle))
+        {
+            if (genderMToggle != null) genderMToggle.isOn = true;
+            else if (genderFToggle != null) genderFToggle.isOn = true;
+        }
+
+        suppressUiEvents = false;
+
+        ApplySpanishGenderRule();
+    }
+
+    private bool AnyOn(params Toggle[] toggles)
+    {
+        for (int i = 0; i < toggles.Length; i++)
+            if (toggles[i] != null && toggles[i].isOn) return true;
+        return false;
+    }
+
+    private bool IsSpanishSelected()
+    {
+        if (SoundColector.Instance == null) return false;
+        return SoundColector.Instance.voiceLanguage == SoundColector.VoiceLanguage.Spanish;
+    }
+
+    private void SelectLanguage(SoundColector.VoiceLanguage lang, Toggle self)
+    {
+        if (SoundColector.Instance == null) return;
+
+        suppressUiEvents = true;
+        if (langEnToggle != null) langEnToggle.isOn = (self == langEnToggle);
+        if (langPtToggle != null) langPtToggle.isOn = (self == langPtToggle);
+        if (langSpToggle != null) langSpToggle.isOn = (self == langSpToggle);
+        suppressUiEvents = false;
+
+        SoundColector.Instance.SetVoiceLanguage(lang);
+        ApplySpanishGenderRule();
+    }
+
+    private void EnsureLanguageSelected()
+    {
+        if (AnyOn(langEnToggle, langPtToggle, langSpToggle)) return;
+
+        suppressUiEvents = true;
+        if (langPtToggle != null) langPtToggle.isOn = true;
+        else if (langEnToggle != null) langEnToggle.isOn = true;
+        else if (langSpToggle != null) langSpToggle.isOn = true;
+        suppressUiEvents = false;
+    }
+
+    private void SelectGender(SoundColector.VoiceGender gender)
+    {
+        if (SoundColector.Instance == null) return;
+
+        if (IsSpanishSelected() && gender == SoundColector.VoiceGender.Female)
+            gender = SoundColector.VoiceGender.Male;
+
+        suppressUiEvents = true;
+        if (genderFToggle != null) genderFToggle.isOn = (gender == SoundColector.VoiceGender.Female);
+        if (genderMToggle != null) genderMToggle.isOn = (gender == SoundColector.VoiceGender.Male);
+        suppressUiEvents = false;
+
+        SoundColector.Instance.SetAIVoiceGender(gender);
+    }
+
+    private void EnsureGenderSelected()
+    {
+        if (AnyOn(genderFToggle, genderMToggle)) return;
+
+        suppressUiEvents = true;
+        if (genderMToggle != null) genderMToggle.isOn = true;
+        else if (genderFToggle != null) genderFToggle.isOn = true;
+        suppressUiEvents = false;
+    }
+
+    private void ApplySpanishGenderRule()
+    {
+        bool spanish = IsSpanishSelected();
+
+        if (genderFToggle != null)
+            genderFToggle.interactable = !spanish;
+
+        if (spanish)
+            SelectGender(SoundColector.VoiceGender.Male);
+    }
+
+    private void OnLangEnChanged(bool isOn)
+    {
+        if (suppressUiEvents || SoundColector.Instance == null) return;
+        if (!isOn) { EnsureLanguageSelected(); return; }
+        SelectLanguage(SoundColector.VoiceLanguage.English, langEnToggle);
+    }
+
+    private void OnLangPtChanged(bool isOn)
+    {
+        if (suppressUiEvents || SoundColector.Instance == null) return;
+        if (!isOn) { EnsureLanguageSelected(); return; }
+        SelectLanguage(SoundColector.VoiceLanguage.Portuguese, langPtToggle);
+        // se QUERES mesmo PT -> Espanhol, troca a linha acima para VoiceLanguage.Spanish
+    }
+
+    private void OnLangSpChanged(bool isOn)
+    {
+        if (suppressUiEvents || SoundColector.Instance == null) return;
+        if (!isOn) { EnsureLanguageSelected(); return; }
+        SelectLanguage(SoundColector.VoiceLanguage.Spanish, langSpToggle);
+    }
+
+    private void OnGenderFChanged(bool isOn)
+    {
+        if (suppressUiEvents || SoundColector.Instance == null) return;
+        if (!isOn) { EnsureGenderSelected(); return; }
+        SelectGender(SoundColector.VoiceGender.Female);
+    }
+
+    private void OnGenderMChanged(bool isOn)
+    {
+        if (suppressUiEvents || SoundColector.Instance == null) return;
+        if (!isOn) { EnsureGenderSelected(); return; }
+        SelectGender(SoundColector.VoiceGender.Male);
+    }
+
 
     private void OnMusicVolumeChanged(float value)
     {

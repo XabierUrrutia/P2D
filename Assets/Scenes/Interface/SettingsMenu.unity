@@ -2335,6 +2335,11 @@ MonoBehaviour:
   muteSfxToggle: {fileID: 0}
   muteVoiceToggle: {fileID: 0}
   muteAllToggle: {fileID: 1251781472}
+  langEnToggle: {fileID: 1740743062}
+  langPtToggle: {fileID: 1822404345}
+  langSpToggle: {fileID: 1484535024}
+  genderFToggle: {fileID: 92190990}
+  genderMToggle: {fileID: 788611162}
 --- !u!114 &976109612
 MonoBehaviour:
   m_ObjectHideFlags: 0

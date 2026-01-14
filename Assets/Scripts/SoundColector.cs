@@ -642,12 +642,22 @@ public class SoundColector : MonoBehaviour
     public void SetVoiceLanguage(VoiceLanguage lang)
     {
         voiceLanguage = lang;
+
+        if (voiceLanguage == VoiceLanguage.Spanish && aiVoiceGender == VoiceGender.Female)
+        {
+            aiGenderFollowsUnits = false;
+            aiVoiceGender = VoiceGender.Male;
+        }
+
         ApplyMixerVolumes();
         SaveAudioSettings();
     }
 
     public void SetAIVoiceGender(VoiceGender gender)
     {
+        if (voiceLanguage == VoiceLanguage.Spanish && gender == VoiceGender.Female)
+            gender = VoiceGender.Male;
+
         aiGenderFollowsUnits = false;
         aiVoiceGender = gender;
         SaveAudioSettings();
@@ -694,8 +704,15 @@ public class SoundColector : MonoBehaviour
 
         if (PlayerPrefs.HasKey(PrefKey_VoiceVolume))
             voiceVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefKey_VoiceVolume, voiceVolume));
-
+        
+        if (voiceLanguage == VoiceLanguage.Spanish && aiVoiceGender == VoiceGender.Female)
+        {
+            aiGenderFollowsUnits = false;
+            aiVoiceGender = VoiceGender.Male;
+        }
         muteAll = PlayerPrefs.GetInt(PrefKey_MuteAll, 0) == 1;
+
+
     }
 
     private void SaveAudioSettings()
