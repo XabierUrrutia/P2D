@@ -270,9 +270,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 500
   healthBar: {fileID: 4257622412377284445}
-  spriteIntacto: {fileID: 452267333, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  spriteDanyado: {fileID: 1996248461, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
-  spriteMuyDanyado: {fileID: 76848856, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
+  spriteIntacto: {fileID: 625063743, guid: d8732a14c35404342847692bc6e6e3d6, type: 3}
+  spriteDanyado: {fileID: 18538930, guid: d8732a14c35404342847692bc6e6e3d6, type: 3}
+  spriteMuyDanyado: {fileID: 1737112125, guid: d8732a14c35404342847692bc6e6e3d6, type: 3}
   healthyColor: {r: 0.37254903, g: 0.654902, b: 0.18431373, a: 1}
   criticalColor: {r: 0.77254903, g: 0.19607843, b: 0.16078432, a: 1}
 --- !u!1 &1715514226462267520

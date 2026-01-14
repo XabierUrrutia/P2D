@@ -718,6 +718,15 @@ MonoBehaviour:
   bulletSpeed: 4
   attackRange: 2
   bulletDamage: 40
+  spriteRenderer: {fileID: 0}
+  shootingSpriteDuration: 1
+  flipSpriteBasedOnDirection: 1
+  idleSpriteRight: {fileID: 0}
+  aimingSpriteRight: {fileID: -1058429667, guid: 18160f22044405348a4c814a61f3fe3f, type: 3}
+  shootingSpriteRight: {fileID: 2009933882, guid: 18160f22044405348a4c814a61f3fe3f, type: 3}
+  idleSpriteLeft: {fileID: 0}
+  aimingSpriteLeft: {fileID: 1300488010, guid: 18160f22044405348a4c814a61f3fe3f, type: 3}
+  shootingSpriteLeft: {fileID: 436459533, guid: 18160f22044405348a4c814a61f3fe3f, type: 3}
   player: {fileID: 0}
 --- !u!114 &-8054638891187647903
 MonoBehaviour:

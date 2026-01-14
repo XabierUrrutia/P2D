@@ -46,6 +46,10 @@ public class EnemyController : MonoBehaviour
     private bool alternarAnim = false;
     private Vector2 ultimaDireccion = new Vector2(1, -1);
 
+    // --- NUEVO: Variable para bloquear la animación ---
+    [HideInInspector] public bool bloquearAnimacion = false;
+    // --------------------------------------------------
+
     // Control de pathfinding
     private float ultimoRecalculoTime = 0f;
     private const float RECALCULO_INTERVALO = 2f; // Recalcular cada 2 segundos máximo
@@ -306,6 +310,10 @@ public class EnemyController : MonoBehaviour
 
     void ActualizarAnimacion()
     {
+        // --- CAMBIO CLAVE: Si está bloqueado, no tocamos el sprite ---
+        if (bloquearAnimacion) return;
+        // -------------------------------------------------------------
+
         if (moviendose && direccionMovimiento.magnitude > 0.1f)
         {
             temporizadorAnim += Time.deltaTime;
