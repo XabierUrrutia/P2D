@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6452739657261901997}
   - component: {fileID: 268058574934190108}
   - component: {fileID: 3866293144193412536}
+  - component: {fileID: 3612139404039660620}
   m_Layer: 0
   m_Name: PlayerHealthBar
   m_TagString: HealthBar
@@ -101,6 +102,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a294e9ac7f155740b906097a91eeef6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3612139404039660620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 65048840992052237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde230eaaa4ec77408da854c9af8b3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &70473709101679034
@@ -807,6 +820,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2948168336719740488}
   - component: {fileID: 8030905831677324755}
+  - component: {fileID: 5931655261354402538}
   m_Layer: 31
   m_Name: HuD_10
   m_TagString: Untagged
@@ -881,3 +895,15 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &5931655261354402538
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8051905239099275994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde230eaaa4ec77408da854c9af8b3db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
