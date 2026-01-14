@@ -1322,24 +1322,25 @@ MonoBehaviour:
   autoFallbackLanguage: 2
   unitVoiceGenderMode: 1
   defaultUnitVoiceGender: 0
-  unitFemaleChance: 0.5
+  unitFemaleChance: 0.35
   aiVoiceGender: 1
   masterMixer: {fileID: 24100000, guid: cf9b491ca6eb63545b199c816d6551c9, type: 2}
   musicVolumeParameter: MusicVolume
   sfxVolumeParameter: SfxVolume
   voiceVolumeParameter: VoiceVolume
-  musicVolume: 0.7
+  musicVolume: 0.5
   sfxVolume: 1
   voiceVolume: 1
-  voiceSpeed: 1
+  muteAll: 0
+  voiceSpeed: 1.25
   useVoiceVolumeByLanguage: 1
   voiceVolumeByLanguage:
   - language: 1
     volume: 1
   - language: 2
-    volume: 1
+    volume: 2
   - language: 3
-    volume: 1
+    volume: 2
   backstageVoiceVolumeMode: 0
   backstageVoiceVolumeMultiplier: 1
   enableMusicDucking: 1

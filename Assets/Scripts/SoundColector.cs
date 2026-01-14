@@ -66,6 +66,9 @@ public class SoundColector : MonoBehaviour
     public bool backstageVoiceVolumeMode = false;
     [Range(0f, 3f)] public float backstageVoiceVolumeMultiplier = 1.0f;
 
+    [Header("Backstage - Menu Music (Debug)")]
+    public AudioClip menuExclusiveClip;
+
     //private int menuEnterCount = 0;
     //private AudioClip lastMenuClip = null;
 
@@ -75,9 +78,11 @@ public class SoundColector : MonoBehaviour
         if (!useVoiceVolumeByLanguage || voiceVolumeByLanguage == null || voiceVolumeByLanguage.Length == 0)
             return voiceVolume;
 
-        for (int i = 0; i < voiceVolumeByLanguage.Length; i++)
-            if (voiceVolumeByLanguage[i].language == lang)
-            return voiceVolume * voiceVolumeByLanguage[i].volume;
+            for (int i = 0; i < voiceVolumeByLanguage.Length; i++)
+            {
+                if (voiceVolumeByLanguage[i].language == lang)
+                    return voiceVolume * voiceVolumeByLanguage[i].volume;
+            }
 
         return voiceVolume;
     }
@@ -295,14 +300,14 @@ public class SoundColector : MonoBehaviour
     [Header("Vozes – Alertas (AI)")]
     public LocalizedBalancedVoiceSet baseUnderAttackVoices;
     public LocalizedBalancedVoiceSet lowResourcesAlertVoices;
-    public LocalizedBalancedVoiceSet lowPowerAlertVoices;
+
     public LocalizedBalancedVoiceSet unitUnderAttackAlertVoices;
     public LocalizedBalancedVoiceSet buildingCapturedVoices;
     public LocalizedBalancedVoiceSet buildingLostVoices;
     public LocalizedBalancedVoiceSet techLevelUpVoices;
 
     [Header("Vozes – Eventos")]
-    public LocalizedBalancedVoiceSet medikitPickupVoices;
+    public AudioClip medikitPickupClip;
     public LocalizedBalancedVoiceSet unitUpgradeVoices;
     public LocalizedBalancedVoiceSet buildingCaptureStartVoices;
     public LocalizedBalancedVoiceSet buildingCaptureCompleteVoices;
@@ -319,7 +324,7 @@ public class SoundColector : MonoBehaviour
 
     public VoiceEventConfig baseUnderAttackConfig = new VoiceEventConfig { cooldown = 10f, priority = VoicePriority.High };
     public VoiceEventConfig lowResourcesConfig = new VoiceEventConfig { cooldown = 20f, priority = VoicePriority.Normal };
-    public VoiceEventConfig lowPowerConfig = new VoiceEventConfig { cooldown = 20f, priority = VoicePriority.High };
+    
     public VoiceEventConfig unitUnderAttackConfig = new VoiceEventConfig { cooldown = 6f, priority = VoicePriority.Normal };
     public VoiceEventConfig buildingCapturedConfig = new VoiceEventConfig { cooldown = 4f, priority = VoicePriority.Normal };
     public VoiceEventConfig buildingLostConfig = new VoiceEventConfig { cooldown = 4f, priority = VoicePriority.High };
@@ -358,16 +363,13 @@ public class SoundColector : MonoBehaviour
     [Header("Delayed Alerts – Initial Delays")]
     public float unitUnderAttackInitialDelay = 1.2f;
     public float lowResourcesInitialDelay = 1.5f;
-    public float lowPowerInitialDelay = 1.5f;
+    
 
     private bool unitUnderAttackAlertPending = false;
     private Coroutine unitUnderAttackDelayCoroutine = null;
 
     private bool lowResourcesAlertPending = false;
     private Coroutine lowResourcesDelayCoroutine = null;
-
-    private bool lowPowerAlertPending = false;
-    private Coroutine lowPowerDelayCoroutine = null;
 
     [Header("SFX – Unidades")]
     public AudioClip[] infantryShotClips;
@@ -448,7 +450,6 @@ public class SoundColector : MonoBehaviour
         GameEvents.OnUnitsSelected += HandleUnitsSelected;
         GameEvents.OnBaseUnderAttack += HandleBaseUnderAttack;
         GameEvents.OnLowResources += HandleLowResources;
-        GameEvents.OnLowPower += HandleLowPower;
         GameEvents.OnUnitUnderAttack += HandleUnitUnderAttack;
 
         GameEvents.OnBuildingSelected += HandleBuildingSelected;
@@ -471,7 +472,6 @@ public class SoundColector : MonoBehaviour
         GameEvents.OnUnitsSelected -= HandleUnitsSelected;
         GameEvents.OnBaseUnderAttack -= HandleBaseUnderAttack;
         GameEvents.OnLowResources -= HandleLowResources;
-        GameEvents.OnLowPower -= HandleLowPower;
         GameEvents.OnUnitUnderAttack -= HandleUnitUnderAttack;
 
         GameEvents.OnBuildingSelected -= HandleBuildingSelected;
@@ -494,8 +494,6 @@ public class SoundColector : MonoBehaviour
         if (lowResourcesDelayCoroutine != null) { StopCoroutine(lowResourcesDelayCoroutine); lowResourcesDelayCoroutine = null; }
         lowResourcesAlertPending = false;
 
-        if (lowPowerDelayCoroutine != null) { StopCoroutine(lowPowerDelayCoroutine); lowPowerDelayCoroutine = null; }
-        lowPowerAlertPending = false;
     }
 
     private void Update()
@@ -686,7 +684,8 @@ public class SoundColector : MonoBehaviour
 
         if (clips == null || clips.Length == 0) { StopMusic(); return; }
 
-        AudioClip clip = FindClipByName(clips, "Main Menu");
+        AudioClip clip = (menuExclusiveClip != null) ? menuExclusiveClip : FindClipByName(clips, "Main Menu");
+
         if (clip == null) clip = FirstNonNull(clips);
 
 
@@ -1398,7 +1397,31 @@ public class SoundColector : MonoBehaviour
 
     public void PlayMedikitPickupVoice(VoiceGender gender)
     {
-        PlayUnitVoiceWithConfig(medikitPickupVoices, null, gender);
+        if (muteAll || voiceSource == null || medikitPickupClip == null) return;
+
+        float vol = GetEffectiveVoiceVolume();
+        if (vol <= 0.0001f) return;
+
+        float now = Time.time;
+        if (now - lastAnyVoiceTime < globalMinVoiceInterval) return;
+
+        VoicePriority priority = VoicePriority.Normal;
+
+        if (voiceSource.isPlaying)
+        {
+            if (priority < currentVoicePriority) return;
+            voiceSource.Stop();
+        }
+
+        currentVoicePriority = priority;
+
+        voiceSource.pitch = GetEffectiveVoiceSpeed();
+        voiceSource.clip = medikitPickupClip;
+        voiceSource.volume = vol;
+        voiceSource.Play();
+
+        lastAnyVoiceTime = now;
+        RegisterUnitGender(gender);
     }
 
     public void PlayMedikitPickupVoice()
@@ -1444,11 +1467,6 @@ public class SoundColector : MonoBehaviour
     public void PlayLowResourcesAlert()
     {
         PlayVoiceWithConfig(lowResourcesAlertVoices, lowResourcesConfig);
-    }
-
-    public void PlayLowPowerAlert()
-    {
-        PlayVoiceWithConfig(lowPowerAlertVoices, lowPowerConfig);
     }
 
     public void PlayUnitUnderAttackAlert()
@@ -1545,17 +1563,6 @@ public class SoundColector : MonoBehaviour
         lowResourcesDelayCoroutine = null;
     }
 
-    private IEnumerator LowPowerDelayRoutine()
-    {
-        float delay = Mathf.Max(0f, lowPowerInitialDelay);
-        if (delay > 0f) yield return new WaitForSeconds(delay);
-
-        PlayLowPowerAlert();
-
-        lowPowerAlertPending = false;
-        lowPowerDelayCoroutine = null;
-    }
-
     private void HandleUnitsSelected(int count)
     {
         PlayUnitSelectionVoice(count);
@@ -1571,13 +1578,6 @@ public class SoundColector : MonoBehaviour
         if (lowResourcesAlertPending) return;
         lowResourcesAlertPending = true;
         lowResourcesDelayCoroutine = StartCoroutine(LowResourcesDelayRoutine());
-    }
-
-    private void HandleLowPower()
-    {
-        if (lowPowerAlertPending) return;
-        lowPowerAlertPending = true;
-        lowPowerDelayCoroutine = StartCoroutine(LowPowerDelayRoutine());
     }
 
     private void HandleUnitUnderAttack()
