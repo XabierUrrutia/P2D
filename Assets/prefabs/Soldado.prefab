@@ -1192,7 +1192,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPlayerUnit: 1
   arrowPrefab: {fileID: 4213472074308672191, guid: 5999944d52fa9254aab796a5ad316501, type: 3}
-  arrowLocalOffset: {x: 0, y: 0.5, z: 0}
+  arrowLocalOffset: {x: 0, y: 0.8, z: 0}
 --- !u!114 &9020389207722166144
 MonoBehaviour:
   m_ObjectHideFlags: 0
