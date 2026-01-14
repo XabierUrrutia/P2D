@@ -27,6 +27,7 @@ public class UnitSelectionManager : MonoBehaviour
 
     // Usamos la Interfaz para guardar tanto Tanques como Soldados
     private List<ISelectableUnit> unidadesSeleccionadas = new List<ISelectableUnit>();
+    private ISelectableUnit unidadVozPrincipal = null;
 
     // Easter Eggs (Warcraft-style clicks)
     private const int EasterEggFirstClick = 5; // 5º click -> 1º easter egg
@@ -90,6 +91,7 @@ public class UnitSelectionManager : MonoBehaviour
                 if (unidad != null)
                 {
                     unidadClicadaMouseDown = unidad;
+                    unidadVozPrincipal = unidad;
 
                     bool shift = shiftMouseDown;
                     bool clickedSameAsSoleSelected = unidadesSeleccionadas.Count == 1 && ReferenceEquals(unidadesSeleccionadas[0], unidad);
@@ -197,7 +199,16 @@ public class UnitSelectionManager : MonoBehaviour
                 int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
                 int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
 
-                SoundColector.Instance.PlayUnitMoveVoice(infantryCount, tankCount);
+                //SoundColector.Instance.PlayUnitMoveVoice(infantryCount, tankCount);
+
+                var vozUnit = (unidadVozPrincipal != null) ? unidadVozPrincipal : unidadesSeleccionadas[0];
+                int id = (vozUnit != null && vozUnit.gameObject != null) ? vozUnit.gameObject.GetInstanceID() : 0;
+
+                SoundColector.Instance.SetVoiceContextUnit(id);
+                var gender = SoundColector.Instance.GetOrAssignLockedGenderForUnit(id);
+
+                SoundColector.Instance.PlayUnitMoveVoice(infantryCount, tankCount, gender);
+
                 ultimoSomMovimientoTime = Time.time;
             }
         }
@@ -237,6 +248,11 @@ public class UnitSelectionManager : MonoBehaviour
         {
             ResetEasterEggState();
         }
+
+        unidadVozPrincipal = null;
+
+        if (SoundColector.Instance != null)
+            SoundColector.Instance.ClearVoiceContextUnit();
     }
 
     void ResetEasterEggState()
@@ -279,6 +295,13 @@ public class UnitSelectionManager : MonoBehaviour
         {
             int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
             int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
+
+            if (SoundColector.Instance != null)
+            {
+                int id = clickedUnit.gameObject.GetInstanceID();
+                SoundColector.Instance.SetVoiceContextUnit(id);
+                SoundColector.Instance.GetOrAssignLockedGenderForUnit(id);
+            }
 
             GameEvents.RaiseUnitEasterEgg(eggIndex, infantryCount, tankCount);
 
@@ -323,7 +346,14 @@ public class UnitSelectionManager : MonoBehaviour
             }
         }
 
-        if (primeraNueva != null) PlaySelectionSoundFor(primeraNueva);
+        //if (primeraNueva != null) PlaySelectionSoundFor(primeraNueva);
+
+        if (primeraNueva != null)
+        {
+            unidadVozPrincipal = primeraNueva;
+            PlaySelectionSoundFor(primeraNueva);
+        }
+
     }
 
     // ---------------------------------------------------------
@@ -407,6 +437,12 @@ public class UnitSelectionManager : MonoBehaviour
         int tankCount = unidadesSeleccionadas.Count(u => IsTank(u));
         int infantryCount = Mathf.Max(0, unidadesSeleccionadas.Count - tankCount);
 
-        SoundColector.Instance.PlayUnitSelectionVoice(infantryCount, tankCount);
+        int id = (unidad != null && unidad.gameObject != null) ? unidad.gameObject.GetInstanceID() : 0;
+
+        SoundColector.Instance.SetVoiceContextUnit(id);
+        var gender = SoundColector.Instance.GetOrAssignLockedGenderForUnit(id);
+
+        SoundColector.Instance.PlayUnitSelectionVoice(infantryCount, tankCount, gender);
+
     }
 }

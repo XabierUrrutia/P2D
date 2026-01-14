@@ -83,15 +83,25 @@ public class PlayerShooting : MonoBehaviour
     private bool isShowingShootingSprite = false;
 
     private UnitVeterancy myVeterancy;
+    private Transform lastForcedTargetVoice = null;
+
 
     public void SetForcedTarget(Transform target)
     {
         forcedTarget = target;
+        if (forcedTarget == null) lastForcedTargetVoice = null;
+        
         if (forcedTarget != null)
         {
             currentTarget = forcedTarget;
             UpdateDirectionToTarget();
             StartAiming();
+
+            if (forcedTarget != lastForcedTargetVoice)
+            {
+                PlayAttackVoiceForThisUnit();
+                lastForcedTargetVoice = forcedTarget;
+            }
         }
 
         if (aimCoroutine == null)
@@ -103,6 +113,7 @@ public class PlayerShooting : MonoBehaviour
     public void ClearForcedTarget()
     {
         forcedTarget = null;
+        lastForcedTargetVoice = null;
 
         if (!autoAimEnabled)
         {
@@ -118,6 +129,16 @@ public class PlayerShooting : MonoBehaviour
 
             StopAiming();
         }
+    }
+    void PlayAttackVoiceForThisUnit()
+    {
+        if (SoundColector.Instance == null) return;
+
+        int id = gameObject.GetInstanceID();
+        SoundColector.Instance.SetVoiceContextUnit(id);
+        var gender = SoundColector.Instance.GetOrAssignLockedGenderForUnit(id);
+
+        SoundColector.Instance.PlayUnitAttackVoice(gender);
     }
 
     void Start()
@@ -604,6 +625,7 @@ public class PlayerShooting : MonoBehaviour
                 if (forcedTarget.gameObject == null)
                 {
                     forcedTarget = null;
+                    lastForcedTargetVoice = null;
                     currentTarget = null;
                     StopAiming();
                 }

@@ -22,6 +22,9 @@ public class SoundColector : MonoBehaviour
     public UnitVoiceGenderMode unitVoiceGenderMode = UnitVoiceGenderMode.Random50_50;
     public VoiceGender defaultUnitVoiceGender = VoiceGender.Male;
     [Range(0f, 1f)] public float unitFemaleChance = 0.5f;
+    // --- Unit gender lock por unidade (InstanceID) ---
+    private readonly Dictionary<int, VoiceGender> unitLockedGenderById = new Dictionary<int, VoiceGender>();
+    private int voiceContextUnitId = 0;
 
     [Header("Voz – AI")]
     public VoiceGender aiVoiceGender = VoiceGender.Female;
@@ -801,13 +804,34 @@ public class SoundColector : MonoBehaviour
 
     private VoiceGender GetUnitGenderForThisVoice()
     {
-        if (unitVoiceGenderMode == UnitVoiceGenderMode.Fixed)
+        /*if (unitVoiceGenderMode == UnitVoiceGenderMode.Fixed)
             return defaultUnitVoiceGender;
 
-        return (Random.value < unitFemaleChance) ? VoiceGender.Female : VoiceGender.Male;
+        return (Random.value < unitFemaleChance) ? VoiceGender.Female : VoiceGender.Male;*/
+
+        return GetOrAssignLockedGenderForUnit(voiceContextUnitId);
+
     }
 
     private static VoiceGender Opposite(VoiceGender g) => (g == VoiceGender.Male) ? VoiceGender.Female : VoiceGender.Male;
+    public void SetVoiceContextUnit(int unitInstanceId) => voiceContextUnitId = unitInstanceId;
+    public void ClearVoiceContextUnit() => voiceContextUnitId = 0;
+
+    public VoiceGender GetOrAssignLockedGenderForUnit(int unitInstanceId)
+    {
+        if (unitVoiceGenderMode == UnitVoiceGenderMode.Fixed)
+            return defaultUnitVoiceGender;
+
+        if (unitInstanceId == 0)
+            return (Random.value < unitFemaleChance) ? VoiceGender.Female : VoiceGender.Male;
+
+        if (unitLockedGenderById.TryGetValue(unitInstanceId, out var g))
+            return g;
+
+        g = (Random.value < unitFemaleChance) ? VoiceGender.Female : VoiceGender.Male;
+        unitLockedGenderById[unitInstanceId] = g;
+        return g;
+    }
 
     private VoiceGender GetAIGenderForThisVoice()
     {
