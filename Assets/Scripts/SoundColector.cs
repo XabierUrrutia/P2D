@@ -695,7 +695,7 @@ public class SoundColector : MonoBehaviour
         musicSource.Stop();
         musicSource.clip = clip;
         musicSource.loop = loop;
-        musicSource.volume = musicVolume * targetMusicVolumeFactor;
+        musicSource.volume = (muteAll ? 0f : musicVolume) * targetMusicVolumeFactor;
         musicSource.Play();
 
         //lastMenuClip = clip;
@@ -873,7 +873,7 @@ public class SoundColector : MonoBehaviour
         musicSource.clip = resumeGameplayClip;
         musicSource.loop = false;
         musicSource.time = Mathf.Clamp(resumeGameplayTime, 0f, Mathf.Max(0f, resumeGameplayClip.length - 0.05f));
-        musicSource.volume = musicVolume * targetMusicVolumeFactor;
+        musicSource.volume = (muteAll ? 0f : musicVolume) * targetMusicVolumeFactor;
         musicSource.Play();
     }
 
@@ -891,7 +891,7 @@ public class SoundColector : MonoBehaviour
         musicSource.Stop();
         musicSource.clip = clip;
         musicSource.loop = loop;
-        musicSource.volume = musicVolume * targetMusicVolumeFactor;
+        musicSource.volume = (muteAll ? 0f : musicVolume) * targetMusicVolumeFactor;
         musicSource.Play();
     }
 
@@ -923,7 +923,7 @@ public class SoundColector : MonoBehaviour
             musicSource.Stop();
             musicSource.clip = clip;
             musicSource.loop = false;
-            musicSource.volume = musicVolume * targetMusicVolumeFactor;
+            musicSource.volume = (muteAll ? 0f : musicVolume) * targetMusicVolumeFactor;
             musicSource.Play();
             return;
         }
@@ -942,7 +942,7 @@ public class SoundColector : MonoBehaviour
         musicSource.Stop();
         musicSource.clip = seq;
         musicSource.loop = false;
-        musicSource.volume = musicVolume * targetMusicVolumeFactor;
+        musicSource.volume = (muteAll ? 0f : musicVolume) * targetMusicVolumeFactor;
         musicSource.Play();
     }
 
@@ -953,13 +953,13 @@ public class SoundColector : MonoBehaviour
 
         float target = voiceSource.isPlaying ? (1f - musicDuckFactor) : 1f;
 
-        targetMusicVolumeFactor = Mathf.Lerp(
+            targetMusicVolumeFactor = Mathf.Lerp(
             targetMusicVolumeFactor,
             target,
             Time.deltaTime * musicDuckLerpSpeed
         );
 
-        musicSource.volume = musicVolume * targetMusicVolumeFactor;
+        musicSource.volume = (muteAll ? 0f : musicVolume) * targetMusicVolumeFactor;
     }
 
     private void PlaySfx2D(AudioClip clip, float volumeMul = 1f)
