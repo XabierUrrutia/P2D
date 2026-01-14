@@ -77,7 +77,7 @@ public class SoundColector : MonoBehaviour
 
         for (int i = 0; i < voiceVolumeByLanguage.Length; i++)
             if (voiceVolumeByLanguage[i].language == lang)
-                return voiceVolumeByLanguage[i].volume;
+            return voiceVolume * voiceVolumeByLanguage[i].volume;
 
         return voiceVolume;
     }
@@ -1027,6 +1027,8 @@ public class SoundColector : MonoBehaviour
     private bool PlayVoiceWithConfig(LocalizedBalancedVoiceSet set, VoiceEventConfig config, VoiceGender gender)
     {
         if (set == null || voiceSource == null) return false;
+        if (muteAll || GetEffectiveVoiceVolume() <= 0.0001f) return false;
+
 
         float now = Time.time;
 
