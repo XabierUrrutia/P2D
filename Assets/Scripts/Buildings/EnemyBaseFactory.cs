@@ -39,10 +39,8 @@ public class EnemyBaseFactory : MonoBehaviour
     public float spawnRadius = 3f;
     public float minSpawnDistance = 1.5f;
 
-    // --- NUEVO: TIEMPO DE ESPERA INICIAL ---
     [Tooltip("Tiempo que tarda la fábrica en empezar a sacar enemigos al inicio del juego.")]
     public float startDelay = 20f;
-    // ---------------------------------------
 
     // TIEMPOS
     public float spawnIntervalNormal = 8f;
@@ -53,12 +51,10 @@ public class EnemyBaseFactory : MonoBehaviour
     public int maxConcurrentEnemiesDefensive = 8;
     public int totalToSpawn = 0;
 
-    // --- CONFIGURACIÓN DE PELOTÓN ---
     [Header("Configuración de Pelotón")]
     public int minSquadSize = 2;
     public int maxSquadSize = 3;
     public float timeBetweenSquadMembers = 0.3f;
-    // ---------------------------------------
 
     [Header("Terrain Validation")]
     public LayerMask groundLayer;
@@ -77,13 +73,11 @@ public class EnemyBaseFactory : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Sprite originalSprite;
 
-    // Spawn internals
     private readonly List<GameObject> spawnedEnemies = new List<GameObject>();
     private Coroutine spawnCoroutine;
     private Coroutine moneyGenerationCoroutine;
     private int spawnedCount = 0;
 
-    // Fog of War
     private FogStaticVision fogStaticVision;
     private bool fogVisionInitialized = false;
 
@@ -222,7 +216,6 @@ public class EnemyBaseFactory : MonoBehaviour
             if (conquestProgress <= 0 && conquestSlider != null)
             {
                 GameEvents.RaiseBuildingCaptureFailed();
-
                 conquestSlider.gameObject.SetActive(false);
                 spriteRenderer.color = neutralColor;
             }
@@ -285,6 +278,9 @@ public class EnemyBaseFactory : MonoBehaviour
         {
             if (!MoneyManager.Instance.sePaganSalarios) MoneyManager.Instance.ActivarCobroDeSalarios();
             AplicarInflacionPorConquista();
+
+            // --- REGISTRAR EN EL MANAGER PARA QUE SALGA EN LA UI (INGRESOS) ---
+            MoneyManager.Instance.RegisterFactory(this);
         }
     }
 
@@ -368,12 +364,8 @@ public class EnemyBaseFactory : MonoBehaviour
 
     private IEnumerator SpawnLoop()
     {
-        // --- CAMBIO AQUÍ: ---
-        // En lugar de esperar 1 segundo, esperamos el tiempo definido en "startDelay" (20s)
-        // Esto solo ocurre la primera vez que se inicia la corrutina.
         Debug.Log($"[Factory {name}] Esperando {startDelay} segundos antes de empezar a spawnear...");
         yield return new WaitForSeconds(startDelay);
-        // --------------------
 
         while (!isConquered && enableSpawning)
         {
@@ -508,6 +500,12 @@ public class EnemyBaseFactory : MonoBehaviour
             FogOfWar fog = FindObjectOfType<FogOfWar>();
             if (fog != null) fog.UnregisterStaticVision(fogStaticVision);
         }
+
+        // --- LIMPIAR REFERENCIA EN MANAGER AL DESTRUIR ---
+        if (MoneyManager.Instance != null)
+        {
+            MoneyManager.Instance.UnregisterFactory(this);
+        }
     }
 
     public void ResetFactory()
@@ -525,5 +523,11 @@ public class EnemyBaseFactory : MonoBehaviour
         isGeneratingMoney = false;
         if (moneyGenerationCoroutine != null) StopCoroutine(moneyGenerationCoroutine);
         conqueringPlayers.Clear();
+
+        // --- DEJAR DE CONTAR INGRESOS SI SE RESETEA ---
+        if (MoneyManager.Instance != null)
+        {
+            MoneyManager.Instance.UnregisterFactory(this);
+        }
     }
 }

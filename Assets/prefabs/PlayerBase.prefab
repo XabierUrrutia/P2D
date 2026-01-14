@@ -313,6 +313,7 @@ GameObject:
   - component: {fileID: 6134890159517543003}
   - component: {fileID: 2714143415470525740}
   - component: {fileID: 4376042448550786685}
+  - component: {fileID: 5118720257975281016}
   m_Layer: 13
   m_Name: PlayerBase
   m_TagString: PlayerBase
@@ -672,6 +673,18 @@ MonoBehaviour:
   playSoundOnFirstEnter: 0
   alertSoundCooldown: 3
   checkInterval: 0.3
+--- !u!114 &5118720257975281016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1164274423899619731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 965d4c9cf641ef64e82e38189e36e310, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2406987131462089256
 GameObject:
   m_ObjectHideFlags: 0

@@ -22,10 +22,9 @@ public class MoneyManager : MonoBehaviour
     [Header("Rendimiento")]
     public float incomeTickInterval = 1f;
 
-    // Lista de Edificios (Ingresos)
+    // --- LISTAS DE CONTROL ---
     private readonly List<BuildingOwnership> incomeSources = new List<BuildingOwnership>();
-
-    // --- NUEVO: Lista de Unidades (Gastos) ---
+    private readonly List<EnemyBaseFactory> activeFactories = new List<EnemyBaseFactory>();
     private readonly List<UnitVeterancy> activeUnits = new List<UnitVeterancy>();
 
     private Coroutine incomeCoroutine;
@@ -53,11 +52,13 @@ public class MoneyManager : MonoBehaviour
             incomeCoroutine = StartCoroutine(IncomeTickRoutine());
     }
 
-    private void NotifyHUD()
+    // --- CORRECCIÓN AQUÍ: CAMBIADO A PUBLIC ---
+    public void NotifyHUD()
     {
-        var hud = FindObjectOfType<MoneyTextHUD>(); // Asegúrate de que este script exista
+        var hud = FindObjectOfType<MoneyTextHUD>();
         if (hud != null) hud.Refresh();
     }
+    // ------------------------------------------
 
     public void AddMoney(int amount)
     {
@@ -73,6 +74,12 @@ public class MoneyManager : MonoBehaviour
         {
             currentMoney -= amount;
             NotifyHUD();
+
+            if (GameManager.Instance != null)
+            {
+                // GameManager.Instance.CheckGameOver(); 
+            }
+
             return true;
         }
         GameEvents.RaiseInsufficientResources();
@@ -82,55 +89,116 @@ public class MoneyManager : MonoBehaviour
     public void ResetMoney()
     {
         currentMoney = startMoney;
-        activeUnits.Clear(); // Limpiamos listas al reiniciar
+        activeUnits.Clear();
         incomeSources.Clear();
+        activeFactories.Clear();
     }
 
-    // --- REGISTRO DE EDIFICIOS ---
+    // --- REGISTROS ---
+
     public void RegisterIncomeSource(BuildingOwnership source)
     {
         if (source == null) return;
         if (!incomeSources.Contains(source)) incomeSources.Add(source);
+        NotifyHUD();
     }
 
     public void UnregisterIncomeSource(BuildingOwnership source)
     {
         if (source == null) return;
         if (incomeSources.Contains(source)) incomeSources.Remove(source);
+        NotifyHUD();
     }
 
-    // --- NUEVO: REGISTRO DE UNIDADES ---
+    public void RegisterFactory(EnemyBaseFactory factory)
+    {
+        if (factory == null) return;
+        if (!activeFactories.Contains(factory))
+        {
+            activeFactories.Add(factory);
+            NotifyHUD();
+        }
+    }
+
+    public void UnregisterFactory(EnemyBaseFactory factory)
+    {
+        if (factory == null) return;
+        if (activeFactories.Contains(factory))
+        {
+            activeFactories.Remove(factory);
+            NotifyHUD();
+        }
+    }
+
     public void RegisterUnitExpense(UnitVeterancy unit)
     {
         if (unit == null) return;
-        if (!activeUnits.Contains(unit)) activeUnits.Add(unit);
+        if (!activeUnits.Contains(unit))
+        {
+            activeUnits.Add(unit);
+            NotifyHUD();
+        }
     }
 
     public void UnregisterUnitExpense(UnitVeterancy unit)
     {
         if (unit == null) return;
-        if (activeUnits.Contains(unit)) activeUnits.Remove(unit);
+        if (activeUnits.Contains(unit))
+        {
+            activeUnits.Remove(unit);
+            NotifyHUD();
+        }
     }
 
-    // --- RUTINA PRINCIPAL DE ECONOMÍA ---
+    // --- CÁLCULOS UI ---
+
+    public int CalcularIngresosPorSegundo()
+    {
+        float totalIncomePerSecond = 0f;
+
+        foreach (var source in incomeSources)
+        {
+            if (source != null) totalIncomePerSecond += source.incomePerTick;
+        }
+
+        foreach (var factory in activeFactories)
+        {
+            if (factory != null && factory.moneyInterval > 0)
+            {
+                totalIncomePerSecond += (factory.moneyPerInterval / factory.moneyInterval);
+            }
+        }
+
+        return Mathf.RoundToInt(totalIncomePerSecond);
+    }
+
+    public int CalcularGastosPorTick()
+    {
+        if (!sePaganSalarios) return 0;
+
+        int total = 0;
+        foreach (var u in activeUnits)
+        {
+            if (u != null) total += u.CalcularMantenimiento();
+        }
+        return total;
+    }
+
+    // --- RUTINA PRINCIPAL ---
     IEnumerator IncomeTickRoutine()
     {
         while (true)
         {
             yield return new WaitForSeconds(incomeTickInterval);
 
-            // 1. CALCULAR INGRESOS
-            int totalIncome = 0;
+            int passiveIncome = 0;
             for (int i = incomeSources.Count - 1; i >= 0; i--)
             {
                 if (incomeSources[i] == null) incomeSources.RemoveAt(i);
-                else totalIncome += incomeSources[i].incomePerTick;
+                else passiveIncome += incomeSources[i].incomePerTick;
             }
 
-            // 2. CALCULAR GASTOS (MANTENIMIENTO)
             int totalUpkeep = 0;
-
-            // --- NUEVO: SOLO CALCULAMOS GASTOS SI YA SE ACTIVARON LOS SALARIOS ---
             if (sePaganSalarios)
             {
                 for (int i = activeUnits.Count - 1; i >= 0; i--)
@@ -139,10 +207,8 @@ public class MoneyManager : MonoBehaviour
                     else totalUpkeep += activeUnits[i].CalcularMantenimiento();
                 }
             }
-            // ---------------------------------------------------------------------
 
-            // 3. APLICAR BALANCE
-            currentMoney += totalIncome;
+            currentMoney += passiveIncome;
 
             if (currentMoney >= totalUpkeep)
             {
@@ -162,21 +228,11 @@ public class MoneyManager : MonoBehaviour
         if (incomeCoroutine != null) StopCoroutine(incomeCoroutine);
     }
 
-    // Método auxiliar por si quieres mostrar el gasto total en el UI
-    public int CalculateTotalUpkeep()
-    {
-        int total = 0;
-        foreach (var u in activeUnits)
-        {
-            if (u != null) total += u.CalcularMantenimiento();
-        }
-        return total;
-    }
-
     public void ModificarInflacion(float cantidad)
     {
         costoMultiplicador += cantidad;
         Debug.Log($"Inflación aumentada en +{cantidad}. Nuevo multiplicador: x{costoMultiplicador}");
+        NotifyHUD();
     }
 
     public void ActivarCobroDeSalarios()
@@ -185,6 +241,7 @@ public class MoneyManager : MonoBehaviour
         {
             sePaganSalarios = true;
             Debug.Log("¡Se ha conquistado la primera fábrica! Los soldados ahora exigen su sueldo.");
+            NotifyHUD();
         }
     }
 }

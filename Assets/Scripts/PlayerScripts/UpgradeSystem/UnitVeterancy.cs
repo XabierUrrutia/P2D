@@ -1,17 +1,15 @@
 using UnityEngine;
-using System; // Necesario para los Actions
+using System;
 
 public class UnitVeterancy : MonoBehaviour
 {
     // EVENTO: Avisa al mundo (y al HUD) que mis stats cambiaron
     public event Action OnStatsChanged;
 
-
     [Header("Economía (Mantenimiento)")]
     public int costeBase = 5;       // Coste a nivel 1
     public int costePorNivel = 2;   // Cuánto sube por cada nivel extra
     public int divisorDeCoste = 4;
-
 
     [Header("Identidad de la Unidad")]
     public Sprite retratoCara;
@@ -29,8 +27,6 @@ public class UnitVeterancy : MonoBehaviour
     // Referencias internas
     private PlayerShooting shootingScript;
     private PlayerHealth healthScript;
-
-    // (Opcional) Referencia a SelectableUnit para saber si soy yo el elegido
     private SelectableUnit selectableScript;
 
     void Start()
@@ -51,8 +47,6 @@ public class UnitVeterancy : MonoBehaviour
             SubirNivel();
         }
 
-        // ¡AVISO IMPORTANTE! Mis datos cambiaron. 
-        // Si el HUD me está mirando, se actualizará solo.
         OnStatsChanged?.Invoke();
     }
 
@@ -67,13 +61,18 @@ public class UnitVeterancy : MonoBehaviour
 
         GameEvents.RaiseUnitUpgraded();
 
+        // Al subir de nivel, aumenta el coste, notificamos al Manager si está activo
+        if (MoneyManager.Instance != null) MoneyManager.Instance.NotifyHUD();
+
         Debug.Log($"{name} subió a nivel {nivel}");
     }
 
     public int CalcularMantenimiento()
     {
-        // 1. Coste base de la unidad (ej: 5)
+        // 1. Coste base de la unidad (ej: 5 + nivel*extra)
         float costeBaseTotal = costeBase + (nivel * costePorNivel);
+
+        // El divisor reduce el coste para que no sea excesivo (ej: 5/4 = 1.25)
         float total = costeBaseTotal / divisorDeCoste;
 
         // 2. Aplicamos la Inflación Global del MoneyManager
@@ -88,14 +87,14 @@ public class UnitVeterancy : MonoBehaviour
 
     void OnEnable()
     {
-        // Al nacer, se apunta a la lista de cobros
+        // Al nacer o activarse, se apunta a la lista de gastos
         if (MoneyManager.Instance != null)
             MoneyManager.Instance.RegisterUnitExpense(this);
     }
 
     void OnDisable()
     {
-        // Al morir, se borra de la lista
+        // Al morir o desactivarse, se borra de la lista
         if (MoneyManager.Instance != null)
             MoneyManager.Instance.UnregisterUnitExpense(this);
     }

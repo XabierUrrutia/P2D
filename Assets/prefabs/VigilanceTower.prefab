@@ -89,6 +89,7 @@ GameObject:
   - component: {fileID: 6463073046476281759}
   - component: {fileID: -253211667668103946}
   - component: {fileID: 4195703189229428660}
+  - component: {fileID: -7606161913916660524}
   m_Layer: 0
   m_Name: VigilanceTower
   m_TagString: Player
@@ -275,6 +276,18 @@ MonoBehaviour:
   spriteMuyDanyado: {fileID: 1737112125, guid: d8732a14c35404342847692bc6e6e3d6, type: 3}
   healthyColor: {r: 0.37254903, g: 0.654902, b: 0.18431373, a: 1}
   criticalColor: {r: 0.77254903, g: 0.19607843, b: 0.16078432, a: 1}
+--- !u!114 &-7606161913916660524
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525862255766077723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 965d4c9cf641ef64e82e38189e36e310, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1715514226462267520
 GameObject:
   m_ObjectHideFlags: 0

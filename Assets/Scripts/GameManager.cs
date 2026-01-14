@@ -1,4 +1,3 @@
-// GameManager.cs
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
@@ -6,6 +5,12 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+
+    // --- NUEVO: CONFIGURACIÓN DE DERROTA ---
+    [Header("Condiciones de Derrota")]
+    public int costeMinimoParaJugar = 150; // El coste de tu unidad más barata
+    public bool baseDestruida = false;
+    // ---------------------------------------
 
     private List<IHealth> allUnits = new List<IHealth>();
     private bool gameOver = false;
@@ -16,7 +21,6 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
 
-            // Garantir que este GameObject é root antes de torná-lo persistente
             if (transform.parent != null)
                 transform.SetParent(null);
 
@@ -28,7 +32,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Método para registrar cualquier unidad que implemente IHealth
+    void Start()
+    {
+        // Comprobar nada más empezar por si la configuración inicial ya es de derrota
+        Invoke("CheckGameOver", 0.5f);
+    }
+
     public void RegisterUnit(IHealth unit)
     {
         if (!allUnits.Contains(unit))
@@ -38,7 +47,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Método para desregistrar una unidad
     public void UnregisterUnit(IHealth unit)
     {
         if (allUnits.Contains(unit))
@@ -51,29 +59,82 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Método para añadir nuevas unidades (alias para RegisterUnit)
     public void AddNewUnit(IHealth newUnit)
     {
         RegisterUnit(newUnit);
     }
 
+    // --- NUEVO: MÉTODO PARA CUANDO DESTRUYEN LA BASE ---
+    public void NotificarBaseDestruida()
+    {
+        baseDestruida = true;
+        CheckGameOver(); // Forzamos la comprobación inmediatamente
+    }
+    // ---------------------------------------------------
+
+    // --- NUEVO: MÉTODO PARA VERIFICAR DINERO (Llamado desde MoneyManager) ---
+    public void VerificarDineroTrasGasto()
+    {
+        CheckGameOver();
+    }
+    // ------------------------------------------------------------------------
+
     private void CheckGameOver()
     {
-        // Filtrar unidades muertas o nulas
+        // 1. Limpieza de lista (borrar muertos/nulos)
         allUnits.RemoveAll(unit => unit == null || unit.IsDead);
 
-        if (allUnits.Count == 0 && !gameOver)
+        if (gameOver) return;
+
+        // 2. SI LA BASE CAYÓ -> FIN DIRECTO
+        if (baseDestruida)
         {
-            gameOver = true;
-            Debug.Log("¡Todas las unidades han muerto! Fin del juego.");
-            Invoke("LoadGameOverScene", 1f);
+            Debug.Log("¡Base Principal destruida! Fin del juego.");
+            TriggerGameOver();
+            return;
+        }
+
+        // 3. CONTEO DISCRIMINADO
+        // Contamos solo las unidades que NO sean edificios.
+        int tropasDeCombate = 0;
+
+        foreach (var unit in allUnits)
+        {
+            if (unit != null && !unit.IsDead)
+            {
+                // TRUCO: Accedemos al transform para buscar el script marcador
+                // Si NO tiene el script "EsEdificio", entonces es un soldado/tanque.
+                if (unit.transform.GetComponent<EsEdificio>() == null)
+                {
+                    tropasDeCombate++;
+                }
+            }
+        }
+
+        // Consultamos el dinero
+        int dineroActual = MoneyManager.Instance != null ? MoneyManager.Instance.CurrentMoney : 0;
+
+        // Debug para verificar (opcional)
+        // Debug.Log($"Revisión -> Tropas Móviles: {tropasDeCombate} | Dinero: {dineroActual}");
+
+        // 4. CONDICIÓN DE DERROTA
+        // Si no quedan tropas de combate (aunque tengas 50 torretas) y no hay dinero...
+        if (tropasDeCombate == 0 && dineroActual < costeMinimoParaJugar)
+        {
+            Debug.Log("GAME OVER: Solo quedan edificios y no hay dinero para reclutar.");
+            TriggerGameOver();
         }
     }
 
-    // Obtener cantidad de unidades activas
+    // He separado la lógica de activar el fin del juego para reutilizarla
+    private void TriggerGameOver()
+    {
+        gameOver = true;
+        Invoke("LoadGameOverScene", 1f);
+    }
+
     public int GetActiveUnitsCount()
     {
-        // Filtrar solo unidades vivas
         int aliveCount = 0;
         foreach (var unit in allUnits)
         {
@@ -83,34 +144,29 @@ public class GameManager : MonoBehaviour
         return aliveCount;
     }
 
-    // Verificar si el juego ha terminado
     public bool IsGameOver()
     {
         return gameOver;
     }
 
-    // Cargar escena de Game Over
     private void LoadGameOverScene()
     {
         SoundColector.Instance?.PlayDefeatMusic();
-
-        SceneManager.LoadScene(9);
+        SceneManager.LoadScene(10);
     }
 
-    // Resetear el juego
     public void ResetGame()
     {
         allUnits.Clear();
         gameOver = false;
+        baseDestruida = false; // Reseteamos también esto
     }
 
-    // Método para obtener todas las unidades (útil para AI, etc.)
     public List<IHealth> GetAllUnits()
     {
         return new List<IHealth>(allUnits);
     }
 
-    // Método para obtener unidades por tipo (opcional)
     public List<T> GetUnitsByType<T>() where T : class, IHealth
     {
         List<T> result = new List<T>();
