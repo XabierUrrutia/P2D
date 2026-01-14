@@ -34,34 +34,45 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D hit)
     {
-        // DEBUG: Ver información de la colisión (Útil si sigue fallando algo)
-        // Debug.Log($"[Bullet] Colisión con: {hit.name}, Tag: {hit.tag}");
-
         // 1. BALA DEL JUGADOR - Golpea enemigos
         if (hit.CompareTag("Enemy") && !isEnemyBullet)
         {
-            // Tenta encontrar qualquer tipo de script de vida
+            // Tenta encontrar qualquer tipo de script de vida ANTIGUO
             var tutorialEnemy = hit.GetComponent<TutorialEnemyHealth>();
             var classicEnemy = hit.GetComponent<EnemyHealth>();
+
+            // NUEVO >>> Variable para el General
+            var generalEnemy = hit.GetComponent<EnemyGeneralHealth>();
 
             // También buscar en el padre si no está en el collider directo
             if (tutorialEnemy == null && hit.transform.parent != null)
                 tutorialEnemy = hit.transform.parent.GetComponent<TutorialEnemyHealth>();
+
             if (classicEnemy == null && hit.transform.parent != null)
                 classicEnemy = hit.transform.parent.GetComponent<EnemyHealth>();
 
+            // NUEVO >>> Buscar General en el padre
+            if (generalEnemy == null && hit.transform.parent != null)
+                generalEnemy = hit.transform.parent.GetComponent<EnemyGeneralHealth>();
+
+
             bool huboImpacto = false;
 
+            // Lógica de daño
             if (tutorialEnemy != null)
             {
-                // Debug.Log($"[Bullet] Atingiu inimigo '{hit.name}' (TutorialEnemyHealth)");
                 tutorialEnemy.TakeDamage(damage);
                 huboImpacto = true;
             }
             else if (classicEnemy != null)
             {
-                // Debug.Log($"[Bullet] Atingiu inimigo '{hit.name}' (EnemyHealth)");
                 classicEnemy.TakeDamage(damage);
+                huboImpacto = true;
+            }
+            // NUEVO >>> Bloque para hacer daño al General
+            else if (generalEnemy != null)
+            {
+                generalEnemy.TakeDamage(damage);
                 huboImpacto = true;
             }
             else
@@ -69,7 +80,7 @@ public class Bullet : MonoBehaviour
                 Debug.LogWarning($"[Bullet] '{hit.name}' no tiene script de vida reconocido!");
             }
 
-            // --- NUEVO: DAR EXPERIENCIA AL TIRADOR ---
+            // --- DAR EXPERIENCIA AL TIRADOR ---
             if (huboImpacto && ownerVeterancy != null)
             {
                 ownerVeterancy.GanarXP(xpPorGolpe);
@@ -140,10 +151,7 @@ public class Bullet : MonoBehaviour
             }
         }
 
-        // 3. DESTRUIR BALA CON OBSTÁCULOS (CORREGIDO EL ERROR DE TAGS)
-        // NOTA: Asegúrate de crear los Tags "Obstacle", "Wall" y "Terrain" en Unity para que esto funcione.
-        // Si Unity no encuentra el tag, dará error. Para evitar el error si te olvidas el tag, usamos try-catch o verificamos.
-        // Pero lo más limpio es simplemente tener los Tags creados.
+        // 3. DESTRUIR BALA CON OBSTÁCULOS
         try
         {
             if (hit.CompareTag("Obstacle") || hit.CompareTag("Wall") || hit.CompareTag("Terrain"))
@@ -154,9 +162,6 @@ public class Bullet : MonoBehaviour
         }
         catch (System.Exception)
         {
-            // Si entra aquí es porque olvidaste crear el Tag en el editor
-            // Debug.LogError("¡Falta un TAG en el Editor! Crea Obstacle, Wall y Terrain.");
-            // Destruimos la bala por seguridad si choca con algo "Untagged" que sea capa obstáculo
             if (hit.gameObject.layer == LayerMask.NameToLayer("Obstacle"))
             {
                 Destroy(gameObject);
