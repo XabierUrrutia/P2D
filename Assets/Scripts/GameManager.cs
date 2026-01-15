@@ -152,7 +152,7 @@ public class GameManager : MonoBehaviour
     private void LoadGameOverScene()
     {
         SoundColector.Instance?.PlayDefeatMusic();
-        SceneManager.LoadScene(10);
+        SceneManager.LoadScene(9);
     }
 
     public void ResetGame()
