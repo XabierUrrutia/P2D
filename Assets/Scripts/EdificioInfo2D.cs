@@ -18,10 +18,17 @@ public class EdificioInfo2D : MonoBehaviour
 
     private GameObject miTooltip;
     private Camera camara;
+    [Header("Cutscene Video (opcional)")]
+    [SerializeField] private VideoOverlayPlayer overlay;
+
+    [SerializeField] private float skipInputDelay = 0.15f;
+    private float skipBlockUntil = 0f;
+
 
     void Start()
     {
         camara = Camera.main;
+        if (!overlay) overlay = FindObjectOfType<VideoOverlayPlayer>();
 
         if (tooltipPrefab != null)
         {
@@ -126,7 +133,8 @@ public class EdificioInfo2D : MonoBehaviour
         if (MoneyManager.Instance != null)
             MoneyManager.Instance.ResetMoney();
 
-        SceneManager.LoadScene(nombreEscenaDestino);
+        if (overlay != null) overlay.PlayDefaultAndLoadAsync(nombreEscenaDestino);
+        else SceneManager.LoadScene(nombreEscenaDestino);
     }
 
     void ShowLockedTooltip()
