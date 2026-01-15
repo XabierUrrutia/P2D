@@ -1062,7 +1062,6 @@ MonoBehaviour:
   atrasIzquierda_R: {fileID: 1471641444, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   atrasIzquierda_Idle: {fileID: 1471641444, guid: b855fa8ba99e79642881a66b53658cb1, type: 3}
   prefabMarcadorClick: {fileID: 3122627236748015639, guid: c917403c9642cfb489362c271e9600d3, type: 3}
-  indicadorSeleccion: {fileID: 0}
 --- !u!212 &1337135939285130247
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1161,7 +1160,9 @@ MonoBehaviour:
   shootingSpriteDuration: 0.3
   aimingSpriteDuration: 0.2
   shootingDelay: 0.1
+  reloadTime: 2
   flipSpriteBasedOnDirection: 1
+  currentAmmo: 0
 --- !u!114 &9170590893412081567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1176,7 +1177,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   healthBar: {fileID: 3575284267761898804}
-  healthBarOffset: {x: 0, y: 1, z: 0}
+  healthBarOffset: {x: 0, y: 1.77, z: 0}
   showHealthBarTime: 3
   deathDelay: 0.5
   disableMovementOnDeath: 1
@@ -1207,7 +1208,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73269feb874781e4f9753527d15f0308, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectionRange: 5
+  detectionRange: -18.33
 --- !u!114 &5626338546837467521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1222,7 +1223,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isPlayerUnit: 1
   arrowPrefab: {fileID: 4213472074308672191, guid: 5999944d52fa9254aab796a5ad316501, type: 3}
-  arrowLocalOffset: {x: 0, y: 0, z: 0}
+  arrowLocalOffset: {x: 0, y: 0.8, z: 0}
 --- !u!1 &6355712486640867489
 GameObject:
   m_ObjectHideFlags: 0
