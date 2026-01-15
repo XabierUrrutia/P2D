@@ -5,6 +5,12 @@ public static class GameEvents
     public static event Action<int> OnUnitsSelected;
     public static void RaiseUnitsSelected(int unitCount) => OnUnitsSelected?.Invoke(unitCount);
 
+    public static event Action<int, int> OnUnitsMoveCommand;
+    public static void RaiseUnitsMoveCommand(int infantryCount, int tankCount) => OnUnitsMoveCommand?.Invoke(infantryCount, tankCount);
+
+    public static event Action<int, int> OnUnitsAttackCommand;
+    public static void RaiseUnitsAttackCommand(int infantryCount, int tankCount) => OnUnitsAttackCommand?.Invoke(infantryCount, tankCount);
+
     public static event Action<int, int, int> OnUnitEasterEgg;
     public static void RaiseUnitEasterEgg(int eggIndex, int infantryCount, int tankCount)=> OnUnitEasterEgg?.Invoke(eggIndex, infantryCount, tankCount);
 

@@ -19,6 +19,9 @@ public class UnitSelectionManager : MonoBehaviour
     public float intervaloMinSomMovimiento = 0.15f;
     private float ultimoSomMovimientoTime = -999f;
 
+    [Header("Click Direito (Mover/Atacar)")]
+    public LayerMask capaAlvosAtaque;
+
     // Variables internas
     private Vector3 inicioArrastre;
     private Vector3 finArrastre;
@@ -182,7 +185,8 @@ public class UnitSelectionManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1) && unidadesSeleccionadas.Count > 0)
         {
-            Vector3 destino = cam.ScreenToWorldPoint(Input.mousePosition);
+            
+        Vector3 destino = cam.ScreenToWorldPoint(Input.mousePosition);
             destino.z = 0;
 
             // Calculamos formaciones

@@ -469,23 +469,20 @@ public class SoundColector : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.OnUnitsSelected += HandleUnitsSelected;
-
         GameEvents.OnUnitEasterEgg += HandleUnitEasterEgg;
-
+        GameEvents.OnUnitsMoveCommand += HandleUnitsMoveCommand;
+        GameEvents.OnUnitsAttackCommand += HandleUnitsAttackCommand;
         GameEvents.OnBaseUnderAttack += HandleBaseUnderAttack;
         GameEvents.OnLowResources += HandleLowResources;
         GameEvents.OnUnitUnderAttack += HandleUnitUnderAttack;
-
         GameEvents.OnBuildingSelected += HandleBuildingSelected;
         GameEvents.OnBuildingCaptured += HandleBuildingCaptured;
         GameEvents.OnBuildingLost += HandleBuildingLost;
         GameEvents.OnBuildingCaptureStarted += HandleBuildingCaptureStarted;
         GameEvents.OnBuildingCaptureCompleted += HandleBuildingCaptureCompleted;
         GameEvents.OnBuildingCaptureFailed += HandleBuildingCaptureFailed;
-
         GameEvents.OnMedikitPickedUp += HandleMedikitPickedUp;
         GameEvents.OnUnitUpgraded += HandleUnitUpgraded;
-
         GameEvents.OnTechLevelUp += HandleTechLevelUp;
         GameEvents.OnInsufficientResources += HandleInsufficientResources;
         GameEvents.OnInvalidCommand += HandleInvalidCommand;
@@ -494,24 +491,20 @@ public class SoundColector : MonoBehaviour
     private void OnDisable()
     {
         GameEvents.OnUnitsSelected -= HandleUnitsSelected;
-
         GameEvents.OnUnitEasterEgg -= HandleUnitEasterEgg;
-
-
+        GameEvents.OnUnitsMoveCommand -= HandleUnitsMoveCommand;
+        GameEvents.OnUnitsAttackCommand -= HandleUnitsAttackCommand;
         GameEvents.OnBaseUnderAttack -= HandleBaseUnderAttack;
         GameEvents.OnLowResources -= HandleLowResources;
         GameEvents.OnUnitUnderAttack -= HandleUnitUnderAttack;
-
         GameEvents.OnBuildingSelected -= HandleBuildingSelected;
         GameEvents.OnBuildingCaptured -= HandleBuildingCaptured;
         GameEvents.OnBuildingLost -= HandleBuildingLost;
         GameEvents.OnBuildingCaptureStarted -= HandleBuildingCaptureStarted;
         GameEvents.OnBuildingCaptureCompleted -= HandleBuildingCaptureCompleted;
         GameEvents.OnBuildingCaptureFailed -= HandleBuildingCaptureFailed;
-
         GameEvents.OnMedikitPickedUp -= HandleMedikitPickedUp;
         GameEvents.OnUnitUpgraded -= HandleUnitUpgraded;
-
         GameEvents.OnTechLevelUp -= HandleTechLevelUp;
         GameEvents.OnInsufficientResources -= HandleInsufficientResources;
         GameEvents.OnInvalidCommand -= HandleInvalidCommand;
@@ -1682,7 +1675,7 @@ public class SoundColector : MonoBehaviour
         PlayUnitSelectionVoice(count);
     }
 
-    private void HandleUnitEasterEgg(int eggIndex, int infantryCount, int tankCount)
+        private void HandleUnitEasterEgg(int eggIndex, int infantryCount, int tankCount)
     {
         var gender = GetUnitGenderForThisVoice();
 
@@ -1694,6 +1687,16 @@ public class SoundColector : MonoBehaviour
 
         PlayIndexedUnitEasterEgg(set, eggIndex, gender);
     }
+
+    private void HandleUnitsMoveCommand(int infantryCount, int tankCount)
+{
+        PlayUnitMoveVoice(infantryCount, tankCount);
+}
+
+    private void HandleUnitsAttackCommand(int infantryCount, int tankCount)
+{
+        PlayUnitAttackVoice(infantryCount, tankCount);
+}
 
     private void PlayIndexedUnitEasterEgg(LocalizedBalancedVoiceSet set, int eggIndex, VoiceGender gender)
     {

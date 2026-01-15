@@ -111,11 +111,11 @@ public class TankHealth : MonoBehaviour, IHealth
         if (isDead) return;
         isDead = true;
 
-        /* 1. Sonido (Usando tu sistema SoundColector)
+        // 1. SFX morte do tanque (SFX-TankDeathClips)
         if (SoundColector.Instance != null)
         {
-            SoundColector.Instance.PlayTankDeath();
-        }*/
+            SoundColector.Instance.PlayTankDeathAt(transform.position);
+        }
 
         // 2. Efecto visual (Tu explosión original)
         if (explosionPrefab != null)
